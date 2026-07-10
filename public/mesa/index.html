@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mesa</title>
+</head>
+
+<body>
+
+<h1 id="tituloMesa"></h1>
+
+<button onclick="llamar()">
+Llamar siguiente turno  
+</button>
+
+<br><br>
+
+<button onclick="finalizar()">
+Finalizar atención
+</button>
+
+<div id="resultado"></div>
+
+<script>
+
+const numeroMesa =
+    window.location.pathname.split("/").pop();
+
+document.getElementById("tituloMesa")
+    .innerHTML =
+    "Mesa " + numeroMesa;
+
+let turnoActual = null;
+
+async function llamar(){
+
+    const response =
+        await fetch("/api/llamar",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                mesa:Number(numeroMesa)
+            })
+
+        });
+
+    const data =
+        await response.json();
+
+    if(data.success){
+
+        document.getElementById(
+            "resultado"
+        ).innerHTML =
+            data.codigo;
+
+        turnoActual = data.id;
+
+    }
+
+}
+
+async function finalizar(){
+
+    if(!turnoActual){
+
+        alert("No hay turno en atención");
+
+        return;
+
+    }
+
+    const response = await fetch("/api/finalizar",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            id:turnoActual
+        })
+
+    });
+
+    const data = await response.json();
+
+    if(data.success){
+
+        turnoActual = null;
+
+        document.getElementById("resultado").innerHTML =
+            "Mesa libre";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>

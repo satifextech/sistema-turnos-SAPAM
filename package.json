@@ -1,7 +1,7 @@
 {
   "name": "sistematurnos",
   "version": "1.0.0",
-  "main": "index.js",
+  "main":"server/server.js",
   "scripts": {
   "start": "node server/server.js",
   "dev": "nodemon server/server.js"

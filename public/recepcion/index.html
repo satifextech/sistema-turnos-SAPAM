@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Recepción</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    padding:30px;
+}
+
+button{
+    padding:15px;
+    margin:10px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#resultado{
+    margin-top:20px;
+    font-size:30px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+<body>
+
+<h1>Recepción</h1>
+
+<button onclick="generarTurno('CONSUMO')">
+    Consumo Alto
+</button>
+
+<button onclick="generarTurno('AFOROS')">
+    Aforos
+</button>
+
+<button onclick="generarTurno('ABONOS')">
+    Abonos
+</button>
+
+<button onclick="generarTurno('CONTRATO1')">
+    Contratos - Etapa 1
+</button>
+
+<button onclick="generarTurno('CONTRATO2')">
+    Contratos - Etapa 2
+</button>
+
+<button onclick="generarTurno('RECONEXIONES')">
+    Reconexiones
+</button>
+
+<button onclick="generarTurno('SUSPENSION')">
+    Suspensión Voluntaria
+</button>
+
+<button onclick="generarTurno('INSEN')">
+    INSEN
+</button>
+
+<button onclick="generarTurno('GIRO')">
+    Giro de Tarifa
+</button>
+
+<div id="resultado"></div>
+
+<script>
+
+async function generarTurno(tramite){
+
+    const response = await fetch("/api/turno",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            tramite
+        })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("resultado").innerHTML =
+        "Turno generado: " + data.codigo;
+}
+
+</script>
+
+</body>
+</html>

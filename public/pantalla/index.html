@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pantalla Turnos</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#6A0F20;
+    color:#222;
+    overflow:hidden;
+}
+
+.pantalla{
+    width:100vw;
+    height:100vh;
+    display:grid;
+    grid-template-rows:minmax(0, 74fr) minmax(0, 26fr);
+    padding:18px;
+    gap:18px;
+    overflow:hidden;
+}
+
+.zona-superior{
+    display:grid;
+    grid-template-columns:minmax(0, 72fr) minmax(0, 28fr);
+    gap:18px;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+}
+
+.panel-derecho{
+    display:grid;
+    grid-template-rows:minmax(0, 13fr) minmax(0, 64fr) minmax(0, 18fr);
+    gap:14px;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+}
+
+.tarjeta{
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.28);
+    overflow:hidden;
+    min-width:0;
+    min-height:0;
+}
+
+.reloj{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:#6A0F20;
+}
+
+#hora{
+    font-size:42px;
+    font-weight:bold;
+}
+
+#fecha{
+    font-size:22px;
+}
+
+.ultimos{
+    padding:18px;
+    min-height:0;
+    overflow:hidden;
+}
+
+.ultimos h2{
+    margin:0 0 18px 0;
+    text-align:center;
+    font-size:30px;
+    color:#6A0F20;
+}
+
+#lista{
+    font-size:30px;
+    line-height:1.45;
+    text-align:center;
+    font-weight:bold;
+    max-height:calc(100% - 55px);
+    overflow:hidden;
+}
+
+.logo-box{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:8px;
+    min-height:0;
+    overflow:hidden;
+}
+
+.logo-box img{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:88%;
+    max-height:88%;
+    object-fit:contain;
+}
+
+.zona-inferior{
+    display:grid;
+    grid-template-columns:minmax(0, 68fr) minmax(0, 32fr);
+    gap:18px;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+}
+
+.turno-actual,
+.mesa-actual{
+    background:#fff;
+    border-radius:26px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.35);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+}
+
+.titulo{
+    font-size:26px;
+    color:#6A0F20;
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+#turno,
+#mesa{
+    max-width:100%;
+    white-space:nowrap;
+    line-height:1;
+}
+
+#turno{
+    font-size:85px;
+    font-weight:bold;
+    color:#8C1C32;
+}
+
+#mesa{
+    font-size:75px;
+    font-weight:bold;
+    color:#8C1C32;
+}
+
+.resaltar{
+    animation: brillo 1.2s ease;
+}
+
+@keyframes brillo{
+    0%{
+        outline:0 solid rgba(212,175,55,0);
+        box-shadow:0 8px 25px rgba(0,0,0,0.35);
+    }
+
+    50%{
+        outline:7px solid rgba(212,175,55,0.95);
+        outline-offset:-7px;
+        box-shadow:0 0 35px rgba(212,175,55,0.85);
+    }
+
+    100%{
+        outline:0 solid rgba(212,175,55,0);
+        box-shadow:0 8px 25px rgba(0,0,0,0.35);
+    }
+}
+
+.video-box{
+    position:relative;
+    width:100%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+    background:#111;
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,0.35);
+}
+
+.video-box video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.video-box::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0);
+    transition:background 0.4s ease;
+    pointer-events:none;
+}
+
+.video-box.oscuro::after{
+    background:rgba(0,0,0,0.55);
+}
+
+.overlay-turno{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%) scale(0.85);
+    background:rgba(106,15,32,0.95);
+    color:white;
+    border:4px solid #D4AF37;
+    border-radius:28px;
+    padding:35px 70px;
+    text-align:center;
+    opacity:0;
+    z-index:5;
+    box-shadow:0 0 45px rgba(212,175,55,0.75);
+    transition:all 0.4s ease;
+    pointer-events:none;
+    .overlay-turno{
+    max-width:80%;
+    max-height:80%;
+}
+}
+
+.overlay-turno.activo{
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+}
+
+.overlay-titulo{
+    font-size:42px;
+    letter-spacing:5px;
+    font-weight:bold;
+}
+
+.overlay-codigo{
+    font-size:120px;
+    font-weight:bold;
+    margin:10px 0;
+}
+
+.overlay-mesa{
+    font-size:58px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="pantalla">
+
+    <div class="zona-superior">
+
+        <div class="video-box" id="videoBox">
+
+            <video
+                id="videoPublicidad"
+                autoplay
+                playsinline>
+
+                <source
+                    src="/assets/videos/video1.mp4"
+                    type="video/mp4">
+
+            </video>
+
+            <div class="overlay-turno" id="overlayTurno">
+                <div class="overlay-titulo">TURNO</div>
+                <div class="overlay-codigo" id="overlayCodigo">---</div>
+                <div class="overlay-mesa" id="overlayMesa">MESA ---</div>
+            </div>
+
+        </div>
+
+        <div class="panel-derecho">
+
+            <div class="tarjeta reloj">
+                <div id="hora">--:--</div>
+                <div id="fecha">--/--/----</div>
+            </div>
+
+            <div class="tarjeta ultimos">
+                <h2>Últimos turnos</h2>
+                <div id="lista"></div>
+            </div>
+
+            <div class="tarjeta logo-box">
+                <img src="/assets/iconos/sapam.png" alt="SAPAM">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="zona-inferior">
+
+        <div class="turno-actual" id="tarjetaTurno">
+            <div class="titulo">TURNO ACTUAL</div>
+            <div id="turno">---</div>
+        </div>
+
+        <div class="mesa-actual" id="tarjetaMesa">
+            <div class="titulo">MESA</div>
+            <div id="mesa">---</div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const socket = io();
+
+const lista = [];
+
+const sonido = new Audio("/assets/sonidos/ding.mp3");
+
+sonido.volume = 1;
+
+document.addEventListener("click", () => {
+    sonido.play().then(() => {
+        sonido.pause();
+        sonido.currentTime = 0;
+    }).catch(() => {});
+
+    reproductor.muted = false;
+    reproductor.volume = 0.35;
+    reproductor.play();
+
+}, { once:true });
+
+const colaAnuncios = [];
+let anunciando = false;
+
+function obtenerNombreTramite(codigo){
+
+    const mapa = {
+        CA: "Consumo Alto",
+        AF: "Aforos",
+        AB: "Abonos",
+        C1: "Contratos Etapa Uno",
+        C2: "Contratos Etapa Dos",
+        RE: "Reconexiones",
+        SU: "Suspensión Voluntaria",
+        IN: "INSEN",
+        GT: "Giro de Tarifa"
+    };
+
+    const prefijo =
+        Object.keys(mapa).find(p => codigo.startsWith(p));
+
+    return mapa[prefijo] || "Turno";
+
+}
+
+function obtenerPrefijo(codigo){
+
+    const prefijos = ["CA","AF","AB","C1","C2","RE","SU","IN","GT"];
+
+    return prefijos.find(p => codigo.startsWith(p)) || "";
+
+}
+
+function formatearPrefijo(prefijo){
+
+    return prefijo.split("").join(" ");
+
+}
+
+function obtenerNumeroTurno(codigo){
+
+    const prefijo = obtenerPrefijo(codigo);
+
+    return codigo.replace(prefijo, "");
+
+}
+
+function formatearNumero(numero){
+
+    return numero.split("").join(" ");
+
+}
+
+function hablar(texto){
+
+    return new Promise((resolve)=>{
+
+        const voz = new SpeechSynthesisUtterance(texto);
+
+        voz.lang = "es-MX";
+        voz.rate = 0.92;
+        voz.pitch = 1;
+
+        voz.onend = resolve;
+        voz.onerror = resolve;
+
+        speechSynthesis.speak(voz);
+
+    });
+
+}
+
+function esperar(ms){
+
+    return new Promise(resolve => setTimeout(resolve, ms));
+
+}
+
+function actualizarPantallaTurno(data){
+
+    document.getElementById("turno").innerHTML =
+        data.codigo;
+
+    document.getElementById("mesa").innerHTML =
+        "Mesa " + data.mesa;
+
+    lista.unshift(
+        `${data.codigo} → Mesa ${data.mesa}`
+    );
+
+    if(lista.length > 5){
+        lista.pop();
+    }
+
+    document.getElementById("lista").innerHTML =
+        lista.join("<br>");
+
+    const tarjetaTurno =
+        document.getElementById("tarjetaTurno");
+
+    const tarjetaMesa =
+        document.getElementById("tarjetaMesa");
+
+    tarjetaTurno.classList.remove("resaltar");
+    tarjetaMesa.classList.remove("resaltar");
+
+    void tarjetaTurno.offsetWidth;
+    void tarjetaMesa.offsetWidth;
+
+    tarjetaTurno.classList.add("resaltar");
+    tarjetaMesa.classList.add("resaltar");
+
+    setTimeout(()=>{
+
+        tarjetaTurno.classList.remove("resaltar");
+        tarjetaMesa.classList.remove("resaltar");
+
+    }, 1300);
+
+}
+
+async function procesarColaAnuncios(){
+
+    if(anunciando){
+        return;
+    }
+
+    anunciando = true;
+
+    while(colaAnuncios.length > 0){
+
+        const data = colaAnuncios.shift();
+
+        // El turno cambia solamente cuando empieza su anuncio
+        actualizarPantallaTurno(data);
+
+        // Mostrar recuadro y bajar volumen del video
+        mostrarOverlayTurno(data);
+
+        sonido.currentTime = 0;
+
+        await sonido.play().catch(error => {
+            console.log(
+                "No se pudo reproducir el sonido:",
+                error
+            );
+        });
+
+        // Esperar a que termine el ding de 2 segundos
+        await esperar(2200);
+
+        const tramite =
+            obtenerNombreTramite(data.codigo);
+
+        const prefijo =
+            obtenerPrefijo(data.codigo);
+
+        const numero =
+            obtenerNumeroTurno(data.codigo);
+
+        // Esperar hasta que la voz termine completamente
+        await hablar(
+            `Turno ${tramite}. ` +
+            `${formatearPrefijo(prefijo)} ${numero}. ` +
+            `Favor de pasar a la mesa ${data.mesa}.`
+        );
+
+        // Mantener el turno visible 2 segundos más
+        await esperar(2000);
+
+        // Ocultar recuadro y recuperar audio del video
+        ocultarOverlayTurno();
+
+    }
+
+    anunciando = false;
+
+}
+
+function agregarAnuncio(data){
+
+    colaAnuncios.push(data);
+
+    procesarColaAnuncios();
+
+}
+
+const videos = [
+
+    "/assets/videos/video1.mp4",
+    "/assets/videos/video2.mp4",
+    "/assets/videos/video3.mp4",
+    "/assets/videos/video4.mp4",
+    "/assets/videos/video5.mp4"
+
+];
+
+let videoActual = 0;
+
+const reproductor =
+    document.getElementById("videoPublicidad");
+    reproductor.volume = 0.35;
+
+reproductor.addEventListener("ended", ()=>{
+
+    videoActual++;
+
+    if(videoActual >= videos.length){
+
+        videoActual = 0;
+
+    }
+
+    reproductor.src =
+        videos[videoActual];
+
+    reproductor.play();
+
+});
+
+function mostrarOverlayTurno(data){
+
+    const videoBox =
+        document.getElementById("videoBox");
+
+    const overlay =
+        document.getElementById("overlayTurno");
+
+    document.getElementById("overlayCodigo").innerHTML =
+        data.codigo;
+
+    document.getElementById("overlayMesa").innerHTML =
+        "MESA " + data.mesa;
+
+    reproductor.volume = 0.08;
+
+    videoBox.classList.add("oscuro");
+    overlay.classList.add("activo");
+
+}
+
+function ocultarOverlayTurno(){
+
+    const videoBox =
+        document.getElementById("videoBox");
+
+    const overlay =
+        document.getElementById("overlayTurno");
+
+    overlay.classList.remove("activo");
+    videoBox.classList.remove("oscuro");
+
+    reproductor.volume = 0.35;
+
+}
+
+function actualizarReloj(){
+
+    const ahora = new Date();
+
+    document.getElementById("hora").innerHTML =
+        ahora.toLocaleTimeString("es-MX", {
+            hour:"2-digit",
+            minute:"2-digit"
+        });
+
+    document.getElementById("fecha").innerHTML =
+        ahora.toLocaleDateString("es-MX", {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+        });
+
+}
+
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+
+socket.on("nuevoTurno", (data)=>{
+
+    agregarAnuncio(data);
+
+});
+
+</script>
+
+</body>
+</html>
