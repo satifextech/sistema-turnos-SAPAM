@@ -464,6 +464,14 @@ body{
 
         </button>
 
+        <button
+            class="boton-admin"
+            onclick="cerrarSesion()">
+
+            Cerrar sesión
+
+        </button>
+
     </div>
 
 </header>
@@ -1138,9 +1146,73 @@ async function cargarResumen(){
 
 }
 
+async function revisarUsuario(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/sesion",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(!response.ok){
+
+            window.location.href =
+                "/login?destino=recepcion";
+
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        const botonAdmin =
+            document.querySelector(
+                ".boton-admin"
+            );
+
+        if(
+            botonAdmin
+            && data.rol !== "admin"
+        ){
+
+            botonAdmin.style.display =
+                "none";
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        window.location.href =
+            "/login?destino=recepcion";
+
+    }
+
+}
+
+async function cerrarSesion(){
+
+    await fetch(
+        "/api/logout",
+        {
+            method:"POST"
+        }
+    );
+
+    window.location.href =
+        "/login";
+
+}
 
 actualizarReloj();
 cargarResumen();
+revisarUsuario();
 
 setInterval(actualizarReloj, 1000);
 setInterval(cargarResumen, 5000);

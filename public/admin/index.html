@@ -464,6 +464,16 @@ body{
     min-height:104px;
 }
 
+.boton-salir{
+    background:white;
+    color:#6A0F20;
+}
+
+.boton-contraseña{
+    background:#6A0F20;
+    color:white;
+}
+
 @media(max-width:900px){
 
     .resumen-respaldos{
@@ -524,7 +534,7 @@ body{
         </button>
 
         <button
-            class="boton-admin boton-liberar"
+            class="boton-admin solo-admin boton-liberar"
             onclick="liberarMesas()">
 
             Liberar mesas
@@ -532,7 +542,7 @@ body{
         </button>
 
         <button
-            class="boton-admin boton-cerrar"
+            class="boton-admin solo-admin boton-cerrar"
             onclick="cerrarJornada()">
 
             Cerrar jornada
@@ -540,10 +550,26 @@ body{
         </button>
 
         <button
-            class="boton-admin boton-reiniciar"
+            class="boton-admin solo-admin boton-reiniciar"
             onclick="reiniciarFolios()">
 
             Reiniciar folios
+
+        </button>
+
+        <button
+            class="boton-admin boton-salir"
+            onclick="cerrarSesion()">
+
+            Cerrar sesión
+
+        </button>
+
+        <button
+            class="boton-admin solo-admin boton-contraseña"
+            onclick="cambiarContraseña()">
+
+            Cambiar contraseña
 
         </button>
 
@@ -627,7 +653,7 @@ body{
 
             <button
                 id="btnCrearRespaldo"
-                class="boton-admin boton-respaldo"
+                class="boton-admin solo-admin boton-respaldo"
                 onclick="crearRespaldo()">
 
                 Crear respaldo ahora
@@ -690,7 +716,7 @@ body{
         </select>
 
         <button
-            class="boton-admin boton-eliminar-respaldos"
+            class="boton-admin solo-admin boton-eliminar-respaldos"
             onclick="eliminarRespaldosAntiguos()">
 
             Eliminar respaldos antiguos
@@ -1342,9 +1368,144 @@ async function eliminarRespaldosAntiguos(){
 
 }
 
+async function cerrarSesion(){
+
+    await fetch("/api/logout", {
+        method:"POST"
+    });
+
+    window.location.href =
+        "/login";
+
+}
+
+async function cambiarContraseña(){
+
+    const actual =
+        prompt("Escribe tu contraseña actual:");
+
+    if(actual === null){
+        return;
+    }
+
+    const nueva =
+        prompt(
+            "Escribe la nueva contraseña.\n"
+            + "Debe tener al menos 8 caracteres:"
+        );
+
+    if(nueva === null){
+        return;
+    }
+
+    const confirmar =
+        prompt("Vuelve a escribir la nueva contraseña:");
+
+    if(confirmar !== nueva){
+
+        alert("Las contraseñas no coinciden.");
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/cambiar-contrasena",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        actual,
+                        nueva
+                    })
+                }
+            );
+
+        const tipoContenido =
+            response.headers.get("content-type") || "";
+
+        if(!tipoContenido.includes("application/json")){
+
+            const respuestaTexto =
+                await response.text();
+
+            console.error(
+                "El servidor respondió algo distinto de JSON:",
+                respuestaTexto
+            );
+
+            throw new Error(
+                "La ruta para cambiar la contraseña no está disponible. Reinicia el servidor."
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        alert(data.mensaje);
+
+    }catch(error){
+
+        console.error(error);
+        alert(error.message);
+
+    }
+
+}
+
+async function aplicarPermisosUsuario(){
+
+    try{
+
+        const response =
+            await fetch("/api/sesion", {
+                cache:"no-store"
+            });
+
+        if(!response.ok){
+
+            window.location.href = "/login";
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        if(data.rol === "supervisor"){
+
+            document.querySelectorAll(
+                ".solo-admin"
+            ).forEach(elemento => {
+
+                elemento.style.display = "none";
+
+            });
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Error al consultar permisos:",
+            error
+        );
+
+    }
+
+}
+
 actualizarReloj();
 cargarPanel();
 cargarRespaldos();
+aplicarPermisosUsuario();
 
 setInterval(cargarRespaldos, 30000);
 setInterval(actualizarReloj, 1000);

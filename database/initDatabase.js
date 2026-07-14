@@ -1,4 +1,5 @@
 const db = require("./db");
+const bcrypt = require("bcrypt");
 
 db.serialize(() => {
 
@@ -41,6 +42,17 @@ db.serialize(() => {
         )
     `);
 
+    db.run(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT NOT NULL UNIQUE,
+            contraseña TEXT NOT NULL,
+            rol TEXT NOT NULL DEFAULT 'admin',
+            activo INTEGER NOT NULL DEFAULT 1,
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
     for(let numero = 1; numero <= 5; numero++){
 
         db.run(
@@ -78,6 +90,69 @@ db.serialize(() => {
         );
 
     }
+
+    const contraseñaAdmin =
+        bcrypt.hashSync("SAPAM2026", 12);
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO usuarios
+        (
+            usuario,
+            contraseña,
+            rol,
+            activo
+        )
+        VALUES (?, ?, ?, 1)
+        `,
+        [
+            "admin",
+            contraseñaAdmin,
+            "admin"
+        ]
+    );
+
+    const contraseñaRecepcion =
+        bcrypt.hashSync("Recepcion2026", 12);
+
+    const contraseñaSupervisor =
+        bcrypt.hashSync("Supervisor2026", 12);
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO usuarios
+        (
+            usuario,
+            contraseña,
+            rol,
+            activo
+        )
+        VALUES (?, ?, ?, 1)
+        `,
+        [
+            "recepcion",
+            contraseñaRecepcion,
+            "recepcion"
+        ]
+    );
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO usuarios
+        (
+            usuario,
+            contraseña,
+            rol,
+            activo
+        )
+        VALUES (?, ?, ?, 1)
+        `,
+        [
+            "supervisor",
+            contraseñaSupervisor,
+            "supervisor"
+        ]
+    );
 
     console.log("Tablas creadas");
 

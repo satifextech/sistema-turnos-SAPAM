@@ -8,10 +8,120 @@ const path = require("path");
 const gestorTurnos = require("../services/gestorTurnos");
 const gestorMesa = require("../services/gestorMesa");
 const gestorRespaldos = require("../services/gestorRespaldos");
+const crypto = require("crypto");
+const gestorUsuarios = require("../services/gestorUsuarios");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
+const sesiones = new Map();
+
 app.use(express.json());
+
+function leerCookies(req){
+
+    const encabezado =
+        req.headers.cookie || "";
+
+    const cookies = {};
+
+    encabezado
+        .split(";")
+        .map(valor => valor.trim())
+        .filter(Boolean)
+        .forEach(par => {
+
+            const posicion =
+                par.indexOf("=");
+
+            if(posicion === -1){
+                return;
+            }
+
+            const nombre =
+                par.slice(0, posicion);
+
+            const valor =
+                par.slice(posicion + 1);
+
+            cookies[nombre] =
+                decodeURIComponent(valor);
+
+        });
+
+    return cookies;
+
+}
+
+
+function obtenerSesion(req){
+
+    const cookies =
+        leerCookies(req);
+
+    const token =
+        cookies.sapam_session;
+
+    if(!token){
+        return null;
+    }
+
+    return sesiones.get(token) || null;
+
+}
+
+
+function requerirAdmin(req, res, next){
+
+    const sesion =
+        obtenerSesion(req);
+
+    if(
+        !sesion
+        || sesion.rol !== "admin"
+    ){
+
+        return res.status(401).json({
+            success:false,
+            mensaje:"Sesión no válida"
+        });
+
+    }
+
+    req.sesion = sesion;
+
+    next();
+
+}
+
+function requerirRoles(...rolesPermitidos){
+
+    return (req, res, next)=>{
+
+        const sesion =
+            obtenerSesion(req);
+
+        if(
+            !sesion
+            || !rolesPermitidos.includes(
+                sesion.rol
+            )
+        ){
+
+            return res.status(401).json({
+                success:false,
+                mensaje:"No tienes permiso para realizar esta acción"
+            });
+
+        }
+
+        req.sesion = sesion;
+
+        next();
+
+    };
+
+}
 
 app.use(turnoRoutes);
 
@@ -19,7 +129,16 @@ const server = http.createServer(app);
 
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "../public")));
+app.get("/login", (req,res)=>{
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "../public/login/index.html"
+        )
+    );
+
+});
 
 app.get("/mesa/:numero", (req,res)=>{
 
@@ -34,16 +153,38 @@ app.get("/mesa/:numero", (req,res)=>{
 
 app.get("/admin", (req,res)=>{
 
-    res.sendFile(
+    const sesion =
+        obtenerSesion(req);
 
+    if(
+        !sesion
+        || ![
+            "admin",
+            "supervisor"
+        ].includes(sesion.rol)
+    ){
+
+        return res.redirect("/login");
+
+    }
+
+    res.sendFile(
         path.join(
             __dirname,
             "../public/admin/index.html"
         )
-
     );
 
 });
+
+app.use(
+    express.static(
+        path.join(__dirname, "../public"),
+        {
+            index:false
+        }
+    )
+);
 
 io.on("connection", (socket) => {
 
@@ -196,7 +337,7 @@ app.get("/api/estadisticas", async (req,res)=>{
 
 });
 
-app.get("/api/admin/resumen", async (req,res)=>{
+app.get("/api/admin/resumen", requerirRoles("admin", "supervisor"), async (req,res)=>{
 
     try{
 
@@ -285,7 +426,7 @@ app.get("/api/mesa/:numero/actual", async (req, res) => {
 
 });
 
-app.get("/api/admin/exportar-csv", async (req, res)=>{
+app.get("/api/admin/exportar-csv", requerirRoles("admin", "supervisor"), async (req, res)=>{
 
     try{
 
@@ -373,7 +514,7 @@ app.get("/api/admin/exportar-csv", async (req, res)=>{
 
 });
 
-app.post("/api/admin/liberar-mesas", async (req, res)=>{
+app.post("/api/admin/liberar-mesas", requerirAdmin, async (req, res)=>{
 
     try{
 
@@ -404,7 +545,8 @@ app.post("/api/admin/liberar-mesas", async (req, res)=>{
 });
 
 app.post(
-    "/api/admin/cerrar-jornada",
+    "/api/admin/cerrar-jornada", 
+    requerirAdmin,
     async (req, res)=>{
 
         try{
@@ -610,6 +752,7 @@ app.get(
 
 app.post(
     "/api/admin/reiniciar-folios",
+    requerirAdmin,
     async (req, res)=>{
 
         try{
@@ -641,7 +784,7 @@ app.post(
     }
 );
 
-app.get("/api/admin/respaldos", async (req, res)=>{
+app.get("/api/admin/respaldos", requerirRoles("admin", "supervisor"), async (req, res)=>{
 
     try{
 
@@ -672,6 +815,7 @@ app.get("/api/admin/respaldos", async (req, res)=>{
 
 app.post(
     "/api/admin/crear-respaldo",
+    requerirAdmin,
     async (req, res)=>{
 
         try{
@@ -715,6 +859,7 @@ app.post(
 
 app.post(
     "/api/admin/eliminar-respaldos-antiguos",
+    requerirAdmin,
     async (req, res)=>{
 
         const dias =
@@ -761,6 +906,242 @@ app.post(
 
     }
 );
+
+app.post("/api/login", async (req, res)=>{
+
+    const usuario =
+        String(req.body.usuario || "")
+            .trim();
+
+    const contraseña =
+        String(req.body.contraseña || "");
+
+    if(!usuario || !contraseña){
+
+        return res.status(400).json({
+            success:false,
+            mensaje:"Completa usuario y contraseña"
+        });
+
+    }
+
+    try{
+
+        const encontrado =
+            await gestorUsuarios
+                .buscarPorUsuario(usuario);
+
+        const contraseñaCorrecta =
+            encontrado
+                ? await bcrypt.compare(
+                    contraseña,
+                    encontrado.contraseña
+                )
+                : false;
+
+        if(
+            !encontrado
+            || !encontrado.activo
+            || !contraseñaCorrecta
+        ){
+
+            return res.status(401).json({
+                success:false,
+                mensaje:"Usuario o contraseña incorrectos"
+            });
+
+        }
+
+        const token =
+            crypto.randomBytes(32)
+                .toString("hex");
+
+        sesiones.set(token, {
+            id:encontrado.id,
+            usuario:encontrado.usuario,
+            rol:encontrado.rol,
+            creadoEn:Date.now()
+        });
+
+        res.setHeader(
+            "Set-Cookie",
+            `sapam_session=${token}; HttpOnly; Path=/; SameSite=Lax`
+        );
+
+        res.json({
+            success:true,
+            usuario:encontrado.usuario,
+            rol:encontrado.rol
+        });
+
+    }catch(error){
+
+        console.error(
+            "Error al iniciar sesión:",
+            error
+        );
+
+        res.status(500).json({
+            success:false,
+            mensaje:"No se pudo iniciar sesión"
+        });
+
+    }
+
+});
+
+
+app.get("/api/sesion", (req, res)=>{
+
+    const sesion =
+        obtenerSesion(req);
+
+    if(!sesion){
+
+        return res.status(401).json({
+            success:false
+        });
+
+    }
+
+    res.json({
+        success:true,
+        usuario:sesion.usuario,
+        rol:sesion.rol
+    });
+
+});
+
+
+app.post("/api/logout", (req, res)=>{
+
+    const cookies =
+        leerCookies(req);
+
+    const token =
+        cookies.sapam_session;
+
+    if(token){
+        sesiones.delete(token);
+    }
+
+    res.setHeader(
+        "Set-Cookie",
+        "sapam_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax"
+    );
+
+    res.json({
+        success:true
+    });
+
+});
+
+app.post(
+    "/api/admin/cambiar-contrasena",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const actual =
+            String(req.body.actual || "");
+
+        const nueva =
+            String(req.body.nueva || "");
+
+        if(nueva.length < 8){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La nueva contraseña debe tener al menos 8 caracteres"
+            });
+
+        }
+
+        try{
+
+            const usuario =
+                await gestorUsuarios.buscarPorUsuario(
+                    req.sesion.usuario
+                );
+
+            const actualCorrecta =
+                await bcrypt.compare(
+                    actual,
+                    usuario.contraseña
+                );
+
+            if(!actualCorrecta){
+
+                return res.status(401).json({
+                    success:false,
+                    mensaje:
+                        "La contraseña actual es incorrecta"
+                });
+
+            }
+
+            const hash =
+                await bcrypt.hash(
+                    nueva,
+                    12
+                );
+
+            await gestorUsuarios.cambiarContraseña(
+                usuario.id,
+                hash
+            );
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Contraseña actualizada correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cambiar contraseña:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo cambiar la contraseña"
+            });
+
+        }
+
+    }
+);
+
+app.get("/recepcion", (req,res)=>{
+
+    const sesion =
+        obtenerSesion(req);
+
+    if(
+        !sesion
+        || ![
+            "admin",
+            "recepcion"
+        ].includes(sesion.rol)
+    ){
+
+        return res.redirect(
+            "/login?destino=recepcion"
+        );
+
+    }
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "../public/recepcion/index.html"
+        )
+    );
+
+});
 
 server.listen(3000, () => {
     console.log("Servidor en puerto 3000");
