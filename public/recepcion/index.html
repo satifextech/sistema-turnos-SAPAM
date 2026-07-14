@@ -1,95 +1,1152 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
-<title>Recepción</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Recepción SAPAM</title>
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
-    font-family: Arial;
-    padding:30px;
+    margin:0;
+    min-height:100vh;
+    font-family:Arial, sans-serif;
+    background:#f4f1f2;
+    color:#252525;
 }
 
-button{
-    padding:15px;
-    margin:10px;
-    font-size:18px;
-    cursor:pointer;
+.encabezado{
+    min-height:105px;
+    padding:20px 32px;
+    background:#6A0F20;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    box-shadow:0 5px 18px rgba(0,0,0,0.24);
 }
 
-#resultado{
-    margin-top:20px;
-    font-size:30px;
+.encabezado-info{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.logo-encabezado{
+    width:72px;
+    height:72px;
+    padding:7px;
+    background:white;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.logo-encabezado img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.encabezado h1{
+    margin:0;
+    font-size:31px;
+}
+
+.encabezado p{
+    margin:6px 0 0;
+    opacity:0.86;
+}
+
+.encabezado-derecho{
+    display:flex;
+    align-items:center;
+    gap:22px;
+}
+
+.reloj{
+    text-align:right;
+    line-height:1.45;
+}
+
+#hora{
+    font-size:21px;
     font-weight:bold;
 }
 
-</style>
+#fecha{
+    font-size:14px;
+    opacity:0.88;
+}
 
+.boton-admin{
+    border:2px solid rgba(255,255,255,0.75);
+    border-radius:12px;
+    padding:11px 16px;
+    background:transparent;
+    color:white;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.boton-admin:hover{
+    background:white;
+    color:#6A0F20;
+    transform:translateY(-2px);
+}
+
+.contenido{
+    max-width:1600px;
+    margin:auto;
+    padding:28px;
+}
+
+.estado-sistema{
+    margin-bottom:22px;
+    padding:13px 17px;
+    background:white;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    box-shadow:0 5px 18px rgba(0,0,0,0.08);
+}
+
+.indicador{
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:#269247;
+    box-shadow:0 0 9px rgba(38,146,71,0.65);
+}
+
+.distribucion{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 335px;
+    gap:24px;
+    align-items:start;
+}
+
+.panel-principal,
+.panel-lateral{
+    background:white;
+    border-radius:22px;
+    box-shadow:0 7px 26px rgba(0,0,0,0.09);
+}
+
+.panel-principal{
+    padding:25px;
+}
+
+.titulo-seccion{
+    margin-bottom:22px;
+}
+
+.titulo-seccion h2{
+    margin:0;
+    color:#6A0F20;
+    font-size:26px;
+}
+
+.titulo-seccion p{
+    margin:7px 0 0;
+    color:#747474;
+}
+
+.tramites{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(180px, 1fr));
+    gap:17px;
+}
+
+.tarjeta-tramite{
+    min-height:150px;
+    border:2px solid #eadde1;
+    border-radius:18px;
+    padding:19px;
+    background:#fcfafb;
+    color:#333;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.tarjeta-tramite:hover{
+    transform:translateY(-4px);
+    border-color:#8C1C32;
+    background:white;
+    box-shadow:0 10px 24px rgba(106,15,32,0.15);
+}
+
+.tarjeta-tramite:active{
+    transform:scale(0.98);
+}
+
+.tarjeta-tramite:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.icono{
+    width:52px;
+    height:52px;
+    margin-bottom:13px;
+    border-radius:50%;
+    background:#6A0F20;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:23px;
+    font-weight:bold;
+}
+
+.nombre-tramite{
+    color:#6A0F20;
+    font-size:18px;
+    font-weight:bold;
+    line-height:1.25;
+}
+
+.descripcion-tramite{
+    margin-top:7px;
+    color:#777;
+    font-size:13px;
+    line-height:1.3;
+}
+
+.panel-lateral{
+    padding:22px;
+    position:sticky;
+    top:20px;
+}
+
+.panel-lateral h2{
+    margin:0 0 18px;
+    color:#6A0F20;
+    font-size:22px;
+}
+
+.ultimo-turno{
+    min-height:215px;
+    padding:22px;
+    background:#f8f4f5;
+    border:2px solid #eadde1;
+    border-radius:17px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+
+.ultimo-etiqueta{
+    color:#777;
+    font-size:14px;
+    font-weight:bold;
+    letter-spacing:0.8px;
+}
+
+#codigoTurno{
+    margin:13px 0 7px;
+    color:#6A0F20;
+    font-size:57px;
+    line-height:1;
+    font-weight:bold;
+}
+
+#nombreTurno{
+    color:#555;
+    font-size:17px;
+    font-weight:bold;
+}
+
+.ultimo-turno.resaltar{
+    animation:resaltarTurno 0.9s ease;
+}
+
+@keyframes resaltarTurno{
+
+    0%{
+        box-shadow:0 0 0 rgba(212,175,55,0);
+    }
+
+    50%{
+        box-shadow:0 0 30px rgba(212,175,55,0.8);
+        border-color:#D4AF37;
+    }
+
+    100%{
+        box-shadow:0 0 0 rgba(212,175,55,0);
+    }
+
+}
+
+.acciones-ticket{
+    margin-top:15px;
+    display:grid;
+    gap:11px;
+}
+
+.boton-ticket{
+    min-height:48px;
+    border:none;
+    border-radius:12px;
+    padding:12px 16px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-imprimir{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-imprimir:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+}
+
+.mensaje{
+    min-height:23px;
+    margin-top:15px;
+    text-align:center;
+    font-size:14px;
+}
+
+.mensaje.exito{
+    color:#218342;
+    font-weight:bold;
+}
+
+.mensaje.error{
+    color:#bd2936;
+    font-weight:bold;
+}
+
+.resumen-dia{
+    margin-top:22px;
+    border-top:1px solid #e7dfe1;
+    padding-top:19px;
+}
+
+.resumen-dia h3{
+    margin:0 0 14px;
+    color:#6A0F20;
+    font-size:18px;
+}
+
+.resumen-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px;
+}
+
+.resumen-item{
+    padding:12px;
+    background:#f7f4f5;
+    border-radius:11px;
+}
+
+.resumen-label{
+    color:#777;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.resumen-valor{
+    margin-top:5px;
+    color:#6A0F20;
+    font-size:25px;
+    font-weight:bold;
+}
+
+@media(max-width:1100px){
+
+    .distribucion{
+        grid-template-columns:1fr;
+    }
+
+    .panel-lateral{
+        position:static;
+    }
+
+    .tramites{
+        grid-template-columns:repeat(2, minmax(170px, 1fr));
+    }
+
+}
+
+@media(max-width:700px){
+
+    .encabezado{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .encabezado-derecho{
+        width:100%;
+        justify-content:space-between;
+    }
+
+    .reloj{
+        text-align:left;
+    }
+
+    .contenido{
+        padding:16px;
+    }
+
+    .tramites{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
 </head>
+
 <body>
 
-<h1>Recepción</h1>
+<header class="encabezado">
 
-<button onclick="generarTurno('CONSUMO')">
-    Consumo Alto
-</button>
+    <div class="encabezado-info">
 
-<button onclick="generarTurno('AFOROS')">
-    Aforos
-</button>
+        <div class="logo-encabezado">
+            <img
+                src="/assets/iconos/sapam.png"
+                alt="SAPAM">
+        </div>
 
-<button onclick="generarTurno('ABONOS')">
-    Abonos
-</button>
+        <div>
+            <h1>Recepción de Turnos</h1>
+            <p>Sistema de Gestión de Turnos SAPAM</p>
+        </div>
 
-<button onclick="generarTurno('CONTRATO1')">
-    Contratos - Etapa 1
-</button>
+    </div>
 
-<button onclick="generarTurno('CONTRATO2')">
-    Contratos - Etapa 2
-</button>
+    <div class="encabezado-derecho">
 
-<button onclick="generarTurno('RECONEXIONES')">
-    Reconexiones
-</button>
+        <div class="reloj">
+            <div id="hora">--:--:--</div>
+            <div id="fecha">--/--/----</div>
+        </div>
 
-<button onclick="generarTurno('SUSPENSION')">
-    Suspensión Voluntaria
-</button>
+        <button
+            class="boton-admin"
+            onclick="abrirAdministracion()">
 
-<button onclick="generarTurno('INSEN')">
-    INSEN
-</button>
+            Administración
 
-<button onclick="generarTurno('GIRO')">
-    Giro de Tarifa
-</button>
+        </button>
 
-<div id="resultado"></div>
+    </div>
+
+</header>
+
+<main class="contenido">
+
+    <section class="estado-sistema">
+
+        <span class="indicador"></span>
+
+        <strong>
+            Sistema disponible para generar turnos
+        </strong>
+
+    </section>
+
+    <div class="distribucion">
+
+        <section class="panel-principal">
+
+            <div class="titulo-seccion">
+                <h2>Seleccione el trámite</h2>
+                <p>
+                    Presione una opción para generar e imprimir
+                    automáticamente el turno.
+                </p>
+            </div>
+
+            <div class="tramites">
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('CONSUMO')">
+
+                    <span class="icono">CA</span>
+
+                    <span class="nombre-tramite">
+                        Consumo Alto
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Revisión y aclaración por consumo elevado.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('AFOROS')">
+
+                    <span class="icono">AF</span>
+
+                    <span class="nombre-tramite">
+                        Aforos
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Solicitudes y seguimiento de aforos.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('ABONOS')">
+
+                    <span class="icono">AB</span>
+
+                    <span class="nombre-tramite">
+                        Abonos
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Convenios, pagos parciales y abonos.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('CONTRATO1')">
+
+                    <span class="icono">C1</span>
+
+                    <span class="nombre-tramite">
+                        Contratos - Etapa 1
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Recepción y validación de documentos.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('CONTRATO2')">
+
+                    <span class="icono">C2</span>
+
+                    <span class="nombre-tramite">
+                        Contratos - Etapa 2
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Presupuesto y firma del contrato.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('RECONEXIONES')">
+
+                    <span class="icono">RE</span>
+
+                    <span class="nombre-tramite">
+                        Reconexiones
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Trámite y seguimiento de reconexión.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('SUSPENSION')">
+
+                    <span class="icono">SU</span>
+
+                    <span class="nombre-tramite">
+                        Suspensión Voluntaria
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Solicitud de suspensión temporal del servicio.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('INSEN')">
+
+                    <span class="icono">IN</span>
+
+                    <span class="nombre-tramite">
+                        INSEN
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Atención de beneficios y descuentos.
+                    </span>
+
+                </button>
+
+                <button
+                    class="tarjeta-tramite"
+                    onclick="generarTurno('GIRO')">
+
+                    <span class="icono">GT</span>
+
+                    <span class="nombre-tramite">
+                        Giro de Tarifa
+                    </span>
+
+                    <span class="descripcion-tramite">
+                        Solicitud o actualización de giro tarifario.
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <aside class="panel-lateral">
+
+            <h2>Último turno generado</h2>
+
+            <div
+                class="ultimo-turno"
+                id="tarjetaUltimoTurno">
+
+                <div class="ultimo-etiqueta">
+                    TURNO
+                </div>
+
+                <div id="codigoTurno">
+                    ---
+                </div>
+
+                <div id="nombreTurno">
+                    Seleccione un trámite
+                </div>
+
+            </div>
+
+            <div class="acciones-ticket">
+
+                <button
+                    id="btnImprimir"
+                    class="boton-ticket boton-imprimir"
+                    onclick="imprimirTicket()"
+                    disabled>
+
+                    Reimprimir último ticket
+
+                </button>
+
+            </div>
+
+            <div class="mensaje" id="mensaje"></div>
+
+            <div class="resumen-dia">
+
+                <h3>Resumen del día</h3>
+
+                <div class="resumen-grid">
+
+                    <div class="resumen-item">
+                        <div class="resumen-label">
+                            Generados
+                        </div>
+                        <div
+                            class="resumen-valor"
+                            id="resumenGenerados">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="resumen-item">
+                        <div class="resumen-label">
+                            Pendientes
+                        </div>
+                        <div
+                            class="resumen-valor"
+                            id="resumenPendientes">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="resumen-item">
+                        <div class="resumen-label">
+                            En atención
+                        </div>
+                        <div
+                            class="resumen-valor"
+                            id="resumenAtendiendo">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="resumen-item">
+                        <div class="resumen-label">
+                            Finalizados
+                        </div>
+                        <div
+                            class="resumen-valor"
+                            id="resumenFinalizados">
+                            0
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
 
 <script>
 
-async function generarTurno(tramite){
+let ultimoTurno = null;
+let generandoTurno = false;
 
-    const response = await fetch("/api/turno",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-            tramite
-        })
+
+function actualizarReloj(){
+
+    const ahora = new Date();
+
+    document.getElementById("hora").textContent =
+        ahora.toLocaleTimeString("es-MX");
+
+    document.getElementById("fecha").textContent =
+        ahora.toLocaleDateString("es-MX", {
+            weekday:"long",
+            day:"2-digit",
+            month:"long",
+            year:"numeric"
+        });
+
+}
+
+
+function abrirAdministracion(){
+
+    window.open("/admin", "_blank");
+
+}
+
+
+function mostrarMensaje(texto, tipo = ""){
+
+    const mensaje =
+        document.getElementById("mensaje");
+
+    mensaje.textContent = texto;
+    mensaje.className = "mensaje";
+
+    if(tipo){
+        mensaje.classList.add(tipo);
+    }
+
+}
+
+
+function bloquearTramites(bloquear){
+
+    document.querySelectorAll(
+        ".tarjeta-tramite"
+    ).forEach(boton => {
+
+        boton.disabled = bloquear;
+
     });
 
-    const data = await response.json();
-
-    document.getElementById("resultado").innerHTML =
-        "Turno generado: " + data.codigo;
 }
+
+
+function mostrarUltimoTurno(){
+
+    const tarjeta =
+        document.getElementById(
+            "tarjetaUltimoTurno"
+        );
+
+    document.getElementById(
+        "codigoTurno"
+    ).textContent =
+        ultimoTurno.codigo;
+
+    document.getElementById(
+        "nombreTurno"
+    ).textContent =
+        ultimoTurno.tramite;
+
+    tarjeta.classList.remove("resaltar");
+
+    void tarjeta.offsetWidth;
+
+    tarjeta.classList.add("resaltar");
+
+    document.getElementById(
+        "btnImprimir"
+    ).disabled = false;
+
+}
+
+
+async function generarTurno(tramite){
+
+    if(generandoTurno){
+        return;
+    }
+
+    generandoTurno = true;
+
+    bloquearTramites(true);
+
+    mostrarMensaje(
+        "Generando turno...",
+        ""
+    );
+
+    try{
+
+        const response =
+            await fetch("/api/turno", {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+                    tramite
+                })
+
+            });
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.codigo){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo generar el turno"
+            );
+
+        }
+
+        ultimoTurno = {
+
+            codigo:data.codigo,
+
+            tramite:
+                data.tramite
+                || tramite,
+
+            fecha:new Date()
+
+        };
+
+        mostrarUltimoTurno();
+
+        mostrarMensaje(
+            `Turno ${data.codigo} generado correctamente.`,
+            "exito"
+        );
+
+        cargarResumen();
+
+        // Impresión automática
+        imprimirTicket();
+
+    }catch(error){
+
+        console.error(
+            "Error al generar turno:",
+            error
+        );
+
+        mostrarMensaje(
+            error.message,
+            "error"
+        );
+
+    }finally{
+
+        generandoTurno = false;
+        bloquearTramites(false);
+
+    }
+
+}
+
+
+function imprimirTicket(){
+
+    if(!ultimoTurno){
+
+        mostrarMensaje(
+            "Primero genera un turno.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const fecha =
+        ultimoTurno.fecha.toLocaleDateString(
+            "es-MX"
+        );
+
+    const hora =
+        ultimoTurno.fecha.toLocaleTimeString(
+            "es-MX",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+    const ventana =
+        window.open(
+            "",
+            "Ticket",
+            "width=400,height=600"
+        );
+
+    if(!ventana){
+
+        mostrarMensaje(
+            "El navegador bloqueó la ventana de impresión.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    ventana.document.write(`
+
+        <!DOCTYPE html>
+        <html lang="es">
+
+        <head>
+
+            <meta charset="UTF-8">
+
+            <title>Ticket ${ultimoTurno.codigo}</title>
+
+            <style>
+
+                @page{
+                    size:58mm auto;
+                    margin:2mm;
+                }
+
+                body{
+                    width:54mm;
+                    margin:0;
+                    padding:0;
+                    font-family:Arial, sans-serif;
+                    color:#000;
+                    text-align:center;
+                }
+
+                .institucion{
+                    margin-top:5px;
+                    font-size:18px;
+                    font-weight:bold;
+                }
+
+                .tramite{
+                    margin-top:13px;
+                    font-size:14px;
+                    font-weight:bold;
+                }
+
+                .turno-titulo{
+                    margin-top:17px;
+                    font-size:14px;
+                }
+
+                .codigo{
+                    margin:6px 0 11px;
+                    font-size:42px;
+                    font-weight:bold;
+                }
+
+                .fecha{
+                    font-size:12px;
+                    line-height:1.5;
+                }
+
+                .mensaje-ticket{
+                    margin:17px 0 11px;
+                    font-size:12px;
+                    line-height:1.4;
+                }
+
+                hr{
+                    margin:10px 0;
+                    border:none;
+                    border-top:1px dashed #000;
+                }
+
+            </style>
+
+        </head>
+
+        <body>
+
+            <div class="institucion">
+                SAPAM
+            </div>
+
+            <hr>
+
+            <div class="tramite">
+                ${ultimoTurno.tramite}
+            </div>
+
+            <div class="turno-titulo">
+                SU TURNO
+            </div>
+
+            <div class="codigo">
+                ${ultimoTurno.codigo}
+            </div>
+
+            <hr>
+
+            <div class="fecha">
+                Fecha: ${fecha}<br>
+                Hora: ${hora}
+            </div>
+
+            <div class="mensaje-ticket">
+                Espere su llamado en pantalla.<br>
+                Gracias por su visita.
+            </div>
+
+        </body>
+
+        </html>
+
+    `);
+
+    ventana.document.close();
+
+    ventana.onload = ()=>{
+
+        ventana.focus();
+        ventana.print();
+
+    };
+
+}
+
+
+async function cargarResumen(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/resumen",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!data.success){
+            return;
+        }
+
+        const resumen =
+            data.resumen || {};
+
+        document.getElementById(
+            "resumenGenerados"
+        ).textContent =
+            Number(resumen.generados || 0);
+
+        document.getElementById(
+            "resumenPendientes"
+        ).textContent =
+            Number(resumen.pendientes || 0);
+
+        document.getElementById(
+            "resumenAtendiendo"
+        ).textContent =
+            Number(resumen.atendiendo || 0);
+
+        document.getElementById(
+            "resumenFinalizados"
+        ).textContent =
+            Number(resumen.finalizados || 0);
+
+    }catch(error){
+
+        console.error(
+            "No se pudo cargar el resumen:",
+            error
+        );
+
+    }
+
+}
+
+
+actualizarReloj();
+cargarResumen();
+
+setInterval(actualizarReloj, 1000);
+setInterval(cargarResumen, 5000);
 
 </script>
 
 </body>
+
 </html>

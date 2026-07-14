@@ -1,106 +1,897 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
-<title>Mesa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mesa de atención</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:Arial, sans-serif;
+    background:#f4f1f2;
+    color:#252525;
+}
+
+.encabezado{
+    min-height:100px;
+    padding:20px 32px;
+    background:#6A0F20;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 5px 18px rgba(0,0,0,0.25);
+}
+
+.encabezado h1{
+    margin:0;
+    font-size:34px;
+}
+
+.encabezado p{
+    margin:7px 0 0;
+    opacity:0.85;
+}
+
+.estado-conexion{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:bold;
+}
+
+.indicador{
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:#29a453;
+    box-shadow:0 0 10px rgba(41,164,83,0.7);
+}
+
+.contenido{
+    min-height:calc(100vh - 100px);
+    padding:32px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.panel-mesa{
+    width:min(760px, 100%);
+    background:white;
+    border-radius:24px;
+    padding:36px;
+    text-align:center;
+    box-shadow:0 10px 35px rgba(0,0,0,0.13);
+    border-top:7px solid #6A0F20;
+}
+
+.estado-titulo{
+    color:#777;
+    font-size:17px;
+    font-weight:bold;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+
+.turno-actual{
+    min-height:190px;
+    margin:20px 0 28px;
+    padding:25px;
+    border-radius:18px;
+    background:#f8f5f6;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    border:2px solid #eadfe2;
+}
+
+#resultado{
+    color:#6A0F20;
+    font-size:68px;
+    line-height:1;
+    font-weight:bold;
+}
+
+.mensaje-secundario{
+    margin-top:14px;
+    color:#747474;
+    font-size:16px;
+}
+
+.acciones{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px;
+}
+
+button{
+    min-height:62px;
+    border:none;
+    border-radius:14px;
+    padding:15px 20px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+button:hover:not(:disabled){
+    transform:translateY(-2px);
+    box-shadow:0 7px 17px rgba(0,0,0,0.18);
+}
+
+button:disabled{
+    cursor:not-allowed;
+    opacity:0.55;
+}
+
+.boton-llamar{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-finalizar{
+    background:#d79a16;
+    color:white;
+}
+
+.aviso{
+    min-height:25px;
+    margin-top:22px;
+    color:#666;
+    font-size:15px;
+}
+
+.aviso.error{
+    color:#ba2432;
+    font-weight:bold;
+}
+
+.aviso.exito{
+    color:#218342;
+    font-weight:bold;
+}
+
+.boton-pausa{
+    background:#555;
+    color:white;
+}
+
+.boton-disponible{
+    background:#218342;
+    color:white;
+}
+
+@media(max-width:650px){
+
+    .encabezado{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .contenido{
+        padding:18px;
+    }
+
+    .panel-mesa{
+        padding:24px 18px;
+    }
+
+    .acciones{
+        grid-template-columns:1fr;
+    }
+
+    #resultado{
+        font-size:50px;
+    }
+
+}
+
+</style>
 </head>
 
 <body>
 
-<h1 id="tituloMesa"></h1>
+<header class="encabezado">
 
-<button onclick="llamar()">
-Llamar siguiente turno  
-</button>
+    <div>
+        <h1 id="tituloMesa">Mesa</h1>
+        <p>Sistema de Gestión de Turnos SAPAM</p>
+    </div>
 
-<br><br>
+    <div class="estado-conexion">
+        <span class="indicador"></span>
+        Servidor conectado
+    </div>
 
-<button onclick="finalizar()">
-Finalizar atención
-</button>
+</header>
 
-<div id="resultado"></div>
+<main class="contenido">
+
+    <section class="panel-mesa">
+
+        <div class="estado-titulo">
+            Turno en atención
+        </div>
+
+        <div class="turno-actual">
+
+            <div id="resultado">
+                Cargando...
+            </div>
+
+            <div class="mensaje-secundario" id="mensajeEstado">
+                Consultando estado de la mesa
+            </div>
+
+        </div>
+
+        <div class="acciones">
+
+            <button
+                id="btnLlamar"
+                class="boton-llamar"
+                onclick="llamar()">
+
+                Llamar siguiente turno
+
+            </button>
+
+            <button
+                id="btnFinalizar"
+                class="boton-finalizar"
+                onclick="finalizar()"
+                disabled>
+
+                Finalizar atención
+
+            </button>
+
+            <button
+                id="btnDescanso"
+                class="boton-pausa"
+                onclick="cambiarEstadoMesa('pausa', 'Descanso')">
+
+                Descanso
+
+            </button>
+
+            <button
+                id="btnBano"
+                class="boton-pausa"
+                onclick="cambiarEstadoMesa('pausa', 'Baño')">
+
+                Baño
+
+            </button>
+
+            <button
+                id="btnComida"
+                class="boton-pausa"
+                onclick="cambiarEstadoMesa('pausa', 'Comida')">
+
+                Comida
+
+            </button>
+
+            <button
+                id="btnDisponible"
+                class="boton-disponible"
+                onclick="cambiarEstadoMesa('disponible', null)"
+                disabled>
+
+                Marcar disponible
+
+            </button>
+
+        </div>
+
+        <div class="aviso" id="aviso"></div>
+
+    </section>
+
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
 
-const numeroMesa =
-    window.location.pathname.split("/").pop();
+const socket = io();
 
-document.getElementById("tituloMesa")
-    .innerHTML =
-    "Mesa " + numeroMesa;
+const numeroMesa =
+    Number(
+        window.location.pathname
+            .split("/")
+            .pop()
+    );
 
 let turnoActual = null;
 
-async function llamar(){
+const resultado =
+    document.getElementById("resultado");
 
-    const response =
-        await fetch("/api/llamar",{
+const mensajeEstado =
+    document.getElementById("mensajeEstado");
 
-            method:"POST",
+const aviso =
+    document.getElementById("aviso");
 
-            headers:{
-                "Content-Type":"application/json"
-            },
+const btnLlamar =
+    document.getElementById("btnLlamar");
 
-            body:JSON.stringify({
-                mesa:Number(numeroMesa)
-            })
+const btnFinalizar =
+    document.getElementById("btnFinalizar");
 
-        });
+document.getElementById("tituloMesa").textContent =
+    "Mesa " + numeroMesa;
 
-    const data =
-        await response.json();
 
-    if(data.success){
+function mostrarAviso(mensaje, tipo = ""){
 
-        document.getElementById(
-            "resultado"
-        ).innerHTML =
-            data.codigo;
+    aviso.textContent = mensaje;
+    aviso.className = "aviso";
 
-        turnoActual = data.id;
+    if(tipo){
+        aviso.classList.add(tipo);
+    }
+
+}
+
+
+function mostrarMesaLibre(mensaje = "Mesa disponible"){
+
+    turnoActual = null;
+
+    resultado.textContent =
+        "MESA LIBRE";
+
+    mensajeEstado.textContent =
+        mensaje;
+
+    btnLlamar.disabled = false;
+    btnFinalizar.disabled = true;
+
+}
+
+
+function mostrarTurno(turno){
+
+    turnoActual = turno.id;
+
+    resultado.textContent =
+        turno.codigo;
+
+    mensajeEstado.textContent =
+        "Atención en proceso";
+
+    btnLlamar.disabled = true;
+    btnFinalizar.disabled = false;
+
+}
+
+
+async function cargarTurnoActual(){
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/mesa/${numeroMesa}/actual`,
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(data.success && data.turno){
+
+            mostrarTurno(data.turno);
+
+        }else{
+
+            mostrarMesaLibre();
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar la mesa:",
+            error
+        );
+
+        mostrarMesaLibre(
+            "No se pudo consultar el estado"
+        );
+
+        mostrarAviso(
+            "Error al conectar con el servidor",
+            "error"
+        );
 
     }
 
 }
 
-async function finalizar(){
 
-    if(!turnoActual){
+async function llamar(){
 
-        alert("No hay turno en atención");
+    if(turnoActual){
+
+        mostrarAviso(
+            "Primero debes finalizar el turno actual.",
+            "error"
+        );
 
         return;
 
     }
 
-    const response = await fetch("/api/finalizar",{
+    btnLlamar.disabled = true;
+    btnLlamar.textContent =
+        "Buscando turno...";
 
-        method:"POST",
+    mostrarAviso("");
 
-        headers:{
-            "Content-Type":"application/json"
-        },
+    try{
 
-        body:JSON.stringify({
-            id:turnoActual
-        })
+        const response =
+            await fetch("/api/llamar", {
 
-    });
+                method:"POST",
 
-    const data = await response.json();
+                headers:{
+                    "Content-Type":"application/json"
+                },
 
-    if(data.success){
+                body:JSON.stringify({
+                    mesa:numeroMesa
+                })
 
-        turnoActual = null;
+            });
 
-        document.getElementById("resultado").innerHTML =
-            "Mesa libre";
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            if(
+                data.mensaje === "Sin turnos"
+                || response.status === 404
+            ){
+
+                mostrarMesaLibre(
+                    "No hay turnos pendientes"
+                );
+
+                mostrarAviso(
+                    "No hay turnos disponibles.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo llamar el turno"
+            );
+
+        }
+
+        mostrarTurno({
+            id:data.id,
+            codigo:data.codigo
+        });
+
+        mostrarAviso(
+            `Turno ${data.codigo} llamado correctamente.`,
+            "exito"
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al llamar turno:",
+            error
+        );
+
+        mostrarAviso(
+            error.message,
+            "error"
+        );
+
+        if(!turnoActual){
+            mostrarMesaLibre();
+        }
+
+    }finally{
+
+        btnLlamar.textContent =
+            "Llamar siguiente turno";
+
+        btnLlamar.disabled =
+            Boolean(turnoActual);
 
     }
 
 }
+
+
+async function finalizar(){
+
+    if(!turnoActual){
+
+        mostrarMesaLibre();
+
+        mostrarAviso(
+            "La mesa ya se encuentra libre.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    btnFinalizar.disabled = true;
+    btnFinalizar.textContent =
+        "Finalizando...";
+
+    mostrarAviso("");
+
+    try{
+
+        const response =
+            await fetch("/api/finalizar", {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+                    id:turnoActual
+                })
+
+            });
+
+        const data =
+            await response.json();
+
+        /*
+        Si Admin ya liberó la mesa, el backend responde 404.
+        Para la interfaz eso también significa que ya está libre.
+        */
+        if(response.status === 404){
+
+            mostrarMesaLibre(
+                "La mesa fue liberada desde Administración"
+            );
+
+            mostrarAviso(
+                "La mesa ya estaba liberada.",
+                "exito"
+            );
+
+            return;
+
+        }
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo finalizar"
+            );
+
+        }
+
+        mostrarMesaLibre(
+            "Atención finalizada correctamente"
+        );
+
+        mostrarAviso(
+            "Turno finalizado.",
+            "exito"
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al finalizar:",
+            error
+        );
+
+        mostrarAviso(
+            error.message,
+            "error"
+        );
+
+        btnFinalizar.disabled = false;
+
+    }finally{
+
+        btnFinalizar.textContent =
+            "Finalizar atención";
+
+    }
+
+}
+
+
+/*
+Cuando Admin libera todas las mesas,
+la pantalla se limpia inmediatamente.
+*/
+socket.on("mesasLiberadas", ()=>{
+
+    mostrarMesaLibre(
+        "Mesa liberada desde Administración"
+    );
+
+    mostrarAviso(
+        "La mesa fue liberada por el administrador.",
+        "exito"
+    );
+
+});
+
+
+/*
+Si el mismo turno fue finalizado desde otro punto,
+también se limpia esta mesa.
+*/
+socket.on("turnoFinalizado", (data)=>{
+
+    if(
+        turnoActual
+        && Number(data.id) === Number(turnoActual)
+    ){
+
+        mostrarMesaLibre(
+            "Atención finalizada"
+        );
+
+    }
+
+});
+
+socket.on("jornadaCerrada", ()=>{
+
+    mostrarMesaLibre(
+        "La jornada fue cerrada por Administración"
+    );
+
+    mostrarAviso(
+        "Jornada finalizada.",
+        "exito"
+    );
+
+});
+
+function aplicarEstadoOperativo(
+    estado,
+    motivo = null
+){
+
+    const disponible =
+        estado === "disponible";
+
+    const botonesPausa = [
+        document.getElementById("btnDescanso"),
+        document.getElementById("btnBano"),
+        document.getElementById("btnComida")
+    ];
+
+    botonesPausa.forEach(boton => {
+
+        boton.disabled =
+            !disponible || Boolean(turnoActual);
+
+    });
+
+    document.getElementById(
+        "btnDisponible"
+    ).disabled = disponible;
+
+    if(disponible){
+
+        resultado.textContent =
+            turnoActual
+                ? resultado.textContent
+                : "MESA LIBRE";
+
+        mensajeEstado.textContent =
+            turnoActual
+                ? "Atención en proceso"
+                : "Mesa disponible";
+
+        btnLlamar.disabled =
+            Boolean(turnoActual);
+
+        btnFinalizar.disabled =
+            !turnoActual;
+
+    }else{
+
+        resultado.textContent =
+            estado.toUpperCase();
+
+        mensajeEstado.textContent =
+            motivo || "Mesa no disponible";
+
+        btnLlamar.disabled = true;
+        btnFinalizar.disabled = true;
+
+    }
+
+}
+
+async function cambiarEstadoMesa(
+    estado,
+    motivo = null
+){
+
+    if(
+        turnoActual
+        && estado !== "disponible"
+    ){
+
+        mostrarAviso(
+            "Primero finaliza el turno actual.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/mesa/${numeroMesa}/estado`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        estado,
+                        motivo
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cambiar el estado"
+            );
+
+        }
+
+        aplicarEstadoOperativo(
+            estado,
+            motivo
+        );
+
+        if(estado === "disponible"){
+
+            mostrarAviso(
+                "Mesa disponible para atender.",
+                "exito"
+            );
+
+        }else{
+
+            mostrarAviso(
+                `Mesa en pausa: ${motivo}`,
+                "exito"
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        mostrarAviso(
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+async function cargarEstadoOperativo(){
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/mesa/${numeroMesa}/estado`,
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(data.success){
+
+            aplicarEstadoOperativo(
+                data.mesa.estado,
+                data.mesa.motivo
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "No se pudo cargar el estado:",
+            error
+        );
+
+    }
+
+}
+
+async function iniciarMesa(){
+
+    await cargarTurnoActual();
+    await cargarEstadoOperativo();
+
+}
+
+socket.on(
+    "estadoMesaActualizado",
+    data => {
+
+        if(
+            Number(data.numero)
+            !== numeroMesa
+        ){
+            return;
+        }
+
+        aplicarEstadoOperativo(
+            data.estado,
+            data.motivo
+        );
+
+    }
+);
+
+iniciarMesa();
 
 </script>
 

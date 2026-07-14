@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Administración SAPAM</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:Arial, sans-serif;
+    background:#f4f1f2;
+    color:#252525;
+}
+
+.encabezado{
+    min-height:92px;
+    padding:18px 30px;
+    background:#6A0F20;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.25);
+}
+
+.encabezado h1{
+    margin:0;
+    font-size:30px;
+}
+
+.encabezado p{
+    margin:6px 0 0;
+    opacity:0.85;
+}
+
+.reloj{
+    text-align:right;
+    font-size:18px;
+    line-height:1.5;
+}
+
+.contenido{
+    padding:26px;
+    max-width:1600px;
+    margin:auto;
+}
+
+.estado-sistema{
+    margin-bottom:22px;
+    padding:14px 18px;
+    background:white;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 5px 18px rgba(0,0,0,0.08);
+}
+
+.indicador{
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:#999;
+}
+
+.indicador.conectado{
+    background:#249346;
+    box-shadow:0 0 9px rgba(36,147,70,0.65);
+}
+
+.indicador.error{
+    background:#c52b35;
+}
+
+.tarjetas{
+    display:grid;
+    grid-template-columns:repeat(4, minmax(170px, 1fr));
+    gap:18px;
+    margin-bottom:24px;
+}
+
+.tarjeta{
+    background:white;
+    border-radius:18px;
+    padding:21px;
+    box-shadow:0 6px 22px rgba(0,0,0,0.09);
+    border-top:5px solid #6A0F20;
+}
+
+.tarjeta .etiqueta{
+    color:#686868;
+    font-size:15px;
+    font-weight:bold;
+    text-transform:uppercase;
+    letter-spacing:0.7px;
+}
+
+.tarjeta .valor{
+    margin-top:10px;
+    color:#6A0F20;
+    font-size:38px;
+    font-weight:bold;
+}
+
+.tarjeta .unidad{
+    margin-top:5px;
+    color:#777;
+    font-size:14px;
+}
+
+.columnas{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1.25fr);
+    gap:22px;
+}
+
+.panel{
+    min-width:0;
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 6px 22px rgba(0,0,0,0.09);
+}
+
+.panel h2{
+    margin:0 0 20px;
+    color:#6A0F20;
+    font-size:23px;
+}
+
+.lista-colas{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.cola{
+    padding:13px 15px;
+    background:#f7f4f5;
+    border-left:5px solid #8C1C32;
+    border-radius:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+
+.cola-nombre{
+    font-weight:bold;
+}
+
+.cola-total{
+    min-width:42px;
+    padding:7px 10px;
+    background:#6A0F20;
+    color:white;
+    border-radius:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.mesas{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:14px;
+}
+
+.mesa{
+    min-height:125px;
+    padding:16px;
+    border:2px solid #e3dadd;
+    border-radius:14px;
+    background:#fcfbfb;
+}
+
+.mesa-cabecera{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.mesa-numero{
+    color:#6A0F20;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.mesa-estado{
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.mesa-estado.libre{
+    color:#176a32;
+    background:#dff3e5;
+}
+
+.mesa-estado.atendiendo{
+    color:#8a5410;
+    background:#fff0cd;
+}
+
+.mesa-turno{
+    margin-top:16px;
+    font-size:25px;
+    font-weight:bold;
+}
+
+.mesa-tramite{
+    margin-top:5px;
+    color:#6e6e6e;
+    font-size:14px;
+}
+
+.sin-datos{
+    padding:18px;
+    text-align:center;
+    color:#777;
+    background:#f7f7f7;
+    border-radius:10px;
+}
+
+.actualizacion{
+    margin-top:18px;
+    color:#777;
+    font-size:13px;
+    text-align:right;
+}
+
+.acciones-admin{
+    margin-bottom:22px;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.boton-admin{
+    border:none;
+    border-radius:12px;
+    padding:13px 20px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.boton-admin:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 14px rgba(0,0,0,0.18);
+}
+
+.boton-exportar{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-liberar{
+    background:#d79a16;
+    color:white;
+}
+
+.boton-cerrar{
+    background:#a5232f;
+    color:white;
+}
+
+.mesa-estado.pausa{
+    color:#81510c;
+    background:#ffe9b8;
+}
+
+.mesa-estado.ausente{
+    color:#8d2831;
+    background:#f7d9dd;
+}
+
+.mesa-estado.vacaciones{
+    color:#6b4712;
+    background:#f6e5c4;
+}
+
+.mesa-estado.deshabilitada{
+    color:#555;
+    background:#dedede;
+}
+
+.mesa-estado.disponible{
+    color:#176a32;
+    background:#dff3e5;
+}
+
+.boton-reiniciar{
+    background:#555;
+    color:white;
+}
+
+@media(max-width:1000px){
+
+    .tarjetas{
+        grid-template-columns:repeat(2, minmax(170px, 1fr));
+    }
+
+    .columnas{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:600px){
+
+    .encabezado{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .reloj{
+        text-align:left;
+    }
+
+    .contenido{
+        padding:16px;
+    }
+
+    .tarjetas,
+    .mesas{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="encabezado">
+
+    <div>
+        <h1>Panel de Administración</h1>
+        <p>Sistema de Gestión de Turnos SAPAM</p>
+    </div>
+
+    <div class="reloj">
+        <div id="hora">--:--:--</div>
+        <div id="fecha">--/--/----</div>
+    </div>
+
+</header>
+
+<main class="contenido">
+
+    <section class="estado-sistema">
+
+        <span class="indicador" id="indicadorServidor"></span>
+
+        <strong id="estadoServidor">
+            Comprobando conexión...
+        </strong>
+
+    </section>
+
+    <section class="acciones-admin">
+
+        <button
+            class="boton-admin boton-exportar"
+            onclick="exportarReporte()">
+
+            Exportar reporte del día
+
+        </button>
+
+        <button
+            class="boton-admin boton-liberar"
+            onclick="liberarMesas()">
+
+            Liberar mesas
+
+        </button>
+
+        <button
+            class="boton-admin boton-cerrar"
+            onclick="cerrarJornada()">
+
+            Cerrar jornada
+
+        </button>
+
+        <button
+            class="boton-admin boton-reiniciar"
+            onclick="reiniciarFolios()">
+
+            Reiniciar folios
+
+        </button>
+
+    </section>
+
+    <section class="tarjetas">
+
+        <article class="tarjeta">
+            <div class="etiqueta">Turnos generados</div>
+            <div class="valor" id="generados">0</div>
+            <div class="unidad">Hoy</div>
+        </article>
+
+        <article class="tarjeta">
+            <div class="etiqueta">Turnos finalizados</div>
+            <div class="valor" id="finalizados">0</div>
+            <div class="unidad">Hoy</div>
+        </article>
+
+        <article class="tarjeta">
+            <div class="etiqueta">Turnos pendientes</div>
+            <div class="valor" id="pendientes">0</div>
+            <div class="unidad">En espera</div>
+        </article>
+
+        <article class="tarjeta">
+            <div class="etiqueta">En atención</div>
+            <div class="valor" id="atendiendo">0</div>
+            <div class="unidad">Actualmente</div>
+        </article>
+
+        <article class="tarjeta">
+            <div class="etiqueta">Espera promedio</div>
+            <div class="valor" id="esperaPromedio">0.00</div>
+            <div class="unidad">Minutos</div>
+        </article>
+
+        <article class="tarjeta">
+            <div class="etiqueta">Atención promedio</div>
+            <div class="valor" id="atencionPromedio">0.00</div>
+            <div class="unidad">Minutos</div>
+        </article>
+
+    </section>
+
+    <section class="columnas">
+
+        <article class="panel">
+
+            <h2>Turnos esperando por trámite</h2>
+
+            <div class="lista-colas" id="listaColas">
+                <div class="sin-datos">
+                    Cargando información...
+                </div>
+            </div>
+
+        </article>
+
+        <article class="panel">
+
+            <h2>Estado de las mesas</h2>
+
+            <div class="mesas" id="listaMesas"></div>
+
+        </article>
+
+    </section>
+
+    <div class="actualizacion" id="ultimaActualizacion">
+        Sin actualizar
+    </div>
+
+</main>
+
+<script>
+
+const nombresTramites = {
+
+    CONSUMO: "Consumo Alto",
+    AFOROS: "Aforos",
+    ABONOS: "Abonos",
+    CONTRATO1: "Contratos Etapa 1",
+    CONTRATO2: "Contratos Etapa 2",
+    RECONEXIONES: "Reconexiones",
+    SUSPENSION: "Suspensión Voluntaria",
+    INSEN: "INSEN",
+    GIRO: "Giro de Tarifa"
+
+};
+
+function actualizarReloj(){
+
+    const ahora = new Date();
+
+    document.getElementById("hora").textContent =
+        ahora.toLocaleTimeString("es-MX");
+
+    document.getElementById("fecha").textContent =
+        ahora.toLocaleDateString("es-MX", {
+            weekday:"long",
+            day:"2-digit",
+            month:"long",
+            year:"numeric"
+        });
+
+}
+
+function numeroSeguro(valor){
+
+    const numero = Number(valor);
+
+    return Number.isFinite(numero)
+        ? numero
+        : 0;
+
+}
+
+function mostrarResumen(resumen){
+
+    document.getElementById("generados").textContent =
+        numeroSeguro(resumen.generados);
+
+    document.getElementById("finalizados").textContent =
+        numeroSeguro(resumen.finalizados);
+
+    document.getElementById("pendientes").textContent =
+        numeroSeguro(resumen.pendientes);
+
+    document.getElementById("atendiendo").textContent =
+        numeroSeguro(resumen.atendiendo);
+
+    document.getElementById("esperaPromedio").textContent =
+        numeroSeguro(resumen.esperaPromedioMinutos).toFixed(2);
+
+    document.getElementById("atencionPromedio").textContent =
+        numeroSeguro(resumen.atencionPromedioMinutos).toFixed(2);
+
+}
+
+function mostrarColas(colas){
+
+    const contenedor =
+        document.getElementById("listaColas");
+
+    if(!colas.length){
+
+        contenedor.innerHTML = `
+            <div class="sin-datos">
+                No hay turnos esperando.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    contenedor.innerHTML =
+        colas.map(cola => `
+
+            <div class="cola">
+
+                <span class="cola-nombre">
+                    ${nombresTramites[cola.tramite] || cola.tramite}
+                </span>
+
+                <span class="cola-total">
+                    ${cola.total}
+                </span>
+
+            </div>
+
+        `).join("");
+
+}
+
+function mostrarMesas(mesas){
+
+    const contenedor =
+        document.getElementById("listaMesas");
+
+    const nombresEstados = {
+
+        disponible: "Libre",
+        atendiendo: "Atendiendo",
+        pausa: "En pausa",
+        ausente: "Ausente",
+        vacaciones: "Vacaciones",
+        deshabilitada: "Deshabilitada"
+
+    };
+
+    contenedor.innerHTML =
+        mesas.map(mesa => {
+
+            const estado =
+                mesa.estado || "disponible";
+
+            const nombreEstado =
+                nombresEstados[estado]
+                || estado;
+
+            let detalle = "Sin turno actual";
+
+            if(estado === "atendiendo"){
+
+                detalle =
+                    mesa.tramite
+                        ? nombresTramites[mesa.tramite]
+                            || mesa.tramite
+                        : "Atención en proceso";
+
+            }else if(mesa.motivo){
+
+                detalle = mesa.motivo;
+
+            }
+
+            return `
+
+                <div class="mesa">
+
+                    <div class="mesa-cabecera">
+
+                        <span class="mesa-numero">
+                            Mesa ${mesa.numero}
+                        </span>
+
+                        <span class="mesa-estado ${estado}">
+                            ${nombreEstado}
+                        </span>
+
+                    </div>
+
+                    <div class="mesa-turno">
+                        ${mesa.codigo || "---"}
+                    </div>
+
+                    <div class="mesa-tramite">
+                        ${detalle}
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+async function cargarPanel(){
+
+    const indicador =
+        document.getElementById("indicadorServidor");
+
+    const estado =
+        document.getElementById("estadoServidor");
+
+    try{
+
+        const respuesta =
+            await fetch("/api/admin/resumen", {
+                cache:"no-store"
+            });
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                "El servidor respondió con error"
+            );
+
+        }
+
+        const resultado =
+            await respuesta.json();
+
+        if(!resultado.success){
+
+            throw new Error(
+                resultado.mensaje
+                || "No se pudo obtener la información"
+            );
+
+        }
+
+        mostrarResumen(resultado.resumen);
+        mostrarColas(resultado.colas);
+        mostrarMesas(resultado.mesas);
+
+        indicador.className =
+            "indicador conectado";
+
+        estado.textContent =
+            "Servidor y base de datos conectados";
+
+        document.getElementById(
+            "ultimaActualizacion"
+        ).textContent =
+            "Última actualización: "
+            + new Date().toLocaleTimeString("es-MX");
+
+    }catch(error){
+
+        console.error(error);
+
+        indicador.className =
+            "indicador error";
+
+        estado.textContent =
+            "No se pudo conectar con el servidor";
+
+    }
+
+}
+
+function exportarReporte(){
+
+    window.location.href =
+        "/api/admin/exportar-csv";
+
+}
+
+async function liberarMesas(){
+
+    const confirmar =
+        confirm(
+            "¿Seguro que deseas liberar todas las mesas actualmente en atención?"
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch("/api/admin/liberar-mesas", {
+                method:"POST"
+            });
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron liberar las mesas"
+            );
+
+        }
+
+        alert(
+            `Mesas liberadas correctamente. Turnos finalizados: ${data.liberados}`
+        );
+
+        cargarPanel();
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(error.message);
+
+    }
+
+}
+
+async function cerrarJornada(){
+
+    const confirmar =
+        confirm(
+            "¿Seguro que deseas cerrar la jornada?\n\n"
+            + "Los turnos en atención se finalizarán.\n"
+            + "Los turnos pendientes se marcarán como cancelados.\n"
+            + "Esta acción no se puede deshacer."
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    const confirmacionFinal =
+        prompt(
+            'Para confirmar escribe exactamente: CERRAR'
+        );
+
+    if(confirmacionFinal !== "CERRAR"){
+
+        alert("Cierre cancelado.");
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/cerrar-jornada",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cerrar la jornada"
+            );
+
+        }
+
+        alert(
+            "Jornada cerrada correctamente.\n\n"
+            + `Turnos finalizados: ${data.finalizados}\n`
+            + `Turnos cancelados: ${data.cancelados}`
+        );
+
+        cargarPanel();
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(error.message);
+
+    }
+
+}
+
+async function reiniciarFolios(){
+
+    const confirmar =
+        confirm(
+            "¿Seguro que deseas reiniciar todos los folios?\n\n"
+            + "El siguiente turno de cada trámite comenzará nuevamente en 001.\n"
+            + "El historial no se borrará."
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    const texto =
+        prompt(
+            'Para confirmar escribe exactamente: REINICIAR'
+        );
+
+    if(texto !== "REINICIAR"){
+
+        alert("Reinicio cancelado.");
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/reiniciar-folios",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron reiniciar los folios"
+            );
+
+        }
+
+        alert(
+            "Folios reiniciados correctamente.\n"
+            + "El siguiente turno de cada trámite comenzará en 001."
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(error.message);
+
+    }
+
+}
+
+actualizarReloj();
+cargarPanel();
+
+setInterval(actualizarReloj, 1000);
+setInterval(cargarPanel, 3000);
+
+</script>
+
+</body>
+</html>

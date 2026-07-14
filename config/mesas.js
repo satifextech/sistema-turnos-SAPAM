@@ -6,7 +6,7 @@ module.exports = {
             { tramite:"AFOROS", peso:90 },
             { tramite:"CONTRATO1", peso:110 }
         ],
-        apoyo:[]
+        apoyo:[{ tramite:"CONTRATO2", peso:70 }]
     },
 
     2:{
@@ -26,6 +26,7 @@ module.exports = {
             { tramite:"CONTRATO2", peso:110 }
         ],
         apoyo:[
+             { tramite:"CONTRATO1", peso:70 },
             { tramite:"CONSUMO", peso:60 },
             { tramite:"AFOROS", peso:55 },
             { tramite:"ABONOS", peso:50 },
@@ -40,6 +41,8 @@ module.exports = {
             { tramite:"AFOROS", peso:100 }
         ],
         apoyo:[
+            {tramite:"CONTRATO1", peso:65},
+            { tramite:"CONTRATO2", peso:60 },
             { tramite:"ABONOS", peso:60 },
             { tramite:"RECONEXIONES", peso:55 },
             { tramite:"SUSPENSION", peso:50 }

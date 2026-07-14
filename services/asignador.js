@@ -3,6 +3,7 @@ const tramites = require("../config/tramites");
 const reglasApoyo = require("../config/reglasApoyo");
 const db = require("../database/db");
 const gestorTurnos = require("./gestorTurnos");
+const gestorMesa = require("./gestorMesa");
 
 class Asignador {
 
@@ -32,7 +33,34 @@ class Asignador {
 
     }
 
+    obtenerMesasPrioritarias(tramite){
 
+        const resultado = [];
+
+        for(const numero in this.mesas){
+
+            const configuracion =
+                this.mesas[numero];
+
+            const esPrioritaria =
+                configuracion.prioridad.some(
+                    regla =>
+                        regla.tramite === tramite
+                );
+
+            if(esPrioritaria){
+
+                resultado.push(
+                    Number(numero)
+                );
+
+            }
+
+        }
+
+        return resultado;
+
+    }
 
     async buscarTurno(mesa){
 
@@ -55,15 +83,40 @@ class Asignador {
 
     async necesitaApoyo(tramite){
 
-        const pendientes =
-            await gestorTurnos.contarPendientes(tramite);
+    const pendientes =
+        await gestorTurnos.contarPendientes(
+            tramite
+        );
 
-        const limite = 
-            this.reglasApoyo[tramite];
-
-        return pendientes >= limite;
-
+    if(pendientes === 0){
+        return false;
     }
+
+    const mesasPrioritarias =
+        this.obtenerMesasPrioritarias(
+            tramite
+        );
+
+    const existePrioritariaDisponible =
+        await gestorMesa.hayMesaDisponible(
+            mesasPrioritarias
+        );
+
+    /*
+    Si ninguna mesa prioritaria está disponible,
+    una mesa de apoyo puede atender desde el
+    primer turno pendiente.
+    */
+    if(!existePrioritariaDisponible){
+        return true;
+    }
+
+    const limite =
+        this.reglasApoyo[tramite];
+
+    return pendientes >= limite;
+
+}
 
 
     async buscarTurnoPrioridad(mesa){
