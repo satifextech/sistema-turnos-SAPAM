@@ -3,3 +3,4 @@ database/turnos.db
 logs/
 uploads/
 .env
+backups/

@@ -309,6 +309,11 @@ body{
     color:white;
 }
 
+.boton-respaldo{
+    background:#218342;
+    color:white;
+}
+
 @media(max-width:1000px){
 
     .tarjetas{
@@ -339,6 +344,140 @@ body{
     .tarjetas,
     .mesas{
         grid-template-columns:1fr;
+    }
+}
+
+.panel-respaldos{
+    margin-top:24px;
+    margin-bottom:24px;
+    padding:28px;
+}
+
+.cabecera-respaldos{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.cabecera-respaldos h2{
+    margin-bottom:5px;
+}
+
+.cabecera-respaldos p{
+    margin:0;
+    color:#777;
+}
+
+.boton-respaldo{
+    background:#218342;
+    color:white;
+}
+
+.resumen-respaldos{
+    margin-top:24px;
+    margin-bottom:28px;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:18px;
+}
+
+.dato-respaldo{
+    padding:17px;
+    background:#f7f4f5;
+    border-radius:13px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.dato-etiqueta{
+    color:#777;
+    font-size:13px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.dato-respaldo strong{
+    color:#6A0F20;
+    font-size:18px;
+}
+
+.mensaje-respaldo{
+    min-height:22px;
+    margin-top:15px;
+    color:#218342;
+    font-weight:bold;
+}
+
+@media(max-width:700px){
+
+    .cabecera-respaldos{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .resumen-respaldos{
+        grid-template-columns:1fr;
+    }
+
+}
+
+.limpieza-respaldos{
+    margin-top:30px;
+    padding-top:24px;
+    border-top:1px solid #e4dcde;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.limpieza-respaldos label{
+    color:#666;
+    font-weight:bold;
+}
+
+.limpieza-respaldos select{
+    min-height:42px;
+    padding:8px 12px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    font-size:14px;
+}
+
+.boton-eliminar-respaldos{
+    background:#a5232f;
+    color:white;
+}
+
+.panel-respaldos{
+    overflow:hidden;
+}
+
+.cabecera-respaldos{
+    margin-bottom:4px;
+}
+
+.dato-respaldo{
+    min-height:104px;
+}
+
+@media(max-width:900px){
+
+    .resumen-respaldos{
+        grid-template-columns:1fr;
+    }
+
+    .limpieza-respaldos{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .limpieza-respaldos select,
+    .boton-eliminar-respaldos{
+        width:100%;
     }
 
 }
@@ -471,6 +610,94 @@ body{
             <div class="mesas" id="listaMesas"></div>
 
         </article>
+
+    </section>
+
+    <section class="panel panel-respaldos">
+
+        <div class="cabecera-respaldos">
+
+            <div>
+                <h2>Respaldos del sistema</h2>
+                <p>
+                    Copias de seguridad de la base de datos
+                    y reportes de operación.
+                </p>
+            </div>
+
+            <button
+                id="btnCrearRespaldo"
+                class="boton-admin boton-respaldo"
+                onclick="crearRespaldo()">
+
+                Crear respaldo ahora
+
+            </button>
+
+        </div>
+
+        <div class="resumen-respaldos">
+
+            <div class="dato-respaldo">
+                <span class="dato-etiqueta">
+                    Último respaldo
+                </span>
+
+                <strong id="ultimoRespaldo">
+                    Ninguno
+                </strong>
+            </div>
+
+            <div class="dato-respaldo">
+                <span class="dato-etiqueta">
+                    Cantidad
+                </span>
+
+                <strong id="cantidadRespaldos">
+                    0
+                </strong>
+            </div>
+
+            <div class="dato-respaldo">
+                <span class="dato-etiqueta">
+                    Espacio utilizado
+                </span>
+
+                <strong id="tamañoRespaldos">
+                    0 MB
+                </strong>
+            </div>
+
+        </div>
+
+        <div
+            class="mensaje-respaldo"
+            id="mensajeRespaldo">
+        </div>
+
+        <div class="limpieza-respaldos">
+
+            <label for="diasRespaldos">
+                Eliminar archivos con más de:
+            </label>
+
+        <select id="diasRespaldos">
+            <option value="30">30 días</option>
+            <option value="60">60 días</option>
+            <option value="90" selected>90 días</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 año</option>
+        </select>
+
+        <button
+            class="boton-admin boton-eliminar-respaldos"
+            onclick="eliminarRespaldosAntiguos()">
+
+            Eliminar respaldos antiguos
+
+        </button>
+
+</div>
 
     </section>
 
@@ -901,9 +1128,225 @@ async function reiniciarFolios(){
 
 }
 
+function formatearTamaño(bytes){
+
+    const numero =
+        Number(bytes || 0);
+
+    if(numero < 1024){
+        return `${numero} bytes`;
+    }
+
+    if(numero < 1024 * 1024){
+
+        return `${(
+            numero / 1024
+        ).toFixed(2)} KB`;
+
+    }
+
+    return `${(
+        numero / 1024 / 1024
+    ).toFixed(2)} MB`;
+
+}
+
+
+async function cargarRespaldos(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/respaldos",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+            return;
+        }
+
+        document.getElementById(
+            "cantidadRespaldos"
+        ).textContent =
+            data.cantidad;
+
+        document.getElementById(
+            "tamañoRespaldos"
+        ).textContent =
+            formatearTamaño(
+                data.tamañoTotal
+            );
+
+        document.getElementById(
+            "ultimoRespaldo"
+        ).textContent =
+            data.ultimo
+                ? new Date(
+                    data.ultimo.fecha
+                ).toLocaleString("es-MX")
+                : "Ninguno";
+
+    }catch(error){
+
+        console.error(
+            "No se pudieron cargar los respaldos:",
+            error
+        );
+
+    }
+
+}
+
+
+async function crearRespaldo(){
+
+    const boton =
+        document.getElementById(
+            "btnCrearRespaldo"
+        );
+
+    const mensaje =
+        document.getElementById(
+            "mensajeRespaldo"
+        );
+
+    boton.disabled = true;
+    boton.textContent =
+        "Creando respaldo...";
+
+    mensaje.textContent = "";
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/crear-respaldo",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo crear el respaldo"
+            );
+
+        }
+
+        mensaje.textContent =
+            "Respaldo creado correctamente: "
+            + data.baseDatos;
+
+        await cargarRespaldos();
+
+    }catch(error){
+
+        console.error(error);
+
+        mensaje.textContent =
+            error.message;
+
+    }finally{
+
+        boton.disabled = false;
+        boton.textContent =
+            "Crear respaldo ahora";
+
+    }
+
+}
+
+async function eliminarRespaldosAntiguos(){
+
+    const dias =
+        Number(
+            document.getElementById(
+                "diasRespaldos"
+            ).value
+        );
+
+    const confirmar =
+        confirm(
+            `¿Eliminar todos los respaldos `
+            + `con más de ${dias} días?\n\n`
+            + "Esta acción no se puede deshacer."
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/eliminar-respaldos-antiguos",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        dias
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron eliminar los respaldos"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeRespaldo"
+        ).textContent =
+            `Archivos eliminados: ${data.eliminados}. `
+            + `Espacio liberado: ${
+                formatearTamaño(
+                    data.espacioLiberado
+                )
+            }.`;
+
+        await cargarRespaldos();
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "mensajeRespaldo"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
 actualizarReloj();
 cargarPanel();
+cargarRespaldos();
 
+setInterval(cargarRespaldos, 30000);
 setInterval(actualizarReloj, 1000);
 setInterval(cargarPanel, 3000);
 

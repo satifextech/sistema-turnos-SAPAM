@@ -6,8 +6,8 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const gestorTurnos = require("../services/gestorTurnos");
-const gestorMesa =
-    require("../services/gestorMesa");
+const gestorMesa = require("../services/gestorMesa");
+const gestorRespaldos = require("../services/gestorRespaldos");
 
 const app = express();
 
@@ -403,40 +403,74 @@ app.post("/api/admin/liberar-mesas", async (req, res)=>{
 
 });
 
-app.post("/api/admin/cerrar-jornada", async (req, res)=>{
+app.post(
+    "/api/admin/cerrar-jornada",
+    async (req, res)=>{
 
-    try{
+        try{
 
-        const resultado =
-            await gestorTurnos.cerrarJornada();
+            /*
+            Respaldo de seguridad antes de modificar
+            los estados de la jornada.
+            */
+            const respaldo =
+                await gestorRespaldos
+                    .crearCopiaBaseDatos();
 
-        io.emit("mesasLiberadas");
+            const resultado =
+                await gestorTurnos
+                    .cerrarJornada();
 
-        io.emit("jornadaCerrada", {
-            finalizados:resultado.finalizados,
-            cancelados:resultado.cancelados
-        });
+            /*
+            Consultamos nuevamente para que el CSV
+            contenga los estados finales.
+            */
+            const turnos =
+                await gestorTurnos
+                    .obtenerTurnosDia();
 
-        res.json({
-            success:true,
-            ...resultado
-        });
+            const reporte =
+                await gestorRespaldos
+                    .guardarReporteCSV(turnos);
 
-    }catch(error){
+            io.emit("mesasLiberadas");
 
-        console.error(
-            "Error al cerrar jornada:",
-            error
-        );
+            io.emit("jornadaCerrada", {
+                finalizados:
+                    resultado.finalizados,
+                cancelados:
+                    resultado.cancelados
+            });
 
-        res.status(500).json({
-            success:false,
-            mensaje:"No se pudo cerrar la jornada"
-        });
+            res.json({
+                success:true,
+                finalizados:
+                    resultado.finalizados,
+                cancelados:
+                    resultado.cancelados,
+                respaldo:
+                    respaldo.nombreArchivo,
+                reporte:
+                    reporte.nombreArchivo
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cerrar jornada:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo cerrar la jornada"
+            });
+
+        }
 
     }
-
-});
+);
 
 app.get("/api/mesas/estados", async (req, res)=>{
 
@@ -600,6 +634,127 @@ app.post(
             res.status(500).json({
                 success:false,
                 mensaje:"No se pudieron reiniciar los folios"
+            });
+
+        }
+
+    }
+);
+
+app.get("/api/admin/respaldos", async (req, res)=>{
+
+    try{
+
+        const datos =
+            await gestorRespaldos.listarRespaldos();
+
+        res.json({
+            success:true,
+            ...datos
+        });
+
+    }catch(error){
+
+        console.error(
+            "Error al consultar respaldos:",
+            error
+        );
+
+        res.status(500).json({
+            success:false,
+            mensaje:
+                "No se pudieron consultar los respaldos"
+        });
+
+    }
+
+});
+
+app.post(
+    "/api/admin/crear-respaldo",
+    async (req, res)=>{
+
+        try{
+
+            const turnos =
+                await gestorTurnos.obtenerTurnosDia();
+
+            const baseDatos =
+                await gestorRespaldos
+                    .crearCopiaBaseDatos();
+
+            const reporte =
+                await gestorRespaldos
+                    .guardarReporteCSV(turnos);
+
+            res.json({
+                success:true,
+                baseDatos:
+                    baseDatos.nombreArchivo,
+                reporte:
+                    reporte.nombreArchivo
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al crear respaldo:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo crear el respaldo"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/eliminar-respaldos-antiguos",
+    async (req, res)=>{
+
+        const dias =
+            Number(req.body.dias);
+
+        if(
+            !Number.isInteger(dias)
+            || dias < 1
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Debes indicar una cantidad válida de días"
+            });
+
+        }
+
+        try{
+
+            const resultado =
+                await gestorRespaldos
+                    .eliminarRespaldosAntiguos(dias);
+
+            res.json({
+                success:true,
+                ...resultado
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al eliminar respaldos antiguos:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron eliminar los respaldos"
             });
 
         }
