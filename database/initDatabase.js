@@ -53,40 +53,251 @@ db.serialize(() => {
         )
     `);
 
-    for(let numero = 1; numero <= 5; numero++){
+    db.run(`
+        CREATE TABLE IF NOT EXISTS tramites_config (
+
+            codigo TEXT PRIMARY KEY,
+
+            nombre TEXT NOT NULL,
+
+            prefijo TEXT NOT NULL UNIQUE,
+
+            descripcion TEXT,
+
+            activo INTEGER NOT NULL DEFAULT 1,
+
+            mostrarRecepcion INTEGER NOT NULL DEFAULT 1,
+
+            orden INTEGER NOT NULL DEFAULT 0,
+
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            fechaActualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+
+        )
+    `);
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS mesas_config (
+
+            numero INTEGER PRIMARY KEY,
+
+            nombre TEXT NOT NULL,
+
+            activo INTEGER NOT NULL DEFAULT 1,
+
+            permiteTurnos INTEGER NOT NULL DEFAULT 1,
+
+            orden INTEGER NOT NULL DEFAULT 0,
+
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            fechaActualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+
+        )
+    `);
+
+    const tramitesIniciales = [
+
+        {
+            codigo:"CONSUMO",
+            nombre:"Consumo Alto",
+            prefijo:"CA",
+            descripcion:
+                "Revisión y aclaración por consumo elevado.",
+            orden:1
+        },
+
+        {
+            codigo:"AFOROS",
+            nombre:"Aforos",
+            prefijo:"AF",
+            descripcion:
+                "Solicitudes y seguimiento de aforos.",
+            orden:2
+        },
+
+        {
+            codigo:"ABONOS",
+            nombre:"Abonos",
+            prefijo:"AB",
+            descripcion:
+                "Convenios, pagos parciales y abonos.",
+            orden:3
+        },
+
+        {
+            codigo:"CONTRATO1",
+            nombre:"Contratos - Etapa 1",
+            prefijo:"C1",
+            descripcion:
+                "Recepción y validación de documentos.",
+            orden:4
+        },
+
+        {
+            codigo:"CONTRATO2",
+            nombre:"Contratos - Etapa 2",
+            prefijo:"C2",
+            descripcion:
+                "Presupuesto y firma del contrato.",
+            orden:5
+        },
+
+        {
+            codigo:"RECONEXIONES",
+            nombre:"Reconexiones",
+            prefijo:"RE",
+            descripcion:
+                "Trámite y seguimiento de reconexión.",
+            orden:6
+        },
+
+        {
+            codigo:"SUSPENSION",
+            nombre:"Suspensión Voluntaria",
+            prefijo:"SU",
+            descripcion:
+                "Solicitud de suspensión temporal del servicio.",
+            orden:7
+        },
+
+        {
+            codigo:"INSEN",
+            nombre:"INSEN",
+            prefijo:"IN",
+            descripcion:
+                "Atención de beneficios y descuentos.",
+            orden:8
+        },
+
+        {
+            codigo:"GIRO",
+            nombre:"Giro de Tarifa",
+            prefijo:"GT",
+            descripcion:
+                "Solicitud o actualización de giro tarifario.",
+            orden:9
+        }
+
+    ];
+
+    for(const tramite of tramitesIniciales){
 
         db.run(
             `
-            INSERT OR IGNORE INTO mesas_estado
-            (numero, estado)
-            VALUES (?, 'disponible')
+            INSERT OR IGNORE INTO tramites_config
+            (
+                codigo,
+                nombre,
+                prefijo,
+                descripcion,
+                activo,
+                mostrarRecepcion,
+                orden
+            )
+            VALUES (?, ?, ?, ?, 1, 1, ?)
             `,
-            [numero]
+            [
+                tramite.codigo,
+                tramite.nombre,
+                tramite.prefijo,
+                tramite.descripcion,
+                tramite.orden
+            ]
         );
 
     }
 
-    const tramitesFolios = [
-        "CONSUMO",
-        "AFOROS",
-        "ABONOS",
-        "CONTRATO1",
-        "CONTRATO2",
-        "RECONEXIONES",
-        "SUSPENSION",
-        "INSEN",
-        "GIRO"
+    const mesasIniciales = [
+
+        {
+            numero:1,
+            nombre:"Mesa 1",
+            orden:1
+        },
+
+        {
+            numero:2,
+            nombre:"Mesa 2",
+            orden:2
+        },
+
+        {
+            numero:3,
+            nombre:"Mesa 3",
+            orden:3
+        },
+
+        {
+            numero:4,
+            nombre:"Mesa 4",
+            orden:4
+        },
+
+        {
+            numero:5,
+            nombre:"Mesa 5",
+            orden:5
+        }
+
     ];
 
-    for(const tramite of tramitesFolios){
+    for(const mesa of mesasIniciales){
+
+        db.run(
+            `
+            INSERT OR IGNORE INTO mesas_config
+            (
+                numero,
+                nombre,
+                activo,
+                permiteTurnos,
+                orden
+            )
+            VALUES (?, ?, 1, 1, ?)
+            `,
+            [
+                mesa.numero,
+                mesa.nombre,
+                mesa.orden
+            ]
+        );
+
+        /*
+        Aseguramos que cada mesa dinámica también
+        tenga un estado operativo.
+        */
+        db.run(
+            `
+            INSERT OR IGNORE INTO mesas_estado
+            (
+                numero,
+                estado
+            )
+            VALUES (?, 'disponible')
+            `,
+            [
+                mesa.numero
+            ]
+        );
+
+    }
+
+    for(const tramite of tramitesIniciales){
 
         db.run(
             `
             INSERT OR IGNORE INTO folios
-            (tramite, ultimoNumero)
+            (
+                tramite,
+                ultimoNumero
+            )
             VALUES (?, 0)
             `,
-            [tramite]
+            [
+                tramite.codigo
+            ]
         );
 
     }

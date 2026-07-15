@@ -669,6 +669,178 @@ body{
     cursor:not-allowed;
 }
 
+.panel-configuracion{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-configuracion{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.cabecera-configuracion h2{
+    margin-bottom:5px;
+}
+
+.cabecera-configuracion p{
+    margin:0;
+    color:#777;
+}
+
+.boton-nuevo-config,
+.boton-guardar-config{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-cancelar-config{
+    background:#777;
+    color:white;
+}
+
+.formulario-config{
+    margin-top:22px;
+    padding:20px;
+    border-radius:15px;
+    background:#f7f4f5;
+    display:grid;
+    grid-template-columns:
+        repeat(3, minmax(180px, 1fr));
+    gap:16px;
+}
+
+.formulario-config.oculto{
+    display:none;
+}
+
+.campo-config label{
+    display:block;
+    margin-bottom:7px;
+    color:#555;
+    font-weight:bold;
+}
+
+.campo-config input{
+    width:100%;
+    min-height:44px;
+    padding:9px 12px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    font-size:15px;
+}
+
+.campo-config-ancho{
+    grid-column:span 2;
+}
+
+.campo-check{
+    display:flex;
+    align-items:end;
+}
+
+.campo-check label{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    min-height:44px;
+}
+
+.campo-check input{
+    width:auto;
+    min-height:auto;
+}
+
+.acciones-formulario-config{
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+}
+
+.mensaje-config{
+    min-height:22px;
+    margin-top:15px;
+    color:#218342;
+    font-weight:bold;
+}
+
+.tabla-config{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.tabla-config th,
+.tabla-config td{
+    padding:13px;
+    border-bottom:1px solid #e4dcde;
+    text-align:left;
+    vertical-align:middle;
+}
+
+.tabla-config th{
+    color:#6A0F20;
+    background:#f7f4f5;
+}
+
+.estado-config{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:18px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.estado-config.activo{
+    color:#176a32;
+    background:#dff3e5;
+}
+
+.estado-config.inactivo{
+    color:#8d2831;
+    background:#f7d9dd;
+}
+
+.acciones-config{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.boton-config{
+    border:none;
+    border-radius:9px;
+    padding:8px 11px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-editar-config{
+    background:#6A0F20;
+    color:white;
+}
+
+@media(max-width:900px){
+
+    .cabecera-configuracion{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .formulario-config{
+        grid-template-columns:1fr;
+    }
+
+    .campo-config-ancho{
+        grid-column:auto;
+    }
+
+}
+
 @media(max-width:900px){
 
     .cabecera-usuarios{
@@ -844,6 +1016,191 @@ body{
             <div class="mesas" id="listaMesas"></div>
 
         </article>
+
+    </section>
+
+    <section
+        class="panel panel-configuracion solo-admin">
+
+        <div class="cabecera-configuracion">
+
+            <div>
+                <h2>Administración de trámites</h2>
+
+                <p>
+                    Crea, edita, activa o desactiva los
+                    trámites disponibles en Recepción.
+                </p>
+            </div>
+
+            <button
+                class="boton-admin boton-nuevo-config"
+                onclick="mostrarFormularioTramite()">
+
+                Crear trámite
+
+            </button>
+
+        </div>
+
+        <div
+            class="formulario-config oculto"
+            id="formularioTramite">
+
+            <input
+                type="hidden"
+                id="tramiteCodigoOriginal">
+
+            <div class="campo-config">
+
+                <label for="tramiteCodigo">
+                    Código interno
+                </label>
+
+                <input
+                    id="tramiteCodigo"
+                    maxlength="30"
+                    placeholder="Ejemplo: CAMBIO_MEDIDOR">
+
+            </div>
+
+            <div class="campo-config">
+
+                <label for="tramiteNombre">
+                    Nombre
+                </label>
+
+                <input
+                    id="tramiteNombre"
+                    maxlength="80"
+                    placeholder="Ejemplo: Cambio de medidor">
+
+            </div>
+
+            <div class="campo-config">
+
+                <label for="tramitePrefijo">
+                    Prefijo del turno
+                </label>
+
+                <input
+                    id="tramitePrefijo"
+                    maxlength="4"
+                    placeholder="Ejemplo: CM">
+
+            </div>
+
+            <div class="campo-config campo-config-ancho">
+
+                <label for="tramiteDescripcion">
+                    Descripción
+                </label>
+
+                <input
+                    id="tramiteDescripcion"
+                    maxlength="180"
+                    placeholder="Descripción que verá Recepción">
+
+            </div>
+
+            <div class="campo-config">
+
+                <label for="tramiteOrden">
+                    Orden
+                </label>
+
+                <input
+                    id="tramiteOrden"
+                    type="number"
+                    min="0"
+                    value="0">
+
+            </div>
+
+            <div class="campo-config campo-check">
+
+                <label>
+                    <input
+                        id="tramiteActivo"
+                        type="checkbox"
+                        checked>
+
+                    Trámite activo
+                </label>
+
+            </div>
+
+            <div class="campo-config campo-check">
+
+                <label>
+                    <input
+                        id="tramiteMostrarRecepcion"
+                        type="checkbox"
+                        checked>
+
+                    Mostrar en Recepción
+                </label>
+
+            </div>
+
+            <div class="acciones-formulario-config">
+
+                <button
+                    class="boton-admin boton-guardar-config"
+                    onclick="guardarTramite()">
+
+                    Guardar trámite
+
+                </button>
+
+                <button
+                    class="boton-admin boton-cancelar-config"
+                    onclick="ocultarFormularioTramite()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="mensaje-config"
+            id="mensajeTramites">
+        </div>
+
+        <div class="tabla-contenedor">
+
+            <table class="tabla-config">
+
+                <thead>
+
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Prefijo</th>
+                        <th>Orden</th>
+                        <th>Activo</th>
+                        <th>Recepción</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="listaTramites">
+
+                    <tr>
+                        <td colspan="7">
+                            Cargando trámites...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </section>
 
@@ -1924,6 +2281,8 @@ async function aplicarPermisosUsuario(){
 
             cargarUsuarios();
 
+            cargarTramitesConfiguracion();
+
         }
 
         if(data.rol === "supervisor"){
@@ -2639,6 +2998,425 @@ async function cambiarEstadoMesaAdmin(numero){
 
         selector.disabled = false;
         editandoEstadoMesa = false;
+
+    }
+
+}
+
+let tramitesConfiguracion = [];
+
+
+function mostrarFormularioTramite(){
+
+    document.getElementById(
+        "formularioTramite"
+    ).classList.remove("oculto");
+
+    document.getElementById(
+        "tramiteCodigoOriginal"
+    ).value = "";
+
+    document.getElementById(
+        "tramiteCodigo"
+    ).disabled = false;
+
+    document.getElementById(
+        "tramiteActivo"
+    ).checked = true;
+
+    document.getElementById(
+        "tramiteMostrarRecepcion"
+    ).checked = true;
+
+}
+
+
+function ocultarFormularioTramite(){
+
+    document.getElementById(
+        "formularioTramite"
+    ).classList.add("oculto");
+
+    document.getElementById(
+        "tramiteCodigoOriginal"
+    ).value = "";
+
+    document.getElementById(
+        "tramiteCodigo"
+    ).value = "";
+
+    document.getElementById(
+        "tramiteNombre"
+    ).value = "";
+
+    document.getElementById(
+        "tramitePrefijo"
+    ).value = "";
+
+    document.getElementById(
+        "tramiteDescripcion"
+    ).value = "";
+
+    document.getElementById(
+        "tramiteOrden"
+    ).value = "0";
+
+    document.getElementById(
+        "tramiteActivo"
+    ).checked = true;
+
+    document.getElementById(
+        "tramiteMostrarRecepcion"
+    ).checked = true;
+
+    document.getElementById(
+        "tramiteCodigo"
+    ).disabled = false;
+
+}
+
+
+async function cargarTramitesConfiguracion(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/tramites",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(response.status === 401){
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar los trámites"
+            );
+
+        }
+
+        tramitesConfiguracion =
+            data.tramites || [];
+
+        const cuerpo =
+            document.getElementById(
+                "listaTramites"
+            );
+
+        cuerpo.innerHTML =
+            tramitesConfiguracion
+                .map(tramite => {
+
+                    const activo =
+                        Number(tramite.activo) === 1;
+
+                    const mostrar =
+                        Number(
+                            tramite.mostrarRecepcion
+                        ) === 1;
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    ${escaparHTML(tramite.codigo)}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${escaparHTML(tramite.nombre)}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    ${escaparHTML(tramite.prefijo)}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${Number(tramite.orden || 0)}
+                            </td>
+
+                            <td>
+
+                                <span class="
+                                    estado-config
+                                    ${activo
+                                        ? "activo"
+                                        : "inactivo"}
+                                ">
+
+                                    ${activo
+                                        ? "Activo"
+                                        : "Inactivo"}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <span class="
+                                    estado-config
+                                    ${mostrar
+                                        ? "activo"
+                                        : "inactivo"}
+                                ">
+
+                                    ${mostrar
+                                        ? "Visible"
+                                        : "Oculto"}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <div class="acciones-config">
+
+                                    <button
+                                        class="
+                                            boton-config
+                                            boton-editar-config
+                                        "
+                                        onclick="
+                                            editarTramite(
+                                                '${escaparHTML(
+                                                    tramite.codigo
+                                                )}'
+                                            )
+                                        ">
+
+                                        Editar
+
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }).join("");
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "mensajeTramites"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+function editarTramite(codigo){
+
+    const tramite =
+        tramitesConfiguracion.find(
+            item =>
+                item.codigo === codigo
+        );
+
+    if(!tramite){
+        return;
+    }
+
+    mostrarFormularioTramite();
+
+    document.getElementById(
+        "tramiteCodigoOriginal"
+    ).value =
+        tramite.codigo;
+
+    document.getElementById(
+        "tramiteCodigo"
+    ).value =
+        tramite.codigo;
+
+    document.getElementById(
+        "tramiteCodigo"
+    ).disabled = true;
+
+    document.getElementById(
+        "tramiteNombre"
+    ).value =
+        tramite.nombre || "";
+
+    document.getElementById(
+        "tramitePrefijo"
+    ).value =
+        tramite.prefijo || "";
+
+    document.getElementById(
+        "tramiteDescripcion"
+    ).value =
+        tramite.descripcion || "";
+
+    document.getElementById(
+        "tramiteOrden"
+    ).value =
+        Number(tramite.orden || 0);
+
+    document.getElementById(
+        "tramiteActivo"
+    ).checked =
+        Number(tramite.activo) === 1;
+
+    document.getElementById(
+        "tramiteMostrarRecepcion"
+    ).checked =
+        Number(
+            tramite.mostrarRecepcion
+        ) === 1;
+
+    document.getElementById(
+        "formularioTramite"
+    ).scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    });
+
+}
+
+
+async function guardarTramite(){
+
+    const codigoOriginal =
+        document.getElementById(
+            "tramiteCodigoOriginal"
+        ).value;
+
+    const codigo =
+        document.getElementById(
+            "tramiteCodigo"
+        ).value
+            .trim()
+            .toUpperCase();
+
+    const nombre =
+        document.getElementById(
+            "tramiteNombre"
+        ).value.trim();
+
+    const prefijo =
+        document.getElementById(
+            "tramitePrefijo"
+        ).value
+            .trim()
+            .toUpperCase();
+
+    const descripcion =
+        document.getElementById(
+            "tramiteDescripcion"
+        ).value.trim();
+
+    const orden =
+        Number(
+            document.getElementById(
+                "tramiteOrden"
+            ).value || 0
+        );
+
+    const activo =
+        document.getElementById(
+            "tramiteActivo"
+        ).checked;
+
+    const mostrarRecepcion =
+        document.getElementById(
+            "tramiteMostrarRecepcion"
+        ).checked;
+
+    const editando =
+        Boolean(codigoOriginal);
+
+    const url =
+        editando
+            ? `/api/admin/tramites/${codigoOriginal}`
+            : "/api/admin/tramites";
+
+    const method =
+        editando
+            ? "PUT"
+            : "POST";
+
+    const mensaje =
+        document.getElementById(
+            "mensajeTramites"
+        );
+
+    mensaje.textContent =
+        editando
+            ? "Actualizando trámite..."
+            : "Creando trámite...";
+
+    try{
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method,
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        codigo,
+                        nombre,
+                        prefijo,
+                        descripcion,
+                        orden,
+                        activo,
+                        mostrarRecepcion
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo guardar el trámite"
+            );
+
+        }
+
+        mensaje.textContent =
+            data.mensaje;
+
+        ocultarFormularioTramite();
+
+        await cargarTramitesConfiguracion();
+
+    }catch(error){
+
+        console.error(error);
+
+        mensaje.textContent =
+            error.message;
 
     }
 

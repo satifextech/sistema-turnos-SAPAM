@@ -11,6 +11,8 @@ const gestorRespaldos = require("../services/gestorRespaldos");
 const crypto = require("crypto");
 const gestorUsuarios = require("../services/gestorUsuarios");
 const bcrypt = require("bcrypt");
+const gestorTramites = require("../services/gestorTramites");
+const gestorMesasConfig = require("../services/gestorMesasConfig");
 
 const app = express();
 
@@ -1832,6 +1834,600 @@ app.delete(
                 success:false,
                 mensaje:
                     "No se pudo eliminar el usuario"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/tramites",
+    requerirAdmin,
+    async (req, res)=>{
+
+        try{
+
+            const tramites =
+                await gestorTramites.listarTodos();
+
+            res.json({
+                success:true,
+                tramites
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar trámites:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar los trámites"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/recepcion/tramites",
+    requerirRoles(
+        "admin",
+        "recepcion"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const tramites =
+                await gestorTramites
+                    .listarRecepcion();
+
+            res.json({
+                success:true,
+                tramites
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar trámites de recepción:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron cargar los trámites"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/tramites",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const codigo =
+            String(req.body.codigo || "")
+                .trim()
+                .toUpperCase();
+
+        const nombre =
+            String(req.body.nombre || "")
+                .trim();
+
+        const prefijo =
+            String(req.body.prefijo || "")
+                .trim()
+                .toUpperCase();
+
+        const descripcion =
+            String(req.body.descripcion || "")
+                .trim();
+
+        const orden =
+            Number(req.body.orden || 0);
+
+        if(
+            !/^[A-Z0-9_]{2,30}$/.test(codigo)
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El código debe tener entre 2 y 30 caracteres y usar solamente letras, números o guion bajo"
+            });
+
+        }
+
+        if(nombre.length < 3){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El nombre del trámite no es válido"
+            });
+
+        }
+
+        if(
+            !/^[A-Z0-9]{1,4}$/.test(prefijo)
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El prefijo debe tener de 1 a 4 letras o números"
+            });
+
+        }
+
+        try{
+
+            const existente =
+                await gestorTramites
+                    .buscarPorCodigo(codigo);
+
+            if(existente){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "Ya existe un trámite con ese código"
+                });
+
+            }
+
+            const prefijoExistente =
+                await gestorTramites
+                    .buscarPorPrefijo(prefijo);
+
+            if(prefijoExistente){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "Ese prefijo ya está siendo utilizado"
+                });
+
+            }
+
+            await gestorTramites.crear({
+                codigo,
+                nombre,
+                prefijo,
+                descripcion,
+                orden
+            });
+
+            /*
+            Cada trámite necesita su contador.
+            */
+            await new Promise(
+                (resolve, reject)=>{
+
+                    db.run(
+                        `
+                        INSERT OR IGNORE INTO folios
+                        (
+                            tramite,
+                            ultimoNumero
+                        )
+                        VALUES (?, 0)
+                        `,
+                        [codigo],
+                        error => {
+
+                            if(error){
+                                reject(error);
+                                return;
+                            }
+
+                            resolve();
+
+                        }
+                    );
+
+                }
+            );
+
+            res.status(201).json({
+                success:true,
+                mensaje:
+                    "Trámite creado correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al crear trámite:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo crear el trámite"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/tramites/:codigo",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const codigo =
+            String(req.params.codigo || "")
+                .trim()
+                .toUpperCase();
+
+        const nombre =
+            String(req.body.nombre || "")
+                .trim();
+
+        const prefijo =
+            String(req.body.prefijo || "")
+                .trim()
+                .toUpperCase();
+
+        const descripcion =
+            String(req.body.descripcion || "")
+                .trim();
+
+        const activo =
+            req.body.activo === true;
+
+        const mostrarRecepcion =
+            req.body.mostrarRecepcion === true;
+
+        const orden =
+            Number(req.body.orden || 0);
+
+        if(nombre.length < 3){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Nombre inválido"
+            });
+
+        }
+
+        if(
+            !/^[A-Z0-9]{1,4}$/.test(prefijo)
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Prefijo inválido"
+            });
+
+        }
+
+        try{
+
+            const tramite =
+                await gestorTramites
+                    .buscarPorCodigo(codigo);
+
+            if(!tramite){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El trámite no existe"
+                });
+
+            }
+
+            const prefijoExistente =
+                await gestorTramites
+                    .buscarPorPrefijo(prefijo);
+
+            if(
+                prefijoExistente
+                && prefijoExistente.codigo
+                    !== codigo
+            ){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "Ese prefijo pertenece a otro trámite"
+                });
+
+            }
+
+            const cambios =
+                await gestorTramites.actualizar(
+                    codigo,
+                    {
+                        nombre,
+                        prefijo,
+                        descripcion,
+                        activo,
+                        mostrarRecepcion,
+                        orden
+                    }
+                );
+
+            if(cambios === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El trámite no existe"
+                });
+
+            }
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Trámite actualizado correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al actualizar trámite:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo actualizar el trámite"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/mesas-config",
+    requerirAdmin,
+    async (req, res)=>{
+
+        try{
+
+            const mesas =
+                await gestorMesasConfig
+                    .listarTodas();
+
+            res.json({
+                success:true,
+                mesas
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar mesas:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar las mesas"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/mesas-config",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const nombreRecibido =
+            String(req.body.nombre || "")
+                .trim();
+
+        try{
+
+            const numero =
+                await gestorMesasConfig
+                    .obtenerSiguienteNumero();
+
+            const nombre =
+                nombreRecibido
+                || `Mesa ${numero}`;
+
+            await gestorMesasConfig.crear({
+                numero,
+                nombre,
+                orden:numero
+            });
+
+            io.emit("configuracionMesasActualizada");
+
+            res.status(201).json({
+                success:true,
+                numero,
+                nombre,
+                mensaje:
+                    `${nombre} creada correctamente`
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al crear mesa:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo crear la mesa"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/mesas-config/:numero",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const numero =
+            Number(req.params.numero);
+
+        const nombre =
+            String(req.body.nombre || "")
+                .trim();
+
+        const activo =
+            req.body.activo === true;
+
+        const permiteTurnos =
+            req.body.permiteTurnos === true;
+
+        const orden =
+            Number(req.body.orden || numero);
+
+        if(
+            !Number.isInteger(numero)
+            || numero <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Mesa inválida"
+            });
+
+        }
+
+        if(nombre.length < 3){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El nombre de la mesa no es válido"
+            });
+
+        }
+
+        try{
+
+            const mesa =
+                await gestorMesasConfig
+                    .buscarPorNumero(numero);
+
+            if(!mesa){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "La mesa no existe"
+                });
+
+            }
+
+            const cambios =
+                await gestorMesasConfig.actualizar(
+                    numero,
+                    {
+                        nombre,
+                        activo,
+                        permiteTurnos,
+                        orden
+                    }
+                );
+
+            if(cambios === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "La mesa no existe"
+                });
+
+            }
+
+            /*
+            Una mesa inactiva queda también
+            deshabilitada operativamente.
+            */
+            if(!activo || !permiteTurnos){
+
+                await gestorMesa.cambiarEstado(
+                    numero,
+                    "deshabilitada",
+                    "Mesa deshabilitada desde Administración"
+                );
+
+            }else{
+
+                const estadoActual =
+                    await gestorMesa
+                        .obtenerEstado(numero);
+
+                if(
+                    estadoActual.estado
+                    === "deshabilitada"
+                ){
+
+                    await gestorMesa.cambiarEstado(
+                        numero,
+                        "disponible",
+                        null
+                    );
+
+                }
+
+            }
+
+            io.emit("configuracionMesasActualizada");
+
+            io.emit("estadoMesaActualizado", {
+                numero,
+                estado:
+                    !activo || !permiteTurnos
+                        ? "deshabilitada"
+                        : "disponible",
+                motivo:
+                    !activo || !permiteTurnos
+                        ? "Mesa deshabilitada desde Administración"
+                        : null
+            });
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Mesa actualizada correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al actualizar mesa:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo actualizar la mesa"
             });
 
         }
