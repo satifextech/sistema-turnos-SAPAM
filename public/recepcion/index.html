@@ -869,6 +869,15 @@ async function generarTurno(tramite){
 
             });
 
+        if(response.status === 401){
+
+            window.location.href =
+                "/login?destino=recepcion";
+
+            return;
+
+        }
+
         const data =
             await response.json();
 
@@ -1099,17 +1108,31 @@ async function cargarResumen(){
 
         const response =
             await fetch(
-                "/api/admin/resumen",
+                "/api/recepcion/resumen",
                 {
                     cache:"no-store"
                 }
             );
 
+        if(response.status === 401){
+
+            window.location.href =
+                "/login?destino=recepcion";
+
+            return;
+
+        }
+
         const data =
             await response.json();
 
-        if(!data.success){
-            return;
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cargar el resumen"
+            );
+
         }
 
         const resumen =
@@ -1216,6 +1239,7 @@ revisarUsuario();
 
 setInterval(actualizarReloj, 1000);
 setInterval(cargarResumen, 5000);
+setInterval(revisarUsuario, 3000);
 
 </script>
 

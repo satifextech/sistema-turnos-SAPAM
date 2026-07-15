@@ -16,6 +16,9 @@ const app = express();
 
 const sesiones = new Map();
 
+const DURACION_SESION =
+    8 * 60 * 60 * 1000;
+
 app.use(express.json());
 
 function leerCookies(req){
@@ -66,10 +69,48 @@ function obtenerSesion(req){
         return null;
     }
 
-    return sesiones.get(token) || null;
+    const sesion =
+        sesiones.get(token);
+
+    if(!sesion){
+        return null;
+    }
+
+    const vencida =
+        Date.now() - sesion.ultimaActividad
+        > DURACION_SESION;
+
+    if(vencida){
+
+        sesiones.delete(token);
+
+        return null;
+
+    }
+
+    sesion.ultimaActividad =
+        Date.now();
+
+    return sesion;
 
 }
 
+function cerrarSesionesUsuario(idUsuario){
+
+    for(const [token, sesion] of sesiones){
+
+        if(
+            Number(sesion.id)
+            === Number(idUsuario)
+        ){
+
+            sesiones.delete(token);
+
+        }
+
+    }
+
+}
 
 function requerirAdmin(req, res, next){
 
@@ -122,6 +163,14 @@ function requerirRoles(...rolesPermitidos){
     };
 
 }
+
+app.use(
+    "/api/turno",
+    requerirRoles(
+        "admin",
+        "recepcion"
+    )
+);
 
 app.use(turnoRoutes);
 
@@ -386,6 +435,43 @@ app.get("/api/admin/resumen", requerirRoles("admin", "supervisor"), async (req,r
     }
 
 });
+
+app.get(
+    "/api/recepcion/resumen",
+    requerirRoles(
+        "admin",
+        "recepcion"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const resumen =
+                await gestorTurnos
+                    .obtenerResumenDia();
+
+            res.json({
+                success:true,
+                resumen
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cargar resumen de recepción:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo obtener el resumen"
+            });
+
+        }
+
+    }
+);
 
 app.get("/api/mesa/:numero/actual", async (req, res) => {
 
@@ -960,7 +1046,8 @@ app.post("/api/login", async (req, res)=>{
             id:encontrado.id,
             usuario:encontrado.usuario,
             rol:encontrado.rol,
-            creadoEn:Date.now()
+            creadoEn:Date.now(),
+            ultimaActividad:Date.now()
         });
 
         res.setHeader(
@@ -1115,33 +1202,524 @@ app.post(
     }
 );
 
-app.get("/recepcion", (req,res)=>{
+app.get(
+    [
+        "/recepcion",
+        "/recepcion/",
+        "/recepcion/index.html"
+    ],
+    (req,res)=>{
 
-    const sesion =
-        obtenerSesion(req);
+        const sesion =
+            obtenerSesion(req);
 
-    if(
-        !sesion
-        || ![
-            "admin",
-            "recepcion"
-        ].includes(sesion.rol)
-    ){
+        if(
+            !sesion
+            || ![
+                "admin",
+                "recepcion"
+            ].includes(sesion.rol)
+        ){
 
-        return res.redirect(
-            "/login?destino=recepcion"
+            return res.redirect(
+                "/login?destino=recepcion"
+            );
+
+        }
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "../public/recepcion/index.html"
+            )
         );
 
     }
+);
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "../public/recepcion/index.html"
-        )
-    );
+app.get(
+    "/api/admin/usuarios",
+    requerirAdmin,
+    async (req, res)=>{
 
-});
+        try{
+
+            const usuarios =
+                await gestorUsuarios
+                    .listarUsuarios();
+
+            res.json({
+                success:true,
+                usuarios
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar usuarios:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar los usuarios"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/usuarios",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const usuario =
+            String(req.body.usuario || "")
+                .trim()
+                .toLowerCase();
+
+        const contraseña =
+            String(req.body.contraseña || "");
+
+        const rol =
+            String(req.body.rol || "");
+
+        const rolesPermitidos = [
+            "admin",
+            "recepcion",
+            "supervisor"
+        ];
+
+        if(
+            !usuario
+            || !/^[a-z0-9._-]{3,30}$/.test(usuario)
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El usuario debe tener entre 3 y 30 caracteres y usar solo letras, números, punto, guion o guion bajo"
+            });
+
+        }
+
+        if(contraseña.length < 8){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La contraseña debe tener al menos 8 caracteres"
+            });
+
+        }
+
+        if(!rolesPermitidos.includes(rol)){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Rol inválido"
+            });
+
+        }
+
+        try{
+
+            const hash =
+                await bcrypt.hash(
+                    contraseña,
+                    12
+                );
+
+            const resultado =
+                await gestorUsuarios.crearUsuario(
+                    usuario,
+                    hash,
+                    rol
+                );
+
+            res.status(201).json({
+                success:true,
+                id:resultado.id,
+                mensaje:"Usuario creado correctamente"
+            });
+
+        }catch(error){
+
+            if(
+                error.code
+                === "SQLITE_CONSTRAINT"
+            ){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "Ya existe un usuario con ese nombre"
+                });
+
+            }
+
+            console.error(
+                "Error al crear usuario:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo crear el usuario"
+            });
+
+        }
+
+    }
+);
+
+app.patch(
+    "/api/admin/usuarios/:id/estado",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(req.params.id);
+
+        const activo =
+            req.body.activo === true;
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Usuario inválido"
+            });
+
+        }
+
+        if(id === Number(req.sesion.id)){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "No puedes desactivar tu propia cuenta"
+            });
+
+        }
+
+        try{
+
+            const cambios =
+                await gestorUsuarios
+                    .cambiarEstadoUsuario(
+                        id,
+                        activo
+                    );
+
+            if(cambios === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El usuario no existe"
+                });
+
+            }
+
+            /*
+            Si el usuario fue desactivado,
+            cerramos inmediatamente sus sesiones.
+            */
+            if(!activo){
+
+                cerrarSesionesUsuario(id);
+
+            }
+
+            res.json({
+                success:true,
+                mensaje:
+                    activo
+                        ? "Usuario activado"
+                        : "Usuario desactivado"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cambiar estado del usuario:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo cambiar el estado"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/usuarios/:id/restablecer-contrasena",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(req.params.id);
+
+        const nuevaContraseña =
+            String(
+                req.body.nuevaContraseña || ""
+            );
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Usuario inválido"
+            });
+
+        }
+
+        if(nuevaContraseña.length < 8){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La contraseña debe tener al menos 8 caracteres"
+            });
+
+        }
+
+        try{
+
+            const hash =
+                await bcrypt.hash(
+                    nuevaContraseña,
+                    12
+                );
+
+            const cambios =
+                await gestorUsuarios
+                    .restablecerContraseña(
+                        id,
+                        hash
+                    );
+
+            if(cambios === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El usuario no existe"
+                });
+
+            }
+
+            /*
+            Obligamos al usuario a volver a iniciar sesión
+            con su nueva contraseña.
+            */
+            cerrarSesionesUsuario(id);
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Contraseña restablecida correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al restablecer contraseña:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo restablecer la contraseña"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/usuarios/:id/cerrar-sesiones",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(req.params.id);
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Usuario inválido"
+            });
+
+        }
+
+        try{
+
+            const usuario =
+                await gestorUsuarios
+                    .buscarPorId(id);
+
+            if(!usuario){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:"El usuario no existe"
+                });
+
+            }
+
+            cerrarSesionesUsuario(id);
+
+            res.json({
+                success:true,
+                mensaje:
+                    `Sesiones de ${usuario.usuario} cerradas correctamente`
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cerrar sesiones:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron cerrar las sesiones"
+            });
+
+        }
+
+    }
+);
+
+app.delete(
+    "/api/admin/usuarios/:id",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(req.params.id);
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Usuario inválido"
+            });
+
+        }
+
+        if(id === Number(req.sesion.id)){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "No puedes eliminar tu propia cuenta"
+            });
+
+        }
+
+        try{
+
+            const usuario =
+                await gestorUsuarios
+                    .buscarPorId(id);
+
+            if(!usuario){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:"El usuario no existe"
+                });
+
+            }
+
+            if(
+                usuario.rol === "admin"
+                && Number(usuario.activo) === 1
+            ){
+
+                const administradores =
+                    await gestorUsuarios
+                        .contarAdministradoresActivos();
+
+                if(administradores <= 1){
+
+                    return res.status(400).json({
+                        success:false,
+                        mensaje:
+                            "No puedes eliminar el último administrador activo"
+                    });
+
+                }
+
+            }
+
+            const eliminados =
+                await gestorUsuarios
+                    .eliminarUsuario(id);
+
+            if(eliminados === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:"El usuario no existe"
+                });
+
+            }
+
+            cerrarSesionesUsuario(id);
+
+            res.json({
+                success:true,
+                mensaje:
+                    `Usuario ${usuario.usuario} eliminado correctamente`
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al eliminar usuario:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo eliminar el usuario"
+            });
+
+        }
+
+    }
+);
 
 server.listen(3000, () => {
     console.log("Servidor en puerto 3000");

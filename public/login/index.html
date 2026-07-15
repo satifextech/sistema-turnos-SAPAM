@@ -236,10 +236,18 @@ formulario.addEventListener(
         evento.preventDefault();
 
         boton.disabled = true;
-        boton.textContent =
-            "Ingresando...";
-
+        boton.textContent = "Ingresando...";
         mensaje.textContent = "";
+
+        const usuario =
+            document.getElementById(
+                "usuario"
+            ).value.trim();
+
+        const contraseña =
+            document.getElementById(
+                "contraseña"
+            ).value;
 
         try{
 
@@ -249,33 +257,51 @@ formulario.addEventListener(
                     method:"POST",
 
                     headers:{
-                        "Content-Type":
-                            "application/json"
+                        "Content-Type":"application/json"
                     },
 
                     body:JSON.stringify({
-
-                        usuario:
-                            document.getElementById(
-                                "usuario"
-                            ).value,
-
-                        contraseña:
-                            document.getElementById(
-                                "contraseña"
-                            ).value
-
+                        usuario,
+                        contraseña
                     })
 
                 });
+
+            const tipoContenido =
+                response.headers.get(
+                    "content-type"
+                ) || "";
+
+            if(
+                !tipoContenido.includes(
+                    "application/json"
+                )
+            ){
+
+                throw new Error(
+                    "El servidor no respondió correctamente."
+                );
+
+            }
 
             const data =
                 await response.json();
 
             if(!response.ok || !data.success){
 
-                window.location.href =
-                    destinoPorRol(data.rol);
+                mensaje.textContent =
+                    data.mensaje
+                    || "Usuario o contraseña incorrectos";
+
+                document.getElementById(
+                    "contraseña"
+                ).value = "";
+
+                document.getElementById(
+                    "contraseña"
+                ).focus();
+
+                return;
 
             }
 
@@ -284,8 +310,14 @@ formulario.addEventListener(
 
         }catch(error){
 
+            console.error(
+                "Error al iniciar sesión:",
+                error
+            );
+
             mensaje.textContent =
-                error.message;
+                error.message
+                || "No se pudo iniciar sesión";
 
         }finally{
 

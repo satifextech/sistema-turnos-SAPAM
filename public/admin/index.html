@@ -474,6 +474,173 @@ body{
     color:white;
 }
 
+.panel-usuarios{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-usuarios{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.cabecera-usuarios h2{
+    margin-bottom:5px;
+}
+
+.cabecera-usuarios p{
+    margin:0;
+    color:#777;
+}
+
+.boton-nuevo-usuario,
+.boton-guardar-usuario{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-cancelar-usuario{
+    background:#777;
+    color:white;
+}
+
+.formulario-usuario{
+    margin-top:22px;
+    padding:20px;
+    border-radius:15px;
+    background:#f7f4f5;
+    display:grid;
+    grid-template-columns:
+        repeat(3, minmax(180px, 1fr));
+    gap:16px;
+}
+
+.formulario-usuario.oculto{
+    display:none;
+}
+
+.campo-usuario label{
+    display:block;
+    margin-bottom:7px;
+    color:#555;
+    font-weight:bold;
+}
+
+.campo-usuario input,
+.campo-usuario select{
+    width:100%;
+    min-height:44px;
+    padding:9px 12px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    font-size:15px;
+}
+
+.acciones-formulario{
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+}
+
+.mensaje-usuarios{
+    min-height:22px;
+    margin-top:15px;
+    color:#218342;
+    font-weight:bold;
+}
+
+.tabla-contenedor{
+    margin-top:18px;
+    overflow-x:auto;
+}
+
+.tabla-usuarios{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td{
+    padding:13px;
+    border-bottom:1px solid #e4dcde;
+    text-align:left;
+}
+
+.tabla-usuarios th{
+    color:#6A0F20;
+    background:#f7f4f5;
+}
+
+.estado-usuario{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:18px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.estado-usuario.activo{
+    color:#176a32;
+    background:#dff3e5;
+}
+
+.estado-usuario.inactivo{
+    color:#8d2831;
+    background:#f7d9dd;
+}
+
+.acciones-usuario{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.boton-usuario{
+    border:none;
+    border-radius:9px;
+    padding:8px 11px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-estado{
+    background:#d79a16;
+    color:white;
+}
+
+.boton-restablecer{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-eliminar-usuario{
+    background:#a5232f;
+    color:white;
+}
+
+.boton-cerrar-sesiones{
+    background:#555;
+    color:white;
+}
+
+@media(max-width:900px){
+
+    .cabecera-usuarios{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .formulario-usuario{
+        grid-template-columns:1fr;
+    }
+
+}
+
 @media(max-width:900px){
 
     .resumen-respaldos{
@@ -636,6 +803,144 @@ body{
             <div class="mesas" id="listaMesas"></div>
 
         </article>
+
+    </section>
+
+    <section
+        class="panel panel-usuarios solo-admin">
+
+        <div class="cabecera-usuarios">
+
+            <div>
+                <h2>Administración de usuarios</h2>
+
+                <p>
+                    Crea cuentas, asigna permisos y
+                    administra el acceso al sistema.
+                </p>
+            </div>
+
+            <button
+                class="boton-admin boton-nuevo-usuario"
+                onclick="mostrarFormularioUsuario()">
+
+                Crear usuario
+
+            </button>
+
+        </div>
+
+        <div
+            class="formulario-usuario oculto"
+            id="formularioUsuario">
+
+            <div class="campo-usuario">
+
+                <label for="nuevoUsuario">
+                    Usuario
+                </label>
+
+                <input
+                    id="nuevoUsuario"
+                    maxlength="30"
+                    placeholder="Ejemplo: recepcion2">
+
+            </div>
+
+            <div class="campo-usuario">
+
+                <label for="nuevaContraseñaUsuario">
+                    Contraseña
+                </label>
+
+                <input
+                    id="nuevaContraseñaUsuario"
+                    type="password"
+                    minlength="8"
+                    placeholder="Mínimo 8 caracteres">
+
+            </div>
+
+            <div class="campo-usuario">
+
+                <label for="nuevoRol">
+                    Rol
+                </label>
+
+                <select id="nuevoRol">
+
+                    <option value="recepcion">
+                        Recepción
+                    </option>
+
+                    <option value="supervisor">
+                        Supervisor
+                    </option>
+
+                    <option value="admin">
+                        Administrador
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="acciones-formulario">
+
+                <button
+                    class="boton-admin boton-guardar-usuario"
+                    onclick="crearUsuario()">
+
+                    Guardar usuario
+
+                </button>
+
+                <button
+                    class="boton-admin boton-cancelar-usuario"
+                    onclick="ocultarFormularioUsuario()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="mensaje-usuarios"
+            id="mensajeUsuarios">
+        </div>
+
+        <div class="tabla-contenedor">
+
+            <table class="tabla-usuarios">
+
+                <thead>
+
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Fecha de creación</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="listaUsuarios">
+
+                    <tr>
+                        <td colspan="5">
+                            Cargando usuarios...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </section>
 
@@ -1479,6 +1784,12 @@ async function aplicarPermisosUsuario(){
         const data =
             await response.json();
 
+        if(data.rol === "admin"){
+
+            cargarUsuarios();
+
+        }
+
         if(data.rol === "supervisor"){
 
             document.querySelectorAll(
@@ -1497,6 +1808,582 @@ async function aplicarPermisosUsuario(){
             "Error al consultar permisos:",
             error
         );
+
+    }
+
+}
+
+const nombresRoles = {
+    admin:"Administrador",
+    recepcion:"Recepción",
+    supervisor:"Supervisor"
+};
+
+
+function escaparHTML(valor){
+
+    return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function mostrarFormularioUsuario(){
+
+    document.getElementById(
+        "formularioUsuario"
+    ).classList.remove("oculto");
+
+}
+
+
+function ocultarFormularioUsuario(){
+
+    document.getElementById(
+        "formularioUsuario"
+    ).classList.add("oculto");
+
+    document.getElementById(
+        "nuevoUsuario"
+    ).value = "";
+
+    document.getElementById(
+        "nuevaContraseñaUsuario"
+    ).value = "";
+
+    document.getElementById(
+        "nuevoRol"
+    ).value = "recepcion";
+
+}
+
+
+async function cargarUsuarios(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/usuarios",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(response.status === 401){
+
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar los usuarios"
+            );
+
+        }
+
+        const cuerpo =
+            document.getElementById(
+                "listaUsuarios"
+            );
+
+        cuerpo.innerHTML =
+            data.usuarios.map(usuario => {
+
+                const activo =
+                    Number(usuario.activo) === 1;
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${escaparHTML(usuario.usuario)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            ${
+                                nombresRoles[usuario.rol]
+                                || escaparHTML(usuario.rol)
+                            }
+                        </td>
+
+                        <td>
+
+                            <span class="
+                                estado-usuario
+                                ${activo ? "activo" : "inactivo"}
+                            ">
+
+                                ${activo ? "Activo" : "Inactivo"}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${
+                                usuario.fechaCreacion
+                                    ? new Date(
+                                        usuario.fechaCreacion
+                                            .replace(" ", "T")
+                                        + "Z"
+                                    ).toLocaleString(
+                                        "es-MX",
+                                        {
+                                            dateStyle:"short",
+                                            timeStyle:"medium"
+                                        }
+                                    )
+                                    : "---"
+                            }
+                        </td>
+
+                        <td>
+
+                            <div class="acciones-usuario">
+
+                                <button
+                                    class="
+                                        boton-usuario
+                                        boton-estado
+                                    "
+                                    onclick="
+                                        cambiarEstadoUsuario(
+                                            ${usuario.id},
+                                            ${!activo}
+                                        )
+                                    ">
+
+                                    ${
+                                        activo
+                                            ? "Desactivar"
+                                            : "Activar"
+                                    }
+
+                                </button>
+
+                                <button
+                                    class="
+                                        boton-usuario
+                                        boton-restablecer
+                                    "
+                                    onclick="
+                                        restablecerContraseñaUsuario(
+                                            ${usuario.id},
+                                            '${escaparHTML(usuario.usuario)}'
+                                        )
+                                    ">
+
+                                    Restablecer contraseña
+
+                                </button>
+
+                                <button
+                                    class="
+                                        boton-usuario
+                                        boton-eliminar-usuario
+                                    "
+                                    onclick="
+                                        eliminarUsuario(
+                                            ${usuario.id},
+                                            '${escaparHTML(usuario.usuario)}'
+                                        )
+                                    ">
+
+                                    Eliminar
+
+                                </button>
+
+                                <button
+                                    class="
+                                        boton-usuario
+                                        boton-cerrar-sesiones
+                                    "
+                                    onclick="
+                                        cerrarSesionesUsuario(
+                                            ${usuario.id},
+                                            '${escaparHTML(usuario.usuario)}'
+                                        )
+                                    ">
+
+                                    Cerrar sesiones
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }).join("");
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+async function crearUsuario(){
+
+    const usuario =
+        document.getElementById(
+            "nuevoUsuario"
+        ).value.trim();
+
+    const contraseña =
+        document.getElementById(
+            "nuevaContraseñaUsuario"
+        ).value;
+
+    const rol =
+        document.getElementById(
+            "nuevoRol"
+        ).value;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/usuarios",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        usuario,
+                        contraseña,
+                        rol
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo crear el usuario"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            data.mensaje;
+
+        ocultarFormularioUsuario();
+        await cargarUsuarios();
+
+    }catch(error){
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+async function cambiarEstadoUsuario(
+    id,
+    activo
+){
+
+    const accion =
+        activo ? "activar" : "desactivar";
+
+    if(
+        !confirm(
+            `¿Seguro que deseas ${accion} este usuario?`
+        )
+    ){
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/usuarios/${id}/estado`,
+                {
+                    method:"PATCH",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        activo
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cambiar el estado"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            data.mensaje;
+
+        await cargarUsuarios();
+
+    }catch(error){
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+async function restablecerContraseñaUsuario(
+    id,
+    usuario
+){
+
+    const nuevaContraseña =
+        prompt(
+            `Nueva contraseña para ${usuario}:`
+        );
+
+    if(nuevaContraseña === null){
+        return;
+    }
+
+    if(nuevaContraseña.length < 8){
+
+        alert(
+            "La contraseña debe tener al menos 8 caracteres."
+        );
+
+        return;
+
+    }
+
+    const confirmacion =
+        prompt(
+            "Vuelve a escribir la contraseña:"
+        );
+
+    if(confirmacion !== nuevaContraseña){
+
+        alert(
+            "Las contraseñas no coinciden."
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/usuarios/${id}/restablecer-contrasena`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        nuevaContraseña
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo restablecer"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            data.mensaje;
+
+    }catch(error){
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+async function eliminarUsuario(
+    id,
+    usuario
+){
+
+    const confirmar =
+        confirm(
+            `¿Seguro que deseas eliminar al usuario "${usuario}"?\n\n`
+            + "Esta acción no se puede deshacer."
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    const texto =
+        prompt(
+            `Para confirmar escribe exactamente:\n${usuario}`
+        );
+
+    if(texto !== usuario){
+
+        alert("Eliminación cancelada.");
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/usuarios/${id}`,
+                {
+                    method:"DELETE"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo eliminar el usuario"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            data.mensaje;
+
+        await cargarUsuarios();
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+async function cerrarSesionesUsuario(
+    id,
+    usuario
+){
+
+    const confirmar =
+        confirm(
+            `¿Cerrar todas las sesiones activas de "${usuario}"?`
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/usuarios/${id}/cerrar-sesiones`,
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cerrar las sesiones"
+            );
+
+        }
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            data.mensaje;
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "mensajeUsuarios"
+        ).textContent =
+            error.message;
 
     }
 

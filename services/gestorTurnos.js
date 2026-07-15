@@ -163,7 +163,7 @@ class GestorTurnos {
                         * 24 * 60
                     ) AS atencionPromedioMinutos
                 FROM turnos
-                WHERE date(fechaCreacion) = date('now','localtime')
+                WHERE date(fechaCreacion, 'localtime') = date('now','localtime')
                 GROUP BY tramite
                 ORDER BY tramite
                 `,
@@ -206,7 +206,7 @@ class GestorTurnos {
                 WHERE
                     mesa=?
                     AND estado='atendiendo'
-                    AND date(fechaCreacion)=date('now','localtime')
+                    AND date(fechaCreacion, 'localtime')=date('now','localtime')
 
                 ORDER BY id DESC
                 LIMIT 1
@@ -301,7 +301,7 @@ class GestorTurnos {
             FROM turnos
 
             WHERE
-                date(fechaCreacion)
+                date(fechaCreacion, 'localtime')
                 =
                 date('now','localtime')
             `,
@@ -341,7 +341,7 @@ obtenerColasDia(){
 
             WHERE
                 estado='espera'
-                AND date(fechaCreacion)
+                AND date(fechaCreacion, 'localtime')
                     =
                     date('now','localtime')
 
@@ -397,7 +397,7 @@ obtenerMesasActuales(){
                     WHERE
                         mesa = me.numero
                         AND estado = 'atendiendo'
-                        AND date(fechaCreacion)
+                        AND date(fechaCreacion, 'localtime')
                             =
                             date('now','localtime')
 
@@ -503,7 +503,7 @@ obtenerTurnosDia(){
             FROM turnos
 
             WHERE
-                date(fechaCreacion)
+                date(fechaCreacion, 'localtime')
                 =
                 date('now','localtime')
 
@@ -585,7 +585,7 @@ cerrarJornada(){
                     )
                 WHERE
                     estado='atendiendo'
-                    AND date(fechaCreacion)
+                    AND date(fechaCreacion, 'localtime')
                         =
                         date('now','localtime')
                 `,
@@ -617,7 +617,7 @@ cerrarJornada(){
                             )
                         WHERE
                             estado='espera'
-                            AND date(fechaCreacion)
+                            AND date(fechaCreacion, 'localtime')
                                 =
                                 date('now','localtime')
                         `,
