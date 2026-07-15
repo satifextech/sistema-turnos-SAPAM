@@ -512,6 +512,124 @@ app.get("/api/mesa/:numero/actual", async (req, res) => {
 
 });
 
+app.post(
+    "/api/admin/mesa/:numero/estado",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const numero =
+            Number(req.params.numero);
+
+        const estado =
+            String(req.body.estado || "");
+
+        const motivo =
+            req.body.motivo
+                ? String(req.body.motivo)
+                : null;
+
+        const estadosPermitidos = [
+            "disponible",
+            "pausa",
+            "ausente",
+            "vacaciones",
+            "deshabilitada"
+        ];
+
+        if(
+            !Number.isInteger(numero)
+            || numero < 1
+            || numero > 5
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Mesa inválida"
+            });
+
+        }
+
+        if(!estadosPermitidos.includes(estado)){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Estado inválido"
+            });
+
+        }
+
+        try{
+
+            /*
+            Evitamos poner una mesa en pausa, ausencia,
+            vacaciones o deshabilitada mientras atiende.
+            */
+            const turnoActual =
+                await gestorTurnos
+                    .obtenerTurnoActualMesa(numero);
+
+            if(
+                turnoActual
+                && estado !== "disponible"
+            ){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        `La Mesa ${numero} está atendiendo `
+                        + `${turnoActual.codigo}. `
+                        + "Primero finaliza o libera la atención."
+                });
+
+            }
+
+            await gestorMesa.cambiarEstado(
+                numero,
+                estado,
+                estado === "disponible"
+                    ? null
+                    : motivo
+            );
+
+            io.emit("estadoMesaActualizado", {
+                numero,
+                estado,
+                motivo:
+                    estado === "disponible"
+                        ? null
+                        : motivo
+            });
+
+            res.json({
+                success:true,
+                numero,
+                estado,
+                motivo:
+                    estado === "disponible"
+                        ? null
+                        : motivo,
+                mensaje:
+                    `Estado de la Mesa ${numero} actualizado`
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cambiar estado desde Admin:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo cambiar el estado de la mesa"
+            });
+
+        }
+
+    }
+);
+
 app.get("/api/admin/exportar-csv", requerirRoles("admin", "supervisor"), async (req, res)=>{
 
     try{

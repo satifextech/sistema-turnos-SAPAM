@@ -628,6 +628,47 @@ body{
     color:white;
 }
 
+.controles-mesa-admin{
+    margin-top:15px;
+    padding-top:14px;
+    border-top:1px solid #e4dcde;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:9px;
+}
+
+.controles-mesa-admin select{
+    width:100%;
+    min-height:40px;
+    padding:8px 10px;
+    border:1px solid #d7ced0;
+    border-radius:9px;
+    background:white;
+    color:#333;
+    font-size:14px;
+}
+
+.boton-estado-mesa{
+    min-height:40px;
+    border:none;
+    border-radius:9px;
+    padding:9px 12px;
+    background:#6A0F20;
+    color:white;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-estado-mesa:hover{
+    box-shadow:0 4px 12px rgba(106,15,32,0.25);
+}
+
+.boton-estado-mesa:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+}
+
 @media(max-width:900px){
 
     .cabecera-usuarios{
@@ -1040,6 +1081,9 @@ body{
 
 <script>
 
+let rolActual = null;
+let editandoEstadoMesa = false;
+
 const nombresTramites = {
 
     CONSUMO: "Consumo Alto",
@@ -1146,12 +1190,12 @@ function mostrarMesas(mesas){
 
     const nombresEstados = {
 
-        disponible: "Libre",
-        atendiendo: "Atendiendo",
-        pausa: "En pausa",
-        ausente: "Ausente",
-        vacaciones: "Vacaciones",
-        deshabilitada: "Deshabilitada"
+        disponible:"Libre",
+        atendiendo:"Atendiendo",
+        pausa:"En pausa",
+        ausente:"Ausente",
+        vacaciones:"Vacaciones",
+        deshabilitada:"Deshabilitada"
 
     };
 
@@ -1161,11 +1205,17 @@ function mostrarMesas(mesas){
             const estado =
                 mesa.estado || "disponible";
 
+            const estadoOperativo =
+                mesa.estadoOperativo
+                || estado
+                || "disponible";
+
             const nombreEstado =
                 nombresEstados[estado]
                 || estado;
 
-            let detalle = "Sin turno actual";
+            let detalle =
+                "Sin turno actual";
 
             if(estado === "atendiendo"){
 
@@ -1177,9 +1227,87 @@ function mostrarMesas(mesas){
 
             }else if(mesa.motivo){
 
-                detalle = mesa.motivo;
+                detalle =
+                    mesa.motivo;
 
             }
+
+            const controlesAdmin =
+                rolActual === "admin"
+                    ? `
+
+                        <div class="controles-mesa-admin">
+
+                            <select
+                                id="estadoMesa${mesa.numero}"
+                                onfocus="editandoEstadoMesa = true"
+                                onchange="editandoEstadoMesa = true"
+                                onblur="setTimeout(() => editandoEstadoMesa = false, 500)"
+                                ${estado === "atendiendo"
+                                    ? "disabled"
+                                    : ""}>
+
+                                <option
+                                    value="disponible"
+                                    ${estadoOperativo === "disponible"
+                                        ? "selected"
+                                        : ""}>
+                                    Disponible
+                                </option>
+
+                                <option
+                                    value="pausa"
+                                    ${estadoOperativo === "pausa"
+                                        ? "selected"
+                                        : ""}>
+                                    Pausa administrativa
+                                </option>
+
+                                <option
+                                    value="ausente"
+                                    ${estadoOperativo === "ausente"
+                                        ? "selected"
+                                        : ""}>
+                                    Ausente
+                                </option>
+
+                                <option
+                                    value="vacaciones"
+                                    ${estadoOperativo === "vacaciones"
+                                        ? "selected"
+                                        : ""}>
+                                    Vacaciones
+                                </option>
+
+                                <option
+                                    value="deshabilitada"
+                                    ${estadoOperativo === "deshabilitada"
+                                        ? "selected"
+                                        : ""}>
+                                    Deshabilitada
+                                </option>
+
+                            </select>
+
+                            <button
+                                class="boton-estado-mesa"
+                                onclick="
+                                    cambiarEstadoMesaAdmin(
+                                        ${mesa.numero}
+                                    )
+                                "
+                                ${estado === "atendiendo"
+                                    ? "disabled"
+                                    : ""}>
+
+                                Aplicar estado
+
+                            </button>
+
+                        </div>
+
+                    `
+                    : "";
 
             return `
 
@@ -1205,6 +1333,8 @@ function mostrarMesas(mesas){
                         ${detalle}
                     </div>
 
+                    ${controlesAdmin}
+
                 </div>
 
             `;
@@ -1214,6 +1344,10 @@ function mostrarMesas(mesas){
 }
 
 async function cargarPanel(){
+
+    if(editandoEstadoMesa){
+        return;
+    }
 
     const indicador =
         document.getElementById("indicadorServidor");
@@ -1783,6 +1917,8 @@ async function aplicarPermisosUsuario(){
 
         const data =
             await response.json();
+        
+        rolActual = data.rol;
 
         if(data.rol === "admin"){
 
@@ -1801,6 +1937,8 @@ async function aplicarPermisosUsuario(){
             });
 
         }
+
+        cargarPanel();
 
     }catch(error){
 
@@ -2384,6 +2522,123 @@ async function cerrarSesionesUsuario(
             "mensajeUsuarios"
         ).textContent =
             error.message;
+
+    }
+
+}
+
+async function cambiarEstadoMesaAdmin(numero){
+
+    editandoEstadoMesa = true;
+
+    const selector =
+        document.getElementById(
+            `estadoMesa${numero}`
+        );
+
+    const estado =
+        selector.value;
+
+    const motivos = {
+
+        pausa:
+            "Pausa administrativa",
+
+        ausente:
+            "Personal ausente",
+
+        vacaciones:
+            "Personal de vacaciones",
+
+        deshabilitada:
+            "Mesa fuera de servicio"
+
+    };
+
+    const motivo =
+        estado === "disponible"
+            ? null
+            : motivos[estado];
+
+    const nombres = {
+
+        disponible:"Disponible",
+        pausa:"Pausa administrativa",
+        ausente:"Ausente",
+        vacaciones:"Vacaciones",
+        deshabilitada:"Deshabilitada"
+
+    };
+
+    const confirmar =
+        confirm(
+            `¿Cambiar la Mesa ${numero} al estado `
+            + `"${nombres[estado]}"?`
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    selector.disabled = true;
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/mesa/${numero}/estado`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        estado,
+                        motivo
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(response.status === 401){
+
+            window.location.href =
+                "/login";
+
+            return;
+
+        }
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cambiar el estado"
+            );
+
+        }
+
+        await cargarPanel();
+
+    }catch(error){
+
+        console.error(
+            "Error al cambiar estado de mesa:",
+            error
+        );
+
+        alert(error.message);
+
+        await cargarPanel();
+
+    }finally{
+
+        selector.disabled = false;
+        editandoEstadoMesa = false;
 
     }
 
