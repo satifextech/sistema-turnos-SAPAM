@@ -6,161 +6,226 @@ const db = require("../database/db");
 
 const tramites = require("../config/tramites");
 
-router.post("/api/turno", (req, res)=>{
+const gestorTramites = require("../services/gestorTramites");
 
-    const { tramite } = req.body;
+router.post("/api/turno", async (req, res)=>{
 
-    const configuracion =
-        tramites[tramite];
+    const tramite =
+        String(req.body.tramite || "")
+            .trim()
+            .toUpperCase();
 
-    if(!configuracion){
+    try{
 
-        return res.status(400).json({
-            success:false,
-            mensaje:"Trámite inválido"
-        });
+        const configuracion =
+            await gestorTramites
+                .buscarPorCodigo(tramite);
 
-    }
+        if(
+            !configuracion
+            || Number(configuracion.activo) !== 1
+            || Number(
+                configuracion.mostrarRecepcion
+            ) !== 1
+        ){
 
-    db.serialize(()=>{
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El trámite no está disponible"
+            });
 
-        db.run(
-            "BEGIN IMMEDIATE TRANSACTION"
-        );
+        }
 
-        db.get(
-            `
-            SELECT ultimoNumero
-            FROM folios
-            WHERE tramite=?
-            `,
-            [tramite],
-            (errorConsulta, fila)=>{
+        db.serialize(()=>{
 
-                if(errorConsulta){
+            db.run(
+                "BEGIN IMMEDIATE TRANSACTION"
+            );
 
-                    db.run("ROLLBACK");
+            db.get(
+                `
+                SELECT ultimoNumero
+                FROM folios
+                WHERE tramite=?
+                `,
+                [tramite],
+                (errorConsulta, fila)=>{
 
-                    console.error(
-                        "Error al consultar folio:",
-                        errorConsulta
-                    );
+                    if(errorConsulta){
 
-                    return res.status(500).json({
-                        success:false,
-                        mensaje:"No se pudo generar el turno"
-                    });
+                        db.run("ROLLBACK");
 
-                }
+                        console.error(
+                            "Error al consultar folio:",
+                            errorConsulta
+                        );
 
-                const siguienteNumero =
-                    Number(fila?.ultimoNumero || 0) + 1;
+                        return res.status(500).json({
+                            success:false,
+                            mensaje:
+                                "No se pudo generar el turno"
+                        });
 
-                const codigo =
-                    configuracion.prefijo
-                    + String(siguienteNumero).padStart(3, "0");
+                    }
 
-                db.run(
-                    `
-                    UPDATE folios
-                    SET
-                        ultimoNumero=?,
-                        fechaReinicio=fechaReinicio
-                    WHERE tramite=?
-                    `,
-                    [
-                        siguienteNumero,
-                        tramite
-                    ],
-                    function(errorFolio){
+                    const siguienteNumero =
+                        Number(
+                            fila?.ultimoNumero || 0
+                        ) + 1;
 
-                        if(errorFolio){
+                    const codigo =
+                        configuracion.prefijo
+                        + String(
+                            siguienteNumero
+                        ).padStart(3, "0");
 
-                            db.run("ROLLBACK");
+                    db.run(
+                        `
+                        INSERT OR IGNORE INTO folios
+                        (
+                            tramite,
+                            ultimoNumero
+                        )
+                        VALUES (?, 0)
+                        `,
+                        [tramite],
+                        errorInsertarFolio => {
 
-                            console.error(
-                                "Error al actualizar folio:",
-                                errorFolio
-                            );
+                            if(errorInsertarFolio){
 
-                            return res.status(500).json({
-                                success:false,
-                                mensaje:"No se pudo generar el turno"
-                            });
+                                db.run("ROLLBACK");
 
-                        }
-
-                        db.run(
-                            `
-                            INSERT INTO turnos
-                            (
-                                codigo,
-                                tramite
-                            )
-                            VALUES (?,?)
-                            `,
-                            [
-                                codigo,
-                                tramite
-                            ],
-                            function(errorTurno){
-
-                                if(errorTurno){
-
-                                    db.run("ROLLBACK");
-
-                                    console.error(
-                                        "Error al guardar turno:",
-                                        errorTurno
-                                    );
-
-                                    return res.status(500).json({
-                                        success:false,
-                                        mensaje:"No se pudo guardar el turno"
-                                    });
-
-                                }
-
-                                db.run(
-                                    "COMMIT",
-                                    errorCommit => {
-
-                                        if(errorCommit){
-
-                                            console.error(
-                                                "Error al confirmar turno:",
-                                                errorCommit
-                                            );
-
-                                            return res.status(500).json({
-                                                success:false,
-                                                mensaje:"No se pudo confirmar el turno"
-                                            });
-
-                                        }
-
-                                        res.json({
-                                            success:true,
-                                            id:this.lastID,
-                                            codigo,
-                                            tramite:
-                                                configuracion.nombre
-                                        });
-
-                                    }
-                                );
+                                return res.status(500).json({
+                                    success:false,
+                                    mensaje:
+                                        "No se pudo preparar el folio"
+                                });
 
                             }
 
-                        );
+                            db.run(
+                                `
+                                UPDATE folios
+                                SET ultimoNumero=?
+                                WHERE tramite=?
+                                `,
+                                [
+                                    siguienteNumero,
+                                    tramite
+                                ],
+                                errorFolio => {
 
-                    }
-                );
+                                    if(errorFolio){
 
-            }
+                                        db.run("ROLLBACK");
+
+                                        console.error(
+                                            "Error al actualizar folio:",
+                                            errorFolio
+                                        );
+
+                                        return res.status(500).json({
+                                            success:false,
+                                            mensaje:
+                                                "No se pudo generar el folio"
+                                        });
+
+                                    }
+
+                                    db.run(
+                                        `
+                                        INSERT INTO turnos
+                                        (
+                                            codigo,
+                                            tramite
+                                        )
+                                        VALUES (?, ?)
+                                        `,
+                                        [
+                                            codigo,
+                                            tramite
+                                        ],
+                                        function(errorTurno){
+
+                                            if(errorTurno){
+
+                                                db.run("ROLLBACK");
+
+                                                console.error(
+                                                    "Error al guardar turno:",
+                                                    errorTurno
+                                                );
+
+                                                return res.status(500).json({
+                                                    success:false,
+                                                    mensaje:
+                                                        "No se pudo guardar el turno"
+                                                });
+
+                                            }
+
+                                            const idTurno =
+                                                this.lastID;
+
+                                            db.run(
+                                                "COMMIT",
+                                                errorCommit => {
+
+                                                    if(errorCommit){
+
+                                                        console.error(
+                                                            "Error al confirmar turno:",
+                                                            errorCommit
+                                                        );
+
+                                                        return res.status(500).json({
+                                                            success:false,
+                                                            mensaje:
+                                                                "No se pudo confirmar el turno"
+                                                        });
+
+                                                    }
+
+                                                    res.status(201).json({
+                                                        success:true,
+                                                        id:idTurno,
+                                                        codigo,
+                                                        tramite:
+                                                            configuracion.nombre
+                                                    });
+
+                                                }
+                                            );
+
+                                        }
+                                    );
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+        });
+
+    }catch(error){
+
+        console.error(
+            "Error al generar turno:",
+            error
         );
 
-    });
+        res.status(500).json({
+            success:false,
+            mensaje:
+                "No se pudo generar el turno"
+        });
+
+    }
 
 });
 

@@ -385,6 +385,27 @@ body{
     font-weight:bold;
 }
 
+.cargando-tramites,
+.sin-tramites{
+    grid-column:1 / -1;
+    padding:35px;
+    border:2px dashed #d9ced1;
+    border-radius:16px;
+    color:#777;
+    text-align:center;
+    font-weight:bold;
+}
+
+.error-tramites{
+    grid-column:1 / -1;
+    padding:22px;
+    border-radius:14px;
+    background:#f7d9dd;
+    color:#8d2831;
+    text-align:center;
+    font-weight:bold;
+}
+
 @media(max-width:1100px){
 
     .distribucion{
@@ -500,151 +521,13 @@ body{
                 </p>
             </div>
 
-            <div class="tramites">
+            <div
+                class="tramites"
+                id="listaTramitesRecepcion">
 
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('CONSUMO')">
-
-                    <span class="icono">CA</span>
-
-                    <span class="nombre-tramite">
-                        Consumo Alto
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Revisión y aclaración por consumo elevado.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('AFOROS')">
-
-                    <span class="icono">AF</span>
-
-                    <span class="nombre-tramite">
-                        Aforos
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Solicitudes y seguimiento de aforos.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('ABONOS')">
-
-                    <span class="icono">AB</span>
-
-                    <span class="nombre-tramite">
-                        Abonos
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Convenios, pagos parciales y abonos.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('CONTRATO1')">
-
-                    <span class="icono">C1</span>
-
-                    <span class="nombre-tramite">
-                        Contratos - Etapa 1
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Recepción y validación de documentos.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('CONTRATO2')">
-
-                    <span class="icono">C2</span>
-
-                    <span class="nombre-tramite">
-                        Contratos - Etapa 2
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Presupuesto y firma del contrato.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('RECONEXIONES')">
-
-                    <span class="icono">RE</span>
-
-                    <span class="nombre-tramite">
-                        Reconexiones
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Trámite y seguimiento de reconexión.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('SUSPENSION')">
-
-                    <span class="icono">SU</span>
-
-                    <span class="nombre-tramite">
-                        Suspensión Voluntaria
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Solicitud de suspensión temporal del servicio.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('INSEN')">
-
-                    <span class="icono">IN</span>
-
-                    <span class="nombre-tramite">
-                        INSEN
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Atención de beneficios y descuentos.
-                    </span>
-
-                </button>
-
-                <button
-                    class="tarjeta-tramite"
-                    onclick="generarTurno('GIRO')">
-
-                    <span class="icono">GT</span>
-
-                    <span class="nombre-tramite">
-                        Giro de Tarifa
-                    </span>
-
-                    <span class="descripcion-tramite">
-                        Solicitud o actualización de giro tarifario.
-                    </span>
-
-                </button>
+                <div class="cargando-tramites">
+                    Cargando trámites...
+                </div>
 
             </div>
 
@@ -1233,9 +1116,143 @@ async function cerrarSesion(){
 
 }
 
+function escaparHTML(valor){
+
+    return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+async function cargarTramitesRecepcion(){
+
+    const contenedor =
+        document.getElementById(
+            "listaTramitesRecepcion"
+        );
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/recepcion/tramites",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(response.status === 401){
+
+            window.location.href =
+                "/login?destino=recepcion";
+
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar los trámites"
+            );
+
+        }
+
+        const tramites =
+            data.tramites || [];
+
+        if(!tramites.length){
+
+            contenedor.innerHTML = `
+
+                <div class="sin-tramites">
+                    No hay trámites disponibles.
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+        contenedor.innerHTML =
+            tramites.map(tramite => {
+
+                const prefijo =
+                    escaparHTML(
+                        tramite.prefijo
+                    );
+
+                const nombre =
+                    escaparHTML(
+                        tramite.nombre
+                    );
+
+                const descripcion =
+                    escaparHTML(
+                        tramite.descripcion
+                        || "Seleccione para generar su turno."
+                    );
+
+                const codigo =
+                    JSON.stringify(
+                        String(tramite.codigo)
+                    );
+
+                return `
+
+                    <button
+                        class="tarjeta-tramite"
+                        onclick='generarTurno(${codigo})'>
+
+                        <span class="icono">
+                            ${prefijo}
+                        </span>
+
+                        <span class="nombre-tramite">
+                            ${nombre}
+                        </span>
+
+                        <span class="descripcion-tramite">
+                            ${descripcion}
+                        </span>
+
+                    </button>
+
+                `;
+
+            }).join("");
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar trámites:",
+            error
+        );
+
+        contenedor.innerHTML = `
+
+            <div class="error-tramites">
+                ${escaparHTML(error.message)}
+            </div>
+
+        `;
+
+    }
+
+}
+
 actualizarReloj();
 cargarResumen();
 revisarUsuario();
+cargarTramitesRecepcion();
 
 setInterval(actualizarReloj, 1000);
 setInterval(cargarResumen, 5000);
