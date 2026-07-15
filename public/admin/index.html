@@ -824,6 +824,43 @@ body{
     color:white;
 }
 
+.formulario-mesa-config{
+    grid-template-columns:
+        repeat(3, minmax(180px, 1fr));
+}
+
+.nombre-punto-atencion{
+    color:#6A0F20;
+    font-weight:bold;
+}
+
+.ruta-mesa{
+    padding:6px 9px;
+    border-radius:8px;
+    background:#f1edef;
+    color:#555;
+    font-family:monospace;
+    font-size:13px;
+}
+
+.boton-abrir-mesa{
+    background:#555;
+    color:white;
+}
+
+.boton-editar-mesa{
+    background:#6A0F20;
+    color:white;
+}
+
+@media(max-width:900px){
+
+    .formulario-mesa-config{
+        grid-template-columns:1fr;
+    }
+
+}
+
 @media(max-width:900px){
 
     .cabecera-configuracion{
@@ -1193,6 +1230,171 @@ body{
                     <tr>
                         <td colspan="7">
                             Cargando trámites...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <section
+        class="panel panel-configuracion solo-admin"
+        id="panelMesasConfiguracion">
+
+        <div class="cabecera-configuracion">
+
+            <div>
+                <h2>Puntos de atención</h2>
+
+                <p>
+                    Crea y administra mesas, cajas,
+                    ventanillas o módulos de atención.
+                </p>
+            </div>
+
+            <button
+                class="boton-admin boton-nuevo-config"
+                onclick="mostrarFormularioMesa()">
+
+                Crear punto de atención
+
+            </button>
+
+        </div>
+
+        <div
+            class="formulario-config formulario-mesa-config oculto"
+            id="formularioMesaConfig">
+
+            <input
+                type="hidden"
+                id="mesaNumeroEdicion">
+
+            <div class="campo-config">
+
+                <label for="mesaNumeroVista">
+                    Número interno
+                </label>
+
+                <input
+                    id="mesaNumeroVista"
+                    disabled
+                    placeholder="Se asignará automáticamente">
+
+            </div>
+
+            <div class="campo-config">
+
+                <label for="mesaNombreConfig">
+                    Nombre visible
+                </label>
+
+                <input
+                    id="mesaNombreConfig"
+                    maxlength="80"
+                    placeholder="Ejemplo: Ventanilla Contratos">
+
+            </div>
+
+            <div class="campo-config">
+
+                <label for="mesaOrdenConfig">
+                    Orden
+                </label>
+
+                <input
+                    id="mesaOrdenConfig"
+                    type="number"
+                    min="0"
+                    value="0">
+
+            </div>
+
+            <div class="campo-config campo-check">
+
+                <label>
+
+                    <input
+                        id="mesaActivaConfig"
+                        type="checkbox"
+                        checked>
+
+                    Punto de atención activo
+
+                </label>
+
+            </div>
+
+            <div class="campo-config campo-check">
+
+                <label>
+
+                    <input
+                        id="mesaPermiteTurnosConfig"
+                        type="checkbox"
+                        checked>
+
+                    Puede recibir turnos
+
+                </label>
+
+            </div>
+
+            <div class="acciones-formulario-config">
+
+                <button
+                    class="boton-admin boton-guardar-config"
+                    onclick="guardarMesaConfiguracion()">
+
+                    Guardar punto de atención
+
+                </button>
+
+                <button
+                    class="boton-admin boton-cancelar-config"
+                    onclick="ocultarFormularioMesa()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="mensaje-config"
+            id="mensajeMesasConfig">
+        </div>
+
+        <div class="tabla-contenedor">
+
+            <table class="tabla-config">
+
+                <thead>
+
+                    <tr>
+                        <th>Número</th>
+                        <th>Nombre</th>
+                        <th>Estado operativo</th>
+                        <th>Activo</th>
+                        <th>Recibe turnos</th>
+                        <th>Orden</th>
+                        <th>Dirección</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="listaMesasConfiguracion">
+
+                    <tr>
+                        <td colspan="8">
+                            Cargando puntos de atención...
                         </td>
                     </tr>
 
@@ -2282,6 +2484,8 @@ async function aplicarPermisosUsuario(){
             cargarUsuarios();
 
             cargarTramitesConfiguracion();
+
+            cargarMesasConfiguracion();
 
         }
 
@@ -3410,6 +3614,487 @@ async function guardarTramite(){
         ocultarFormularioTramite();
 
         await cargarTramitesConfiguracion();
+
+    }catch(error){
+
+        console.error(error);
+
+        mensaje.textContent =
+            error.message;
+
+    }
+
+}
+
+let mesasConfiguracion = [];
+
+
+function mostrarFormularioMesa(){
+
+    document.getElementById(
+        "formularioMesaConfig"
+    ).classList.remove("oculto");
+
+    document.getElementById(
+        "mesaNumeroEdicion"
+    ).value = "";
+
+    document.getElementById(
+        "mesaNumeroVista"
+    ).value =
+        "Se asignará automáticamente";
+
+    document.getElementById(
+        "mesaNombreConfig"
+    ).value = "";
+
+    document.getElementById(
+        "mesaOrdenConfig"
+    ).value = "0";
+
+    document.getElementById(
+        "mesaActivaConfig"
+    ).checked = true;
+
+    document.getElementById(
+        "mesaPermiteTurnosConfig"
+    ).checked = true;
+
+}
+
+
+function ocultarFormularioMesa(){
+
+    document.getElementById(
+        "formularioMesaConfig"
+    ).classList.add("oculto");
+
+    document.getElementById(
+        "mesaNumeroEdicion"
+    ).value = "";
+
+    document.getElementById(
+        "mesaNumeroVista"
+    ).value = "";
+
+    document.getElementById(
+        "mesaNombreConfig"
+    ).value = "";
+
+    document.getElementById(
+        "mesaOrdenConfig"
+    ).value = "0";
+
+    document.getElementById(
+        "mesaActivaConfig"
+    ).checked = true;
+
+    document.getElementById(
+        "mesaPermiteTurnosConfig"
+    ).checked = true;
+
+}
+
+
+function nombreEstadoMesaConfig(estado){
+
+    const nombres = {
+
+        disponible:"Disponible",
+        pausa:"En pausa",
+        ausente:"Ausente",
+        vacaciones:"Vacaciones",
+        deshabilitada:"Deshabilitada"
+
+    };
+
+    return nombres[estado] || estado || "Disponible";
+
+}
+
+
+async function cargarMesasConfiguracion(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/mesas-config",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(response.status === 401){
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar las mesas"
+            );
+
+        }
+
+        mesasConfiguracion =
+            data.mesas || [];
+
+        const cuerpo =
+            document.getElementById(
+                "listaMesasConfiguracion"
+            );
+
+        if(!mesasConfiguracion.length){
+
+            cuerpo.innerHTML = `
+
+                <tr>
+                    <td colspan="8">
+                        No existen puntos de atención.
+                    </td>
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+        cuerpo.innerHTML =
+            mesasConfiguracion.map(mesa => {
+
+                const activa =
+                    Number(mesa.activo) === 1;
+
+                const permiteTurnos =
+                    Number(
+                        mesa.permiteTurnos
+                    ) === 1;
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${Number(mesa.numero)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <span class="nombre-punto-atencion">
+                                ${escaparHTML(mesa.nombre)}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            <span class="
+                                estado-config
+                                ${
+                                    mesa.estado === "disponible"
+                                        ? "activo"
+                                        : "inactivo"
+                                }
+                            ">
+
+                                ${
+                                    escaparHTML(
+                                        nombreEstadoMesaConfig(
+                                            mesa.estado
+                                        )
+                                    )
+                                }
+
+                            </span>
+
+                            ${
+                                mesa.motivo
+                                    ? `<div>${escaparHTML(mesa.motivo)}</div>`
+                                    : ""
+                            }
+
+                        </td>
+
+                        <td>
+
+                            <span class="
+                                estado-config
+                                ${activa ? "activo" : "inactivo"}
+                            ">
+
+                                ${activa ? "Activo" : "Inactivo"}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="
+                                estado-config
+                                ${
+                                    permiteTurnos
+                                        ? "activo"
+                                        : "inactivo"
+                                }
+                            ">
+
+                                ${
+                                    permiteTurnos
+                                        ? "Permitido"
+                                        : "Bloqueado"
+                                }
+
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${Number(mesa.orden || 0)}
+                        </td>
+
+                        <td>
+
+                            <span class="ruta-mesa">
+                                /mesa/${Number(mesa.numero)}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <div class="acciones-config">
+
+                                <button
+                                    class="
+                                        boton-config
+                                        boton-editar-mesa
+                                    "
+                                    onclick="
+                                        editarMesaConfiguracion(
+                                            ${Number(mesa.numero)}
+                                        )
+                                    ">
+
+                                    Editar
+
+                                </button>
+
+                                <button
+                                    class="
+                                        boton-config
+                                        boton-abrir-mesa
+                                    "
+                                    onclick="
+                                        abrirMesaConfiguracion(
+                                            ${Number(mesa.numero)}
+                                        )
+                                    ">
+
+                                    Abrir
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }).join("");
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar mesas:",
+            error
+        );
+
+        document.getElementById(
+            "mensajeMesasConfig"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+function editarMesaConfiguracion(numero){
+
+    const mesa =
+        mesasConfiguracion.find(
+            item =>
+                Number(item.numero)
+                === Number(numero)
+        );
+
+    if(!mesa){
+        return;
+    }
+
+    mostrarFormularioMesa();
+
+    document.getElementById(
+        "mesaNumeroEdicion"
+    ).value =
+        mesa.numero;
+
+    document.getElementById(
+        "mesaNumeroVista"
+    ).value =
+        mesa.numero;
+
+    document.getElementById(
+        "mesaNombreConfig"
+    ).value =
+        mesa.nombre || "";
+
+    document.getElementById(
+        "mesaOrdenConfig"
+    ).value =
+        Number(mesa.orden || 0);
+
+    document.getElementById(
+        "mesaActivaConfig"
+    ).checked =
+        Number(mesa.activo) === 1;
+
+    document.getElementById(
+        "mesaPermiteTurnosConfig"
+    ).checked =
+        Number(
+            mesa.permiteTurnos
+        ) === 1;
+
+    document.getElementById(
+        "formularioMesaConfig"
+    ).scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    });
+
+}
+
+
+function abrirMesaConfiguracion(numero){
+
+    window.open(
+        `/mesa/${numero}`,
+        "_blank"
+    );
+
+}
+
+
+async function guardarMesaConfiguracion(){
+
+    const numero =
+        document.getElementById(
+            "mesaNumeroEdicion"
+        ).value;
+
+    const nombre =
+        document.getElementById(
+            "mesaNombreConfig"
+        ).value.trim();
+
+    const orden =
+        Number(
+            document.getElementById(
+                "mesaOrdenConfig"
+            ).value || 0
+        );
+
+    const activo =
+        document.getElementById(
+            "mesaActivaConfig"
+        ).checked;
+
+    const permiteTurnos =
+        document.getElementById(
+            "mesaPermiteTurnosConfig"
+        ).checked;
+
+    const editando =
+        Boolean(numero);
+
+    const url =
+        editando
+            ? `/api/admin/mesas-config/${numero}`
+            : "/api/admin/mesas-config";
+
+    const method =
+        editando
+            ? "PUT"
+            : "POST";
+
+    const mensaje =
+        document.getElementById(
+            "mensajeMesasConfig"
+        );
+
+    mensaje.textContent =
+        editando
+            ? "Actualizando punto de atención..."
+            : "Creando punto de atención...";
+
+    try{
+
+        const body =
+            editando
+                ? {
+                    nombre,
+                    orden,
+                    activo,
+                    permiteTurnos
+                }
+                : {
+                    nombre
+                };
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method,
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify(body)
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo guardar el punto de atención"
+            );
+
+        }
+
+        mensaje.textContent =
+            data.mensaje;
+
+        ocultarFormularioMesa();
+
+        await cargarMesasConfiguracion();
+
+        await cargarPanel();
 
     }catch(error){
 

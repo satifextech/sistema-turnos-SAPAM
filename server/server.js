@@ -191,14 +191,58 @@ app.get("/login", (req,res)=>{
 
 });
 
-app.get("/mesa/:numero", (req,res)=>{
+app.get("/mesa/:numero", async (req,res)=>{
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "../public/mesa/index.html"
-        )
-    );
+    const numero =
+        Number(req.params.numero);
+
+    if(
+        !Number.isInteger(numero)
+        || numero <= 0
+    ){
+
+        return res.status(404).send(
+            "Punto de atención inválido"
+        );
+
+    }
+
+    try{
+
+        const mesa =
+            await gestorMesasConfig
+                .buscarPorNumero(numero);
+
+        if(
+            !mesa
+            || Number(mesa.activo) !== 1
+        ){
+
+            return res.status(404).send(
+                "El punto de atención no existe o está inactivo"
+            );
+
+        }
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "../public/mesa/index.html"
+            )
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al abrir punto de atención:",
+            error
+        );
+
+        res.status(500).send(
+            "No se pudo abrir el punto de atención"
+        );
+
+    }
 
 });
 
@@ -256,6 +300,40 @@ app.post("/api/llamar", async (req, res) => {
     const { mesa } = req.body;
 
     try {
+
+        const mesaConfig =
+            await gestorMesasConfig
+                .buscarPorNumero(Number(mesa));
+
+        if(!mesaConfig){
+
+            return res.status(404).json({
+                success:false,
+                mensaje:
+                    "El punto de atención no existe"
+            });
+
+        }
+
+        if(Number(mesaConfig.activo) !== 1){
+
+            return res.status(409).json({
+                success:false,
+                mensaje:
+                    "El punto de atención está inactivo"
+            });
+
+        }
+
+        if(Number(mesaConfig.permiteTurnos) !== 1){
+
+            return res.status(409).json({
+                success:false,
+                mensaje:
+                    "El punto de atención no puede recibir turnos"
+            });
+
+        }
 
         const estadoMesa =
             await gestorMesa.obtenerEstado(mesa);
@@ -477,21 +555,41 @@ app.get(
 
 app.get("/api/mesa/:numero/actual", async (req, res) => {
 
-    const mesa = Number(req.params.numero);
+    const numero =
+        Number(req.params.numero);
 
-    if(!Number.isInteger(mesa) || mesa < 1 || mesa > 5){
+    if(
+        !Number.isInteger(numero)
+        || numero <= 0
+    ){
 
         return res.status(400).json({
             success:false,
-            mensaje:"Mesa inválida"
+            mensaje:
+                "Punto de atención inválido"
         });
 
     }
 
     try{
 
+        const mesaConfig =
+            await gestorMesasConfig
+                .buscarPorNumero(numero);
+
+        if(!mesaConfig){
+
+            return res.status(404).json({
+                success:false,
+                mensaje:
+                    "El punto de atención no existe"
+            });
+
+        }
+
         const turno =
-            await gestorTurnos.obtenerTurnoActualMesa(mesa);
+            await gestorTurnos
+                .obtenerTurnoActualMesa(numero);
 
         res.json({
             success:true,
@@ -507,7 +605,8 @@ app.get("/api/mesa/:numero/actual", async (req, res) => {
 
         res.status(500).json({
             success:false,
-            mensaje:"No se pudo consultar la mesa"
+            mensaje:
+                "No se pudo consultar el punto de atención"
         });
 
     }
@@ -538,11 +637,7 @@ app.post(
             "deshabilitada"
         ];
 
-        if(
-            !Number.isInteger(numero)
-            || numero < 1
-            || numero > 5
-        ){
+        if(!Number.isInteger(numero) || numero <= 0){
 
             return res.status(400).json({
                 success:false,
@@ -866,11 +961,7 @@ app.post("/api/mesa/:numero/estado", async (req, res)=>{
         "deshabilitada"
     ];
 
-    if(
-        !Number.isInteger(numero)
-        || numero < 1
-        || numero > 5
-    ){
+    if(!Number.isInteger(numero) || numero <= 0){
 
         return res.status(400).json({
             success:false,
@@ -889,6 +980,20 @@ app.post("/api/mesa/:numero/estado", async (req, res)=>{
     }
 
     try{
+
+        const mesaConfig =
+            await gestorMesasConfig
+                .buscarPorNumero(numero);
+
+        if(!mesaConfig){
+
+            return res.status(404).json({
+                success:false,
+                mensaje:
+                    "El punto de atención no existe"
+            });
+
+        }
 
         await gestorMesa.cambiarEstado(
             numero,
@@ -2428,6 +2533,64 @@ app.put(
                 success:false,
                 mensaje:
                     "No se pudo actualizar la mesa"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/mesa/:numero/config",
+    async (req, res)=>{
+
+        const numero =
+            Number(req.params.numero);
+
+        if(
+            !Number.isInteger(numero)
+            || numero <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:"Punto de atención inválido"
+            });
+
+        }
+
+        try{
+
+            const mesa =
+                await gestorMesasConfig
+                    .buscarPorNumero(numero);
+
+            if(!mesa){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El punto de atención no existe"
+                });
+
+            }
+
+            res.json({
+                success:true,
+                mesa
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar configuración de mesa:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo consultar el punto de atención"
             });
 
         }

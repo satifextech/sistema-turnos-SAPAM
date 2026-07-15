@@ -377,8 +377,16 @@ obtenerMesasActuales(){
         db.all(
             `
             SELECT
-                me.numero,
-                me.estado AS estadoOperativo,
+                mc.numero,
+                mc.nombre,
+                mc.activo,
+                mc.permiteTurnos,
+
+                COALESCE(
+                    me.estado,
+                    'disponible'
+                ) AS estadoOperativo,
+
                 me.motivo,
 
                 t.id AS turnoId,
@@ -386,27 +394,39 @@ obtenerMesasActuales(){
                 t.tramite,
                 t.fechaLlamado
 
-            FROM mesas_estado me
+            FROM mesas_config mc
+
+            LEFT JOIN mesas_estado me
+                ON me.numero=mc.numero
 
             LEFT JOIN turnos t
                 ON t.id = (
 
                     SELECT id
+
                     FROM turnos
 
                     WHERE
-                        mesa = me.numero
-                        AND estado = 'atendiendo'
-                        AND date(fechaCreacion, 'localtime')
-                            =
-                            date('now','localtime')
+                        mesa=mc.numero
+                        AND estado='atendiendo'
+                        AND date(
+                            fechaCreacion,
+                            'localtime'
+                        )
+                        =
+                        date(
+                            'now',
+                            'localtime'
+                        )
 
                     ORDER BY id DESC
                     LIMIT 1
 
                 )
 
-            ORDER BY me.numero ASC
+            ORDER BY
+                mc.orden ASC,
+                mc.numero ASC
             `,
             [],
             (err, rows)=>{
@@ -416,41 +436,72 @@ obtenerMesasActuales(){
                     return;
                 }
 
-                const mesas = rows.map(fila => {
+                const mesas =
+                    rows.map(fila => {
 
-                    const tieneTurno =
-                        Boolean(fila.turnoId);
+                        const tieneTurno =
+                            Boolean(
+                                fila.turnoId
+                            );
 
-                    return {
+                        const habilitada =
+                            Number(fila.activo) === 1
+                            &&
+                            Number(
+                                fila.permiteTurnos
+                            ) === 1;
 
-                        numero:
-                            Number(fila.numero),
+                        return {
 
-                        estadoOperativo:
-                            fila.estadoOperativo
-                            || "disponible",
+                            numero:
+                                Number(
+                                    fila.numero
+                                ),
 
-                        motivo:
-                            fila.motivo || null,
+                            nombre:
+                                fila.nombre
+                                || `Mesa ${fila.numero}`,
 
-                        estado:
-                            tieneTurno
-                                ? "atendiendo"
-                                : fila.estadoOperativo,
+                            activo:
+                                Number(
+                                    fila.activo
+                                ),
 
-                        codigo:
-                            tieneTurno
-                                ? fila.codigo
-                                : null,
+                            permiteTurnos:
+                                Number(
+                                    fila.permiteTurnos
+                                ),
 
-                        tramite:
-                            tieneTurno
-                                ? fila.tramite
-                                : null
+                            estadoOperativo:
+                                habilitada
+                                    ? fila.estadoOperativo
+                                    : "deshabilitada",
 
-                    };
+                            motivo:
+                                habilitada
+                                    ? fila.motivo || null
+                                    : "Punto de atención deshabilitado",
 
-                });
+                            estado:
+                                tieneTurno
+                                    ? "atendiendo"
+                                    : habilitada
+                                        ? fila.estadoOperativo
+                                        : "deshabilitada",
+
+                            codigo:
+                                tieneTurno
+                                    ? fila.codigo
+                                    : null,
+
+                            tramite:
+                                tieneTurno
+                                    ? fila.tramite
+                                    : null
+
+                        };
+
+                    });
 
                 resolve(mesas);
 

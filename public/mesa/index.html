@@ -321,6 +321,78 @@ const numeroMesa =
     );
 
 let turnoActual = null;
+let nombreMesa =
+    `Mesa ${numeroMesa}`;
+
+async function cargarConfiguracionMesa(){
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/mesa/${numeroMesa}/config`,
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cargar el punto de atención"
+            );
+
+        }
+
+        nombreMesa =
+            data.mesa.nombre
+            || `Mesa ${numeroMesa}`;
+
+        document.getElementById(
+            "tituloMesa"
+        ).textContent =
+            nombreMesa;
+
+        if(
+            Number(data.mesa.activo) !== 1
+            || Number(
+                data.mesa.permiteTurnos
+            ) !== 1
+        ){
+
+            aplicarEstadoOperativo(
+                "deshabilitada",
+                "Punto de atención deshabilitado"
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar configuración:",
+            error
+        );
+
+        document.getElementById(
+            "tituloMesa"
+        ).textContent =
+            `Punto ${numeroMesa}`;
+
+        mostrarAviso(
+            error.message,
+            "error"
+        );
+
+        btnLlamar.disabled = true;
+
+    }
+
+}
 
 const resultado =
     document.getElementById("resultado");
@@ -336,9 +408,6 @@ const btnLlamar =
 
 const btnFinalizar =
     document.getElementById("btnFinalizar");
-
-document.getElementById("tituloMesa").textContent =
-    "Mesa " + numeroMesa;
 
 
 function mostrarAviso(mensaje, tipo = ""){
@@ -867,7 +936,10 @@ async function cargarEstadoOperativo(){
 
 async function iniciarMesa(){
 
+    await cargarConfiguracionMesa();
+
     await cargarTurnoActual();
+
     await cargarEstadoOperativo();
 
 }

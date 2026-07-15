@@ -121,20 +121,48 @@ class Asignador {
 
     async buscarTurnoPrioridad(mesa){
 
-        const mesaConfig = this.obtenerMesa(mesa);
+        const mesaConfig =
+            this.obtenerMesa(mesa);
+
+        /*
+        Una mesa dinámica nueva todavía puede no tener
+        reglas asignadas. En ese caso no buscamos turno.
+        */
+        if(
+            !mesaConfig
+            || !Array.isArray(mesaConfig.prioridad)
+            || mesaConfig.prioridad.length === 0
+        ){
+
+            return null;
+
+        }
 
         const tramites =
-            mesaConfig.prioridad.map(t=>t.tramite);
+            mesaConfig.prioridad.map(
+                regla => regla.tramite
+            );
 
-        return await gestorTurnos.buscarPrimerTurno(tramites);
+        return await gestorTurnos
+            .buscarPrimerTurno(tramites);
 
-}
+    }
 
 
     async buscarTurnoApoyo(mesa){
 
         const mesaConfig =
             this.obtenerMesa(mesa);
+
+        if(
+            !mesaConfig
+            || !Array.isArray(mesaConfig.apoyo)
+            || mesaConfig.apoyo.length === 0
+        ){
+
+            return null;
+
+        }
 
         for(const apoyo of mesaConfig.apoyo){
 
