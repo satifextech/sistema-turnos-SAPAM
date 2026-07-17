@@ -97,6 +97,45 @@ db.serialize(() => {
         )
     `);
 
+    db.run(`
+        CREATE TABLE IF NOT EXISTS reglas_tramites (
+
+            tramite TEXT PRIMARY KEY,
+
+            limiteApoyo INTEGER NOT NULL DEFAULT 5,
+
+            activo INTEGER NOT NULL DEFAULT 1,
+
+            fechaActualizacion DATETIME
+                DEFAULT CURRENT_TIMESTAMP
+
+        )
+    `);
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS reglas_mesas (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            tramite TEXT NOT NULL,
+
+            mesa INTEGER NOT NULL,
+
+            tipo TEXT NOT NULL
+                CHECK(tipo IN ('prioridad', 'apoyo')),
+
+            orden INTEGER NOT NULL DEFAULT 1,
+
+            activo INTEGER NOT NULL DEFAULT 1,
+
+            fechaActualizacion DATETIME
+                DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE(tramite, mesa, tipo)
+
+        )
+    `);
+
     const tramitesIniciales = [
 
         {
@@ -363,6 +402,223 @@ db.serialize(() => {
             contraseñaSupervisor,
             "supervisor"
         ]
+    );
+
+    const reglasIniciales = [
+
+        {
+            tramite:"CONSUMO",
+            limiteApoyo:5,
+            prioridad:[1, 4],
+            apoyo:[3, 2]
+        },
+
+        {
+            tramite:"AFOROS",
+            limiteApoyo:5,
+            prioridad:[4, 1],
+            apoyo:[3, 2]
+        },
+
+        {
+            tramite:"ABONOS",
+            limiteApoyo:5,
+            prioridad:[2],
+            apoyo:[4, 3]
+        },
+
+        {
+            tramite:"CONTRATO1",
+            limiteApoyo:1,
+            prioridad:[1],
+            apoyo:[3, 4]
+        },
+
+        {
+            tramite:"CONTRATO2",
+            limiteApoyo:1,
+            prioridad:[3],
+            apoyo:[1, 4]
+        },
+
+        {
+            tramite:"RECONEXIONES",
+            limiteApoyo:5,
+            prioridad:[2],
+            apoyo:[4, 3]
+        },
+
+        {
+            tramite:"SUSPENSION",
+            limiteApoyo:5,
+            prioridad:[2],
+            apoyo:[4, 3]
+        },
+
+        {
+            tramite:"INSEN",
+            limiteApoyo:999,
+            prioridad:[5],
+            apoyo:[]
+        },
+
+        {
+            tramite:"GIRO",
+            limiteApoyo:999,
+            prioridad:[5],
+            apoyo:[]
+        }
+
+    ];
+
+    for(const regla of reglasIniciales){
+
+        db.run(
+            `
+            INSERT OR IGNORE INTO reglas_tramites
+            (
+                tramite,
+                limiteApoyo,
+                activo
+            )
+            VALUES (?, ?, 1)
+            `,
+            [
+                regla.tramite,
+                regla.limiteApoyo
+            ]
+        );
+
+    }
+
+    for(const regla of reglasIniciales){
+
+        regla.prioridad.forEach(
+            (numeroMesa, indice) => {
+
+                db.run(
+                    `
+                    INSERT OR IGNORE INTO reglas_mesas
+                    (
+                        tramite,
+                        mesa,
+                        tipo,
+                        orden,
+                        activo
+                    )
+                    VALUES (?, ?, 'prioridad', ?, 1)
+                    `,
+                    [
+                        regla.tramite,
+                        numeroMesa,
+                        indice + 1
+                    ]
+                );
+
+            }
+        );
+
+    }
+
+    for(const regla of reglasIniciales){
+
+        regla.apoyo.forEach(
+            (numeroMesa, indice) => {
+
+                db.run(
+                    `
+                    INSERT OR IGNORE INTO reglas_mesas
+                    (
+                        tramite,
+                        mesa,
+                        tipo,
+                        orden,
+                        activo
+                    )
+                    VALUES (?, ?, 'apoyo', ?, 1)
+                    `,
+                    [
+                        regla.tramite,
+                        numeroMesa,
+                        indice + 1
+                    ]
+                );
+
+            }
+        );
+
+    }
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO reglas_tramites
+        (
+            tramite,
+            limiteApoyo,
+            activo
+        )
+        VALUES ('CAMBIO_MEDIDOR', 3, 1)
+        `
+    );
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO reglas_mesas
+        (
+            tramite,
+            mesa,
+            tipo,
+            orden,
+            activo
+        )
+        VALUES (
+            'CAMBIO_MEDIDOR',
+            6,
+            'prioridad',
+            1,
+            1
+        )
+        `
+    );
+
+    db.run(
+    `
+    INSERT OR IGNORE INTO reglas_mesas
+    (
+        tramite,
+        mesa,
+        tipo,
+        orden,
+        activo
+    )
+    VALUES (
+        'CAMBIO_MEDIDOR',
+        3,
+        'apoyo',
+        1,
+        1
+    )
+    `
+);
+
+db.run(
+        `
+        INSERT OR IGNORE INTO reglas_mesas
+        (
+            tramite,
+            mesa,
+            tipo,
+            orden,
+            activo
+        )
+        VALUES (
+            'CAMBIO_MEDIDOR',
+            4,
+            'apoyo',
+            2,
+            1
+        )
+        `
     );
 
     console.log("Tablas creadas");

@@ -13,6 +13,7 @@ const gestorUsuarios = require("../services/gestorUsuarios");
 const bcrypt = require("bcrypt");
 const gestorTramites = require("../services/gestorTramites");
 const gestorMesasConfig = require("../services/gestorMesasConfig");
+const gestorReglas = require("../services/gestorReglas");
 
 const app = express();
 
@@ -275,9 +276,7 @@ app.get("/admin", (req,res)=>{
 app.use(
     express.static(
         path.join(__dirname, "../public"),
-        {
-            index:false
-        }
+
     )
 );
 
@@ -2591,6 +2590,227 @@ app.get(
                 success:false,
                 mensaje:
                     "No se pudo consultar el punto de atención"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/reglas",
+    requerirAdmin,
+    async (req, res)=>{
+
+        try{
+
+            const reglas =
+                await gestorReglas
+                    .listarConfiguracionCompleta();
+
+            const mesas =
+                await gestorMesasConfig
+                    .listarTodas();
+
+            res.json({
+                success:true,
+                reglas,
+                mesas
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar reglas:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar las reglas"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/reglas/:tramite",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const tramite =
+            String(
+                req.params.tramite || ""
+            )
+                .trim()
+                .toUpperCase();
+
+        const limiteApoyo =
+            Number(req.body.limiteApoyo);
+
+        const prioridad =
+            Array.isArray(req.body.prioridad)
+                ? req.body.prioridad.map(Number)
+                : [];
+
+        const apoyo =
+            Array.isArray(req.body.apoyo)
+                ? req.body.apoyo.map(Number)
+                : [];
+
+        if(
+            !Number.isInteger(limiteApoyo)
+            || limiteApoyo < 1
+            || limiteApoyo > 999
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El límite de apoyo debe estar entre 1 y 999"
+            });
+
+        }
+
+        const prioridadValida =
+            prioridad.every(
+                numero =>
+                    Number.isInteger(numero)
+                    && numero > 0
+            );
+
+        const apoyoValido =
+            apoyo.every(
+                numero =>
+                    Number.isInteger(numero)
+                    && numero > 0
+            );
+
+        if(
+            !prioridadValida
+            || !apoyoValido
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La configuración contiene mesas inválidas"
+            });
+
+        }
+
+        const duplicadas =
+            prioridad.some(
+                numero =>
+                    apoyo.includes(numero)
+            );
+
+        if(duplicadas){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Una mesa no puede ser prioridad y apoyo al mismo tiempo"
+            });
+
+        }
+
+        try{
+
+            const tramiteConfig =
+                await gestorTramites
+                    .buscarPorCodigo(tramite);
+
+            if(!tramiteConfig){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El trámite no existe"
+                });
+
+            }
+
+            const mesasConfiguradas =
+                await gestorMesasConfig
+                    .listarTodas();
+
+            const numerosExistentes =
+                new Set(
+                    mesasConfiguradas.map(
+                        mesa =>
+                            Number(mesa.numero)
+                    )
+                );
+
+            const todasLasMesas = [
+                ...prioridad,
+                ...apoyo
+            ];
+
+            const existeMesaInvalida =
+                todasLasMesas.some(
+                    numero =>
+                        !numerosExistentes.has(
+                            numero
+                        )
+                );
+
+            if(existeMesaInvalida){
+
+                return res.status(400).json({
+                    success:false,
+                    mensaje:
+                        "Una de las mesas seleccionadas no existe"
+                });
+
+            }
+
+            if(prioridad.length === 0){
+
+                return res.status(400).json({
+                    success:false,
+                    mensaje:
+                        "Debes seleccionar al menos una mesa prioritaria"
+                });
+
+            }
+
+            await gestorReglas
+                .guardarConfiguracion(
+                    tramite,
+                    limiteApoyo,
+                    prioridad,
+                    apoyo
+                );
+
+            io.emit(
+                "reglasActualizadas",
+                {
+                    tramite
+                }
+            );
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Prioridades y apoyos guardados correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al guardar reglas:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron guardar las reglas"
             });
 
         }

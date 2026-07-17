@@ -513,9 +513,14 @@ async function procesarColaAnuncios(){
         const numero =
             obtenerNumeroTurno(data.codigo);
 
+        const tramiteLimpio =
+            String(tramite || "")
+                .replace(/^turno\s*/i, "")
+                .trim();
+
         // Esperar hasta que la voz termine completamente
         await hablar(
-            `Turno ${tramite}. ` +
+            `Turno ${tramiteLimpio}. ` +
             `${formatearPrefijo(prefijo)} ${numero}. ` +
             `Favor de pasar a la mesa ${data.mesa}.`
         );
