@@ -1360,6 +1360,150 @@ body{
 
 }
 
+/* =========================================================
+   ALERTAS OPERATIVAS
+   ========================================================= */
+
+.panel-alertas{
+    margin-bottom:24px;
+    padding:20px;
+    border-radius:18px;
+    background:white;
+    box-shadow:0 6px 22px rgba(0,0,0,0.09);
+}
+
+.cabecera-alertas{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:16px;
+}
+
+.cabecera-alertas h2{
+    margin:0;
+    color:#6A0F20;
+    font-size:22px;
+}
+
+.contador-alertas{
+    min-width:38px;
+    padding:7px 11px;
+    border-radius:20px;
+    background:#6A0F20;
+    color:white;
+    text-align:center;
+    font-weight:bold;
+}
+
+.lista-alertas{
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+}
+
+.alerta-operativa{
+    padding:14px 16px;
+    border-left:6px solid #777;
+    border-radius:11px;
+    background:#f7f4f5;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+}
+
+.alerta-operativa.advertencia{
+    border-left-color:#d79a16;
+    background:#fff8e8;
+}
+
+.alerta-operativa.critica{
+    border-left-color:#a5232f;
+    background:#fff0f1;
+}
+
+.alerta-operativa.informativa{
+    border-left-color:#3578b8;
+    background:#eef6ff;
+}
+
+.alerta-contenido{
+    min-width:0;
+}
+
+.alerta-titulo{
+    color:#333;
+    font-weight:bold;
+}
+
+.alerta-detalle{
+    margin-top:5px;
+    color:#666;
+    font-size:14px;
+    line-height:1.45;
+}
+
+.alerta-nivel{
+    flex-shrink:0;
+    padding:6px 10px;
+    border-radius:18px;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.alerta-nivel.advertencia{
+    color:#81510c;
+    background:#ffe9b8;
+}
+
+.alerta-nivel.critica{
+    color:#8d2831;
+    background:#f7d9dd;
+}
+
+.alerta-nivel.informativa{
+    color:#245d8d;
+    background:#dcecff;
+}
+
+.sin-alertas{
+    padding:17px;
+    border-radius:11px;
+    background:#edf7ef;
+    color:#176a32;
+    text-align:center;
+    font-weight:bold;
+}
+
+.cola.saturada{
+    border-left-color:#a5232f;
+    background:#fff0f1;
+}
+
+.cola.saturada .cola-total{
+    background:#a5232f;
+}
+
+.mesa.alerta-mesa{
+    border-color:#a5232f;
+    background:#fff6f6;
+}
+
+.tarjeta.alerta-tarjeta{
+    border-top-color:#a5232f;
+    background:#fff8f8;
+}
+
+@media(max-width:650px){
+
+    .alerta-operativa{
+        flex-direction:column;
+    }
+
+}
+
 </style>
 </head>
 
@@ -1440,6 +1584,36 @@ body{
             Cambiar contraseña
 
         </button>
+
+    </section>
+
+    <section class="panel-alertas">
+
+        <div class="cabecera-alertas">
+
+            <h2>
+                Alertas operativas
+            </h2>
+
+            <div
+                class="contador-alertas"
+                id="contadorAlertas">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div
+            class="lista-alertas"
+            id="listaAlertas">
+
+            <div class="sin-alertas">
+                No existen alertas operativas.
+            </div>
+
+        </div>
 
     </section>
 
@@ -2371,6 +2545,18 @@ const actividadSistema = [];
 const LIMITE_ACTIVIDAD =
     50;
 
+const LIMITES_ALERTAS = {
+
+    colaAdvertencia:5,
+
+    colaCritica:10,
+
+    esperaAdvertencia:10,
+
+    esperaCritica:20
+
+};
+
 function actualizarReloj(){
 
     const ahora = new Date();
@@ -2395,6 +2581,282 @@ function numeroSeguro(valor){
     return Number.isFinite(numero)
         ? numero
         : 0;
+
+}
+
+function crearAlerta(
+    titulo,
+    detalle,
+    nivel = "advertencia"
+){
+
+    return {
+        titulo:
+            String(titulo || "").trim(),
+
+        detalle:
+            String(detalle || "").trim(),
+
+        nivel
+    };
+
+}
+
+
+function renderizarAlertas(alertas){
+
+    const contenedor =
+        document.getElementById(
+            "listaAlertas"
+        );
+
+    const contador =
+        document.getElementById(
+            "contadorAlertas"
+        );
+
+    contador.textContent =
+        alertas.length;
+
+    if(alertas.length === 0){
+
+        contenedor.innerHTML =
+            `
+            <div class="sin-alertas">
+                No existen alertas operativas.
+            </div>
+            `;
+
+        return;
+
+    }
+
+    const nombresNivel = {
+
+        advertencia:"Advertencia",
+
+        critica:"Crítica",
+
+        informativa:"Información"
+
+    };
+
+    contenedor.innerHTML =
+        alertas
+            .map(alerta => `
+
+                <div class="
+                    alerta-operativa
+                    ${alerta.nivel}
+                ">
+
+                    <div class="alerta-contenido">
+
+                        <div class="alerta-titulo">
+                            ${escaparHTML(alerta.titulo)}
+                        </div>
+
+                        <div class="alerta-detalle">
+                            ${escaparHTML(alerta.detalle)}
+                        </div>
+
+                    </div>
+
+                    <div class="
+                        alerta-nivel
+                        ${alerta.nivel}
+                    ">
+
+                        ${
+                            nombresNivel[alerta.nivel]
+                            || "Aviso"
+                        }
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+}
+
+function analizarAlertasOperativas(
+    resumen,
+    colas,
+    mesas
+){
+
+    const alertas = [];
+
+    const esperaPromedio =
+        numeroSeguro(
+            resumen.esperaPromedioMinutos
+        );
+
+    /*
+    Alertas por tiempo promedio de espera.
+    */
+    if(
+        esperaPromedio
+        >= LIMITES_ALERTAS.esperaCritica
+    ){
+
+        alertas.push(
+            crearAlerta(
+                "Tiempo de espera crítico",
+                `El promedio actual es de `
+                + `${esperaPromedio.toFixed(2)} minutos.`,
+                "critica"
+            )
+        );
+
+    }else if(
+        esperaPromedio
+        >= LIMITES_ALERTAS.esperaAdvertencia
+    ){
+
+        alertas.push(
+            crearAlerta(
+                "Tiempo de espera elevado",
+                `El promedio actual es de `
+                + `${esperaPromedio.toFixed(2)} minutos.`,
+                "advertencia"
+            )
+        );
+
+    }
+
+    /*
+    Alertas por saturación de colas.
+    */
+    for(const cola of colas){
+
+        const total =
+            numeroSeguro(
+                cola.total
+            );
+
+        const nombre =
+            cola.nombreTramite
+            || cola.tramite
+            || "Trámite";
+
+        if(
+            total
+            >= LIMITES_ALERTAS.colaCritica
+        ){
+
+            alertas.push(
+                crearAlerta(
+                    `Cola crítica: ${nombre}`,
+                    `Existen ${total} turnos esperando.`,
+                    "critica"
+                )
+            );
+
+        }else if(
+            total
+            >= LIMITES_ALERTAS.colaAdvertencia
+        ){
+
+            alertas.push(
+                crearAlerta(
+                    `Cola elevada: ${nombre}`,
+                    `Existen ${total} turnos esperando.`,
+                    "advertencia"
+                )
+            );
+
+        }
+
+    }
+
+    /*
+    Alertas por puntos fuera de servicio.
+    */
+    for(const mesa of mesas){
+
+        const estado =
+            mesa.estadoOperativo
+            || mesa.estado
+            || "disponible";
+
+        const nombre =
+            mesa.nombre
+            || `Mesa ${mesa.numero}`;
+
+        if(
+            estado === "deshabilitada"
+        ){
+
+            alertas.push(
+                crearAlerta(
+                    `${nombre} fuera de servicio`,
+                    mesa.motivo
+                    || "El punto de atención está deshabilitado.",
+                    "critica"
+                )
+            );
+
+        }else if(
+            [
+                "pausa",
+                "ausente",
+                "vacaciones"
+            ].includes(estado)
+        ){
+
+            alertas.push(
+                crearAlerta(
+                    `${nombre} no está disponible`,
+                    mesa.motivo
+                    || `Estado actual: ${estado}.`,
+                    "informativa"
+                )
+            );
+
+        }
+
+    }
+
+    /*
+    Advertencia general cuando hay pendientes,
+    pero ninguna mesa disponible.
+    */
+    const pendientes =
+        numeroSeguro(
+            resumen.pendientes
+        );
+
+    const mesasDisponibles =
+        mesas.filter(
+            mesa =>
+                (
+                    mesa.estado
+                    || mesa.estadoOperativo
+                ) === "disponible"
+        ).length;
+
+    if(
+        pendientes > 0
+        && mesasDisponibles === 0
+    ){
+
+        alertas.unshift(
+            crearAlerta(
+                "No existen mesas disponibles",
+                `Hay ${pendientes} turnos esperando `
+                + "y ningún punto de atención disponible.",
+                "critica"
+            )
+        );
+
+    }
+
+    renderizarAlertas(
+        alertas
+    );
 
 }
 
@@ -2438,30 +2900,43 @@ function mostrarColas(colas){
     }
 
     contenedor.innerHTML =
-        colas.map(cola => `
+        colas.map(cola => {
 
-            <div class="cola">
+            const total =
+                numeroSeguro(
+                    cola.total
+                );
 
-                <span class="cola-nombre">
-                    ${
-                        escaparHTML(
-                            cola.nombreTramite
-                            || cola.tramite
-                            || "Trámite"
-                        )
-                    }
-                </span>
+            const claseSaturada =
+                total >= LIMITES_ALERTAS.colaAdvertencia
+                    ? "saturada"
+                    : "";
 
-                <span class="cola-total">
-                    ${cola.total}
-                </span>
+            return `
 
-            </div>
+                <div class="cola ${claseSaturada}">
 
-        `).join("");
+                    <span class="cola-nombre">
+                        ${
+                            escaparHTML(
+                                cola.nombreTramite
+                                || cola.tramite
+                                || "Trámite"
+                            )
+                        }
+                    </span>
+
+                    <span class="cola-total">
+                        ${total}
+                    </span>
+
+                </div>
+
+            `;
+
+        }).join("");
 
 }
-
 function mostrarMesas(mesas){
 
     const contenedor =
@@ -2483,6 +2958,11 @@ function mostrarMesas(mesas){
 
             const estado =
                 mesa.estado || "disponible";
+
+            const claseAlertaMesa =
+                estado === "deshabilitada"
+                    ? "alerta-mesa"
+                    : "";
 
             const estadoOperativo =
                 mesa.estadoOperativo
@@ -2589,7 +3069,7 @@ function mostrarMesas(mesas){
 
             return `
 
-                <div class="mesa">
+                <div class="mesa ${claseAlertaMesa}">
 
                     <div class="mesa-cabecera">
 
@@ -2673,6 +3153,11 @@ async function cargarPanel(){
         mostrarResumen(resultado.resumen);
         mostrarColas(resultado.colas);
         mostrarMesas(resultado.mesas);
+        analizarAlertasOperativas(
+            resultado.resumen,
+            resultado.colas,
+            resultado.mesas
+        );
 
         indicador.className =
             "indicador conectado";
