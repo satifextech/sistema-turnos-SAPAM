@@ -4,8 +4,6 @@ const router = express.Router();
 
 const db = require("../database/db");
 
-const tramites = require("../config/tramites");
-
 const gestorTramites = require("../services/gestorTramites");
 
 router.post("/api/turno", async (req, res)=>{

@@ -357,27 +357,6 @@ document.addEventListener("click", () => {
 const colaAnuncios = [];
 let anunciando = false;
 
-function obtenerNombreTramite(codigo){
-
-    const mapa = {
-        CA: "Consumo Alto",
-        AF: "Aforos",
-        AB: "Abonos",
-        C1: "Contratos Etapa Uno",
-        C2: "Contratos Etapa Dos",
-        RE: "Reconexiones",
-        SU: "Suspensión Voluntaria",
-        IN: "INSEN",
-        GT: "Giro de Tarifa"
-    };
-
-    const prefijo =
-        Object.keys(mapa).find(p => codigo.startsWith(p));
-
-    return mapa[prefijo] || "Turno";
-
-}
-
 function obtenerPrefijo(codigo){
 
     const coincidencia =
@@ -512,7 +491,6 @@ async function procesarColaAnuncios(){
             String(
                 data.nombreTramite
                 || data.tramite
-                || obtenerNombreTramite(data.codigo)
                 || ""
             ).trim();
 
@@ -527,9 +505,13 @@ async function procesarColaAnuncios(){
                 .replace(/^turno\s*/i, "")
                 .trim();
 
-        // Esperar hasta que la voz termine completamente
+        const encabezadoTramite =
+            tramiteLimpio
+                ? `Turno ${tramiteLimpio}. `
+                : "Turno. ";
+
         await hablar(
-            `Turno ${tramiteLimpio}. ` +
+            encabezadoTramite +
             `${formatearPrefijo(prefijo)} ${numero}. ` +
             `Favor de pasar a la mesa ${data.mesa}.`
         );
