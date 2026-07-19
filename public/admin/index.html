@@ -1642,6 +1642,350 @@ body{
 
 }
 
+/* =========================================================
+   DASHBOARD OPERATIVO INTELIGENTE
+   ========================================================= */
+
+.panel-inteligente{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-inteligente{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:22px;
+    margin-bottom:22px;
+}
+
+.cabecera-inteligente h2{
+    margin:0 0 5px;
+    color:#6A0F20;
+    font-size:24px;
+}
+
+.cabecera-inteligente p{
+    margin:0;
+    color:#777;
+    line-height:1.5;
+}
+
+.estado-general{
+    min-width:235px;
+    padding:15px 18px;
+    border-radius:14px;
+    text-align:center;
+    border:2px solid #d8d8d8;
+    background:#f7f7f7;
+}
+
+.estado-general.normal{
+    border-color:#218342;
+    background:#edf7ef;
+}
+
+.estado-general.elevado{
+    border-color:#d79a16;
+    background:#fff8e8;
+}
+
+.estado-general.critico{
+    border-color:#a5232f;
+    background:#fff0f1;
+}
+
+.estado-general-nivel{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    text-transform:uppercase;
+    letter-spacing:0.7px;
+}
+
+.estado-general.normal
+.estado-general-nivel{
+    color:#176a32;
+}
+
+.estado-general.elevado
+.estado-general-nivel{
+    color:#81510c;
+}
+
+.estado-general.critico
+.estado-general-nivel{
+    color:#8d2831;
+}
+
+.estado-general-titulo{
+    display:block;
+    margin-top:7px;
+    color:#333;
+    font-size:19px;
+    font-weight:bold;
+}
+
+.estado-general-detalle{
+    display:block;
+    margin-top:6px;
+    color:#666;
+    font-size:13px;
+    line-height:1.4;
+}
+
+.resumen-inteligente{
+    display:grid;
+    grid-template-columns:
+        repeat(4, minmax(150px, 1fr));
+    gap:15px;
+    margin-bottom:22px;
+}
+
+.indicador-inteligente{
+    padding:17px;
+    border-radius:13px;
+    background:#f7f4f5;
+    border-left:5px solid #6A0F20;
+}
+
+.indicador-inteligente span{
+    display:block;
+    color:#777;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+.indicador-inteligente strong{
+    display:block;
+    margin-top:8px;
+    color:#6A0F20;
+    font-size:28px;
+}
+
+.indicador-inteligente small{
+    display:block;
+    margin-top:5px;
+    color:#777;
+    line-height:1.35;
+}
+
+.contenido-inteligente{
+    display:grid;
+    grid-template-columns:
+        minmax(280px, 0.85fr)
+        minmax(0, 1.15fr);
+    gap:20px;
+}
+
+.bloque-inteligente{
+    min-width:0;
+    padding:19px;
+    border:1px solid #e3dadd;
+    border-radius:14px;
+    background:#fcfbfb;
+}
+
+.bloque-inteligente h3{
+    margin:0 0 6px;
+    color:#6A0F20;
+    font-size:19px;
+}
+
+.bloque-inteligente-descripcion{
+    margin:0 0 17px;
+    color:#777;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.lista-recomendaciones{
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+}
+
+.recomendacion-operativa{
+    padding:13px 14px;
+    border-left:5px solid #3578b8;
+    border-radius:10px;
+    background:#eef6ff;
+}
+
+.recomendacion-operativa.normal{
+    border-left-color:#218342;
+    background:#edf7ef;
+}
+
+.recomendacion-operativa.advertencia{
+    border-left-color:#d79a16;
+    background:#fff8e8;
+}
+
+.recomendacion-operativa.critica{
+    border-left-color:#a5232f;
+    background:#fff0f1;
+}
+
+.recomendacion-titulo{
+    color:#333;
+    font-weight:bold;
+}
+
+.recomendacion-detalle{
+    margin-top:5px;
+    color:#666;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.lista-diagnosticos{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.diagnostico-tramite{
+    padding:14px;
+    border-radius:11px;
+    border:1px solid #e2dadd;
+    background:white;
+}
+
+.diagnostico-tramite.elevado{
+    border-color:#d79a16;
+    background:#fffaf0;
+}
+
+.diagnostico-tramite.critico{
+    border-color:#a5232f;
+    background:#fff4f5;
+}
+
+.diagnostico-cabecera{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+}
+
+.diagnostico-nombre{
+    min-width:0;
+    color:#333;
+    font-weight:bold;
+}
+
+.diagnostico-cantidad{
+    flex-shrink:0;
+    min-width:42px;
+    padding:6px 10px;
+    border-radius:18px;
+    background:#6A0F20;
+    color:white;
+    text-align:center;
+    font-weight:bold;
+}
+
+.diagnostico-detalle{
+    margin-top:9px;
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    color:#777;
+    font-size:13px;
+}
+
+.barra-diagnostico{
+    width:100%;
+    height:9px;
+    margin-top:10px;
+    border-radius:10px;
+    background:#e9e3e5;
+    overflow:hidden;
+}
+
+.barra-diagnostico-valor{
+    height:100%;
+    border-radius:10px;
+    background:#6A0F20;
+    transition:width 0.35s ease;
+}
+
+.diagnostico-tramite.elevado
+.barra-diagnostico-valor{
+    background:#d79a16;
+}
+
+.diagnostico-tramite.critico
+.barra-diagnostico-valor{
+    background:#a5232f;
+}
+
+.sin-diagnosticos{
+    padding:17px;
+    border-radius:10px;
+    background:#edf7ef;
+    color:#176a32;
+    text-align:center;
+    font-weight:bold;
+}
+
+.barra-capacidad{
+    width:100%;
+    height:12px;
+    margin-top:11px;
+    border-radius:12px;
+    background:#e9e3e5;
+    overflow:hidden;
+}
+
+.barra-capacidad-valor{
+    height:100%;
+    border-radius:12px;
+    background:#6A0F20;
+    transition:width 0.35s ease;
+}
+
+@media(max-width:1050px){
+
+    .resumen-inteligente{
+        grid-template-columns:
+            repeat(2, minmax(150px, 1fr));
+    }
+
+    .contenido-inteligente{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:700px){
+
+    .cabecera-inteligente{
+        flex-direction:column;
+    }
+
+    .estado-general{
+        width:100%;
+    }
+
+}
+
+@media(max-width:520px){
+
+    .resumen-inteligente{
+        grid-template-columns:1fr;
+    }
+
+    .diagnostico-detalle{
+        flex-direction:column;
+        gap:4px;
+    }
+
+}
+
 </style>
 </head>
 
@@ -1792,6 +2136,188 @@ body{
             <div class="valor" id="atencionPromedio">0.00</div>
             <div class="unidad">Minutos</div>
         </article>
+
+    </section>
+
+    <section
+        class="panel panel-inteligente"
+        id="panelInteligente">
+
+        <div class="cabecera-inteligente">
+
+            <div>
+
+                <h2>
+                    Diagnóstico operativo
+                </h2>
+
+                <p>
+                    Evaluación automática de demanda,
+                    capacidad disponible y estado general
+                    del servicio.
+                </p>
+
+            </div>
+
+            <div
+                class="estado-general normal"
+                id="estadoGeneralOperacion">
+
+                <span
+                    class="estado-general-nivel"
+                    id="nivelGeneralOperacion">
+
+                    Normal
+
+                </span>
+
+                <strong
+                    class="estado-general-titulo"
+                    id="tituloGeneralOperacion">
+
+                    Operación normal
+
+                </strong>
+
+                <span
+                    class="estado-general-detalle"
+                    id="detalleGeneralOperacion">
+
+                    Esperando información del sistema.
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="resumen-inteligente">
+
+            <div class="indicador-inteligente">
+
+                <span>
+                    Capacidad operativa
+                </span>
+
+                <strong id="capacidadOperativa">
+                    0
+                </strong>
+
+                <small>
+                    Puntos disponibles o atendiendo.
+                </small>
+
+            </div>
+
+            <div class="indicador-inteligente">
+
+                <span>
+                    Puntos disponibles
+                </span>
+
+                <strong id="mesasDisponiblesInteligente">
+                    0
+                </strong>
+
+                <small>
+                    Pueden recibir un turno ahora.
+                </small>
+
+            </div>
+
+            <div class="indicador-inteligente">
+
+                <span>
+                    Ocupación
+                </span>
+
+                <strong id="ocupacionOperacion">
+                    0%
+                </strong>
+
+                <small>
+                    Porcentaje de capacidad actualmente ocupada.
+                </small>
+
+                <div class="barra-capacidad">
+
+                    <div
+                        class="barra-capacidad-valor"
+                        id="barraOcupacionOperacion"
+                        style="width:0%">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="indicador-inteligente">
+
+                <span>
+                    Puntos no disponibles
+                </span>
+
+                <strong id="mesasNoDisponiblesInteligente">
+                    0
+                </strong>
+
+                <small>
+                    Pausa, ausencia, vacaciones o fuera de servicio.
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="contenido-inteligente">
+
+            <div class="bloque-inteligente">
+
+                <h3>
+                    Recomendaciones
+                </h3>
+
+                <p class="bloque-inteligente-descripcion">
+                    Acciones sugeridas según el estado
+                    actual de la operación.
+                </p>
+
+                <div
+                    class="lista-recomendaciones"
+                    id="listaRecomendaciones">
+
+                    <div class="sin-diagnosticos">
+                        Analizando la operación...
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="bloque-inteligente">
+
+                <h3>
+                    Diagnóstico por trámite
+                </h3>
+
+                <p class="bloque-inteligente-descripcion">
+                    Distribución de los turnos pendientes
+                    y nivel actual de cada cola.
+                </p>
+
+                <div
+                    class="lista-diagnosticos"
+                    id="listaDiagnosticos">
+
+                    <div class="sin-diagnosticos">
+                        No hay turnos esperando.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </section>
 
@@ -2832,6 +3358,16 @@ const socket = io();
 let rolActual = null;
 let editandoEstadoMesa = false;
 
+let ultimoEstadoPanel = {
+
+    resumen:null,
+
+    colas:[],
+
+    mesas:[]
+
+};
+
 let temporizadorActualizacionPanel = null;
 let panelCargando = false;
 
@@ -2879,6 +3415,1038 @@ function numeroSeguro(valor){
 
 }
 
+function obtenerEstadoRealMesa(
+    mesa
+){
+
+    return String(
+        mesa?.estado
+        || mesa?.estadoOperativo
+        || "disponible"
+    ).trim();
+
+}
+
+
+function obtenerNombreMesa(
+    mesa
+){
+
+    return String(
+        mesa?.nombre
+        || `Mesa ${mesa?.numero || ""}`
+    ).trim();
+
+}
+
+
+function obtenerNombreCola(
+    cola
+){
+
+    return String(
+        cola?.nombreTramite
+        || cola?.tramite
+        || "Trámite"
+    ).trim();
+
+}
+
+
+function limitarPorcentaje(
+    valor
+){
+
+    const numero =
+        numeroSeguro(valor);
+
+    return Math.max(
+        0,
+        Math.min(
+            100,
+            numero
+        )
+    );
+
+}
+
+function calcularCapacidadOperativa(
+    mesas
+){
+
+    const resultado = {
+
+        total:
+            mesas.length,
+
+        disponibles:
+            0,
+
+        atendiendo:
+            0,
+
+        noDisponibles:
+            0,
+
+        capacidadOperativa:
+            0,
+
+        porcentajeOcupacion:
+            0
+
+    };
+
+    for(const mesa of mesas){
+
+        const estado =
+            obtenerEstadoRealMesa(
+                mesa
+            );
+
+        if(estado === "disponible"){
+
+            resultado.disponibles++;
+
+        }else if(
+            estado === "atendiendo"
+        ){
+
+            resultado.atendiendo++;
+
+        }else{
+
+            resultado.noDisponibles++;
+
+        }
+
+    }
+
+    resultado.capacidadOperativa =
+        resultado.disponibles
+        + resultado.atendiendo;
+
+    if(
+        resultado.capacidadOperativa > 0
+    ){
+
+        resultado.porcentajeOcupacion =
+            (
+                resultado.atendiendo
+                / resultado.capacidadOperativa
+            ) * 100;
+
+    }
+
+    resultado.porcentajeOcupacion =
+        limitarPorcentaje(
+            resultado.porcentajeOcupacion
+        );
+
+    return resultado;
+
+}
+
+function calcularEstadoGeneralOperacion(
+    resumen,
+    colas,
+    mesas
+){
+
+    const pendientes =
+        numeroSeguro(
+            resumen?.pendientes
+        );
+
+    const esperaPromedio =
+        numeroSeguro(
+            resumen?.esperaPromedioMinutos
+        );
+
+    const capacidad =
+        calcularCapacidadOperativa(
+            mesas
+        );
+
+    const existeColaCritica =
+        colas.some(
+            cola =>
+                numeroSeguro(
+                    cola.total
+                )
+                >=
+                LIMITES_ALERTAS
+                    .colaCritica
+        );
+
+    const existeColaElevada =
+        colas.some(
+            cola =>
+                numeroSeguro(
+                    cola.total
+                )
+                >=
+                LIMITES_ALERTAS
+                    .colaAdvertencia
+        );
+
+    const esperaCritica =
+        esperaPromedio
+        >=
+        LIMITES_ALERTAS
+            .esperaCritica;
+
+    const esperaElevada =
+        esperaPromedio
+        >=
+        LIMITES_ALERTAS
+            .esperaAdvertencia;
+
+    const sinCapacidadDisponible =
+        pendientes > 0
+        && capacidad.disponibles === 0;
+
+    /*
+    NIVEL CRÍTICO
+    */
+    if(
+        sinCapacidadDisponible
+        || existeColaCritica
+        || esperaCritica
+    ){
+
+        let detalle =
+            "La operación requiere atención inmediata.";
+
+        if(sinCapacidadDisponible){
+
+            detalle =
+                `Hay ${pendientes} turnos esperando `
+                + "y ningún punto disponible.";
+
+        }else if(existeColaCritica){
+
+            detalle =
+                "Existe al menos una cola en nivel crítico.";
+
+        }else if(esperaCritica){
+
+            detalle =
+                `La espera promedio alcanzó `
+                + `${esperaPromedio.toFixed(2)} minutos.`;
+
+        }
+
+        return {
+
+            nivel:
+                "critico",
+
+            etiqueta:
+                "Crítico",
+
+            titulo:
+                "Operación crítica",
+
+            detalle
+
+        };
+
+    }
+
+    /*
+    NIVEL ELEVADO
+    */
+    const ocupacionElevada =
+        capacidad.capacidadOperativa > 0
+        && capacidad.porcentajeOcupacion
+            >= 80
+        && pendientes > 0;
+
+    if(
+        existeColaElevada
+        || esperaElevada
+        || ocupacionElevada
+    ){
+
+        let detalle =
+            "La demanda es superior al nivel normal.";
+
+        if(existeColaElevada){
+
+            detalle =
+                "Existe al menos una cola con demanda elevada.";
+
+        }else if(esperaElevada){
+
+            detalle =
+                `La espera promedio es de `
+                + `${esperaPromedio.toFixed(2)} minutos.`;
+
+        }else if(ocupacionElevada){
+
+            detalle =
+                `La capacidad operativa está ocupada al `
+                + `${capacidad.porcentajeOcupacion.toFixed(0)}%.`;
+
+        }
+
+        return {
+
+            nivel:
+                "elevado",
+
+            etiqueta:
+                "Elevado",
+
+            titulo:
+                "Demanda elevada",
+
+            detalle
+
+        };
+
+    }
+
+    /*
+    NIVEL NORMAL
+    */
+    if(pendientes === 0){
+
+        return {
+
+            nivel:
+                "normal",
+
+            etiqueta:
+                "Normal",
+
+            titulo:
+                "Operación normal",
+
+            detalle:
+                "No existen turnos pendientes."
+
+        };
+
+    }
+
+    return {
+
+        nivel:
+            "normal",
+
+        etiqueta:
+            "Normal",
+
+        titulo:
+            "Operación estable",
+
+        detalle:
+            `Existen ${pendientes} turnos pendientes `
+            + "dentro de los límites configurados."
+
+    };
+
+}
+
+function mostrarEstadoGeneralOperacion(
+    diagnostico
+){
+
+    const contenedor =
+        document.getElementById(
+            "estadoGeneralOperacion"
+        );
+
+    const nivel =
+        document.getElementById(
+            "nivelGeneralOperacion"
+        );
+
+    const titulo =
+        document.getElementById(
+            "tituloGeneralOperacion"
+        );
+
+    const detalle =
+        document.getElementById(
+            "detalleGeneralOperacion"
+        );
+
+    if(
+        !contenedor
+        || !nivel
+        || !titulo
+        || !detalle
+    ){
+        return;
+    }
+
+    contenedor.className =
+        `estado-general ${diagnostico.nivel}`;
+
+    nivel.textContent =
+        diagnostico.etiqueta;
+
+    titulo.textContent =
+        diagnostico.titulo;
+
+    detalle.textContent =
+        diagnostico.detalle;
+
+}
+
+function mostrarCapacidadOperativa(
+    capacidad
+){
+
+    document.getElementById(
+        "capacidadOperativa"
+    ).textContent =
+        capacidad.capacidadOperativa;
+
+    document.getElementById(
+        "mesasDisponiblesInteligente"
+    ).textContent =
+        capacidad.disponibles;
+
+    document.getElementById(
+        "mesasNoDisponiblesInteligente"
+    ).textContent =
+        capacidad.noDisponibles;
+
+    document.getElementById(
+        "ocupacionOperacion"
+    ).textContent =
+        `${capacidad
+            .porcentajeOcupacion
+            .toFixed(0)}%`;
+
+    document.getElementById(
+        "barraOcupacionOperacion"
+    ).style.width =
+        `${capacidad
+            .porcentajeOcupacion}%`;
+
+}
+
+function generarRecomendacionesOperativas(
+    resumen,
+    colas,
+    mesas,
+    capacidad
+){
+
+    const recomendaciones = [];
+
+    const pendientes =
+        numeroSeguro(
+            resumen?.pendientes
+        );
+
+    const esperaPromedio =
+        numeroSeguro(
+            resumen?.esperaPromedioMinutos
+        );
+
+    /*
+    No hay pendientes.
+    */
+    if(pendientes === 0){
+
+        recomendaciones.push({
+
+            tipo:
+                "normal",
+
+            titulo:
+                "Mantener la operación actual",
+
+            detalle:
+                "No existen turnos pendientes en este momento."
+
+        });
+
+    }
+
+    /*
+    Hay pendientes, pero no hay puntos libres.
+    */
+    if(
+        pendientes > 0
+        && capacidad.disponibles === 0
+    ){
+
+        recomendaciones.push({
+
+            tipo:
+                "critica",
+
+            titulo:
+                "Habilitar capacidad de atención",
+
+            detalle:
+                `Hay ${pendientes} turnos esperando `
+                + "y ningún punto disponible para recibirlos."
+
+        });
+
+    }
+
+    /*
+    Colas críticas.
+    */
+    const colasCriticas =
+        colas
+            .filter(
+                cola =>
+                    numeroSeguro(
+                        cola.total
+                    )
+                    >=
+                    LIMITES_ALERTAS
+                        .colaCritica
+            )
+            .sort(
+                (a, b)=>
+                    numeroSeguro(b.total)
+                    -
+                    numeroSeguro(a.total)
+            );
+
+    for(const cola of colasCriticas){
+
+        recomendaciones.push({
+
+            tipo:
+                "critica",
+
+            titulo:
+                `Priorizar ${obtenerNombreCola(cola)}`,
+
+            detalle:
+                `La cola tiene ${numeroSeguro(cola.total)} `
+                + "turnos pendientes y se encuentra "
+                + "en nivel crítico."
+
+        });
+
+    }
+
+    /*
+    Colas elevadas que todavía no son críticas.
+    */
+    const colasElevadas =
+        colas
+            .filter(cola => {
+
+                const total =
+                    numeroSeguro(
+                        cola.total
+                    );
+
+                return (
+                    total
+                    >=
+                    LIMITES_ALERTAS
+                        .colaAdvertencia
+                    &&
+                    total
+                    <
+                    LIMITES_ALERTAS
+                        .colaCritica
+                );
+
+            })
+            .sort(
+                (a, b)=>
+                    numeroSeguro(b.total)
+                    -
+                    numeroSeguro(a.total)
+            );
+
+    for(const cola of colasElevadas){
+
+        recomendaciones.push({
+
+            tipo:
+                "advertencia",
+
+            titulo:
+                `Vigilar ${obtenerNombreCola(cola)}`,
+
+            detalle:
+                `La cola tiene ${numeroSeguro(cola.total)} `
+                + "turnos esperando y se aproxima "
+                + "al nivel crítico."
+
+        });
+
+    }
+
+    /*
+    Espera elevada o crítica.
+    */
+    if(
+        esperaPromedio
+        >=
+        LIMITES_ALERTAS
+            .esperaCritica
+    ){
+
+        recomendaciones.push({
+
+            tipo:
+                "critica",
+
+            titulo:
+                "Reducir el tiempo de espera",
+
+            detalle:
+                `El promedio actual es de `
+                + `${esperaPromedio.toFixed(2)} minutos, `
+                + "por encima del límite crítico."
+
+        });
+
+    }else if(
+        esperaPromedio
+        >=
+        LIMITES_ALERTAS
+            .esperaAdvertencia
+    ){
+
+        recomendaciones.push({
+
+            tipo:
+                "advertencia",
+
+            titulo:
+                "Supervisar el tiempo de espera",
+
+            detalle:
+                `El promedio actual es de `
+                + `${esperaPromedio.toFixed(2)} minutos.`
+
+        });
+
+    }
+
+    /*
+    Puntos no disponibles.
+    */
+    const mesasFueraDeServicio =
+        mesas.filter(
+            mesa =>
+                obtenerEstadoRealMesa(mesa)
+                === "deshabilitada"
+        );
+
+    if(mesasFueraDeServicio.length > 0){
+
+        const nombres =
+            mesasFueraDeServicio
+                .slice(0, 3)
+                .map(
+                    mesa =>
+                        obtenerNombreMesa(mesa)
+                )
+                .join(", ");
+
+        recomendaciones.push({
+
+            tipo:
+                "critica",
+
+            titulo:
+                "Revisar puntos fuera de servicio",
+
+            detalle:
+                `${mesasFueraDeServicio.length} punto(s) `
+                + `deshabilitado(s): ${nombres}.`
+
+        });
+
+    }
+
+    const mesasTemporalmenteNoDisponibles =
+        mesas.filter(
+            mesa => [
+                "pausa",
+                "ausente",
+                "vacaciones"
+            ].includes(
+                obtenerEstadoRealMesa(mesa)
+            )
+        );
+
+    if(
+        pendientes > 0
+        &&
+        mesasTemporalmenteNoDisponibles.length > 0
+    ){
+
+        recomendaciones.push({
+
+            tipo:
+                "advertencia",
+
+            titulo:
+                "Revisar disponibilidad del personal",
+
+            detalle:
+                `${mesasTemporalmenteNoDisponibles.length} `
+                + "punto(s) se encuentran en pausa, "
+                + "ausencia o vacaciones mientras hay "
+                + "turnos pendientes."
+
+        });
+
+    }
+
+    /*
+    Capacidad muy ocupada.
+    */
+    if(
+        pendientes > 0
+        && capacidad.porcentajeOcupacion
+            >= 80
+        && capacidad.disponibles > 0
+    ){
+
+        recomendaciones.push({
+
+            tipo:
+                "advertencia",
+
+            titulo:
+                "Alta utilización de capacidad",
+
+            detalle:
+                `La ocupación actual es de `
+                + `${capacidad.porcentajeOcupacion.toFixed(0)}%. `
+                + "Conviene vigilar el crecimiento de las colas."
+
+        });
+
+    }
+
+    /*
+    Evitamos mostrar demasiados mensajes.
+    */
+    return recomendaciones
+        .slice(
+            0,
+            8
+        );
+
+}
+
+function mostrarRecomendacionesOperativas(
+    recomendaciones
+){
+
+    const contenedor =
+        document.getElementById(
+            "listaRecomendaciones"
+        );
+
+    if(!contenedor){
+        return;
+    }
+
+    if(recomendaciones.length === 0){
+
+        contenedor.innerHTML = `
+
+            <div class="
+                recomendacion-operativa
+                normal
+            ">
+
+                <div class="recomendacion-titulo">
+                    Operación estable
+                </div>
+
+                <div class="recomendacion-detalle">
+                    No se requieren acciones adicionales.
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    contenedor.innerHTML =
+        recomendaciones
+            .map(
+                recomendacion => `
+
+                    <div class="
+                        recomendacion-operativa
+                        ${recomendacion.tipo}
+                    ">
+
+                        <div class="recomendacion-titulo">
+
+                            ${
+                                escaparHTML(
+                                    recomendacion.titulo
+                                )
+                            }
+
+                        </div>
+
+                        <div class="recomendacion-detalle">
+
+                            ${
+                                escaparHTML(
+                                    recomendacion.detalle
+                                )
+                            }
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+
+}
+
+function mostrarDiagnosticoPorTramite(
+    colas,
+    totalPendientes
+){
+
+    const contenedor =
+        document.getElementById(
+            "listaDiagnosticos"
+        );
+
+    if(!contenedor){
+        return;
+    }
+
+    if(
+        !colas.length
+        || totalPendientes <= 0
+    ){
+
+        contenedor.innerHTML = `
+
+            <div class="sin-diagnosticos">
+                No hay turnos esperando.
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    const colasOrdenadas =
+        [...colas]
+            .sort(
+                (a, b)=>
+                    numeroSeguro(b.total)
+                    -
+                    numeroSeguro(a.total)
+            );
+
+    contenedor.innerHTML =
+        colasOrdenadas
+            .map(cola => {
+
+                const total =
+                    numeroSeguro(
+                        cola.total
+                    );
+
+                const porcentaje =
+                    limitarPorcentaje(
+                        (
+                            total
+                            / totalPendientes
+                        ) * 100
+                    );
+
+                let nivel =
+                    "normal";
+
+                let textoNivel =
+                    "Dentro del límite";
+
+                if(
+                    total
+                    >=
+                    LIMITES_ALERTAS
+                        .colaCritica
+                ){
+
+                    nivel =
+                        "critico";
+
+                    textoNivel =
+                        "Nivel crítico";
+
+                }else if(
+                    total
+                    >=
+                    LIMITES_ALERTAS
+                        .colaAdvertencia
+                ){
+
+                    nivel =
+                        "elevado";
+
+                    textoNivel =
+                        "Nivel elevado";
+
+                }
+
+                return `
+
+                    <div class="
+                        diagnostico-tramite
+                        ${nivel}
+                    ">
+
+                        <div class="diagnostico-cabecera">
+
+                            <div class="diagnostico-nombre">
+
+                                ${
+                                    escaparHTML(
+                                        obtenerNombreCola(
+                                            cola
+                                        )
+                                    )
+                                }
+
+                            </div>
+
+                            <div class="diagnostico-cantidad">
+                                ${total}
+                            </div>
+
+                        </div>
+
+                        <div class="diagnostico-detalle">
+
+                            <span>
+                                ${escaparHTML(textoNivel)}
+                            </span>
+
+                            <span>
+                                ${porcentaje.toFixed(1)}%
+                                de los pendientes
+                            </span>
+
+                        </div>
+
+                        <div class="barra-diagnostico">
+
+                            <div
+                                class="barra-diagnostico-valor"
+                                style="
+                                    width:${porcentaje}%
+                                ">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+}
+
+function actualizarDashboardInteligente(
+    resumen,
+    colas,
+    mesas
+){
+
+    const resumenSeguro =
+        resumen || {};
+
+    const colasSeguras =
+        Array.isArray(colas)
+            ? colas
+            : [];
+
+    const mesasSeguras =
+        Array.isArray(mesas)
+            ? mesas
+            : [];
+
+    /*
+    Guardamos una copia de los últimos datos
+    para poder recalcular cuando cambien los
+    límites de alertas.
+    */
+    ultimoEstadoPanel = {
+
+        resumen:
+            resumenSeguro,
+
+        colas:
+            colasSeguras,
+
+        mesas:
+            mesasSeguras
+
+    };
+
+    const capacidad =
+        calcularCapacidadOperativa(
+            mesasSeguras
+        );
+
+    const estadoGeneral =
+        calcularEstadoGeneralOperacion(
+            resumenSeguro,
+            colasSeguras,
+            mesasSeguras
+        );
+
+    const recomendaciones =
+        generarRecomendacionesOperativas(
+            resumenSeguro,
+            colasSeguras,
+            mesasSeguras,
+            capacidad
+        );
+
+    mostrarEstadoGeneralOperacion(
+        estadoGeneral
+    );
+
+    mostrarCapacidadOperativa(
+        capacidad
+    );
+
+    mostrarRecomendacionesOperativas(
+        recomendaciones
+    );
+
+    mostrarDiagnosticoPorTramite(
+        colasSeguras,
+        numeroSeguro(
+            resumenSeguro.pendientes
+        )
+    );
+
+}
+
 function aplicarLimitesAlertas(
     limites
 ){
@@ -2906,6 +4474,24 @@ function aplicarLimitesAlertas(
             ) || 20
 
     };
+
+    if(
+        ultimoEstadoPanel.resumen
+    ){
+
+        analizarAlertasOperativas(
+            ultimoEstadoPanel.resumen,
+            ultimoEstadoPanel.colas,
+            ultimoEstadoPanel.mesas
+        );
+
+        actualizarDashboardInteligente(
+            ultimoEstadoPanel.resumen,
+            ultimoEstadoPanel.colas,
+            ultimoEstadoPanel.mesas
+        );
+
+    }
 
 }
 
@@ -3874,6 +5460,11 @@ async function cargarPanel(){
         mostrarColas(resultado.colas);
         mostrarMesas(resultado.mesas);
         analizarAlertasOperativas(
+            resultado.resumen,
+            resultado.colas,
+            resultado.mesas
+        );
+        actualizarDashboardInteligente(
             resultado.resumen,
             resultado.colas,
             resultado.mesas
