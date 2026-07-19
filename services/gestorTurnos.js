@@ -328,44 +328,81 @@ class GestorTurnos {
 
 obtenerColasDia(){
 
-    return new Promise((resolve,reject)=>{
+    return new Promise(
+        (resolve, reject)=>{
 
-        db.all(
+            db.all(
+                `
+                SELECT
+                    t.tramite,
 
-            `
-            SELECT
-                tramite,
-                COUNT(*) AS total
+                    COALESCE(
+                        tc.nombre,
+                        t.tramite
+                    ) AS nombreTramite,
 
-            FROM turnos
+                    COUNT(*) AS total
 
-            WHERE
-                estado='espera'
-                AND date(fechaCreacion, 'localtime')
+                FROM turnos t
+
+                LEFT JOIN tramites_config tc
+                    ON tc.codigo=t.tramite
+
+                WHERE
+                    t.estado='espera'
+                    AND date(
+                        t.fechaCreacion,
+                        'localtime'
+                    )
                     =
-                    date('now','localtime')
+                    date(
+                        'now',
+                        'localtime'
+                    )
 
-            GROUP BY tramite
+                GROUP BY
+                    t.tramite,
+                    tc.nombre
 
-            ORDER BY total DESC
-            `,
+                ORDER BY
+                    total DESC,
+                    nombreTramite ASC
+                `,
+                [],
+                (err, rows)=>{
 
-            [],
+                    if(err){
 
-            (err,rows)=>{
+                        reject(err);
+                        return;
 
-                if(err){
-                    reject(err);
-                    return;
+                    }
+
+                    resolve(
+                        rows.map(
+                            fila => ({
+
+                                tramite:
+                                    fila.tramite,
+
+                                nombreTramite:
+                                    fila.nombreTramite
+                                    || fila.tramite,
+
+                                total:
+                                    Number(
+                                        fila.total || 0
+                                    )
+
+                            })
+                        )
+                    );
+
                 }
+            );
 
-                resolve(rows);
-
-            }
-
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -392,6 +429,12 @@ obtenerMesasActuales(){
                 t.id AS turnoId,
                 t.codigo,
                 t.tramite,
+
+                COALESCE(
+                    tc.nombre,
+                    t.tramite
+                ) AS nombreTramite,
+
                 t.fechaLlamado
 
             FROM mesas_config mc
@@ -423,6 +466,9 @@ obtenerMesasActuales(){
                     LIMIT 1
 
                 )
+                
+            LEFT JOIN tramites_config tc
+                ON tc.codigo=t.tramite
 
             ORDER BY
                 mc.orden ASC,
@@ -497,6 +543,12 @@ obtenerMesasActuales(){
                             tramite:
                                 tieneTurno
                                     ? fila.tramite
+                                    : null,
+
+                            nombreTramite:
+                                tieneTurno
+                                    ? fila.nombreTramite
+                                        || fila.tramite
                                     : null
 
                         };

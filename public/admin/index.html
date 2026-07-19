@@ -2229,20 +2229,6 @@ let editandoEstadoMesa = false;
 let temporizadorActualizacionPanel = null;
 let panelCargando = false;
 
-const nombresTramites = {
-
-    CONSUMO: "Consumo Alto",
-    AFOROS: "Aforos",
-    ABONOS: "Abonos",
-    CONTRATO1: "Contratos Etapa 1",
-    CONTRATO2: "Contratos Etapa 2",
-    RECONEXIONES: "Reconexiones",
-    SUSPENSION: "Suspensión Voluntaria",
-    INSEN: "INSEN",
-    GIRO: "Giro de Tarifa"
-
-};
-
 function actualizarReloj(){
 
     const ahora = new Date();
@@ -2315,7 +2301,13 @@ function mostrarColas(colas){
             <div class="cola">
 
                 <span class="cola-nombre">
-                    ${nombresTramites[cola.tramite] || cola.tramite}
+                    ${
+                        escaparHTML(
+                            cola.nombreTramite
+                            || cola.tramite
+                            || "Trámite"
+                        )
+                    }
                 </span>
 
                 <span class="cola-total">
@@ -2365,10 +2357,9 @@ function mostrarMesas(mesas){
             if(estado === "atendiendo"){
 
                 detalle =
-                    mesa.tramite
-                        ? nombresTramites[mesa.tramite]
-                            || mesa.tramite
-                        : "Atención en proceso";
+                    mesa.nombreTramite
+                    || mesa.tramite
+                    || "Atención en proceso";
 
             }else if(mesa.motivo){
 
@@ -2461,7 +2452,12 @@ function mostrarMesas(mesas){
                     <div class="mesa-cabecera">
 
                         <span class="mesa-numero">
-                            Mesa ${mesa.numero}
+                            ${
+                                escaparHTML(
+                                    mesa.nombre
+                                    || `Mesa ${mesa.numero}`
+                                )
+                            }
                         </span>
 
                         <span class="mesa-estado ${estado}">
@@ -2475,7 +2471,7 @@ function mostrarMesas(mesas){
                     </div>
 
                     <div class="mesa-tramite">
-                        ${detalle}
+                        ${escaparHTML(detalle)}
                     </div>
 
                     ${controlesAdmin}
