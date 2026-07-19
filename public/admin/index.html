@@ -909,6 +909,362 @@ body{
 
 }
 
+/* =========================================================
+   EDITOR DE PRIORIDADES Y APOYOS
+   ========================================================= */
+
+.panel-reglas{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-reglas{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.cabecera-reglas h2{
+    margin-bottom:5px;
+}
+
+.cabecera-reglas p{
+    margin:0;
+    color:#777;
+}
+
+.estado-reglas{
+    min-width:170px;
+    padding:11px 15px;
+    border-radius:12px;
+    background:#f7f4f5;
+    color:#6A0F20;
+    text-align:center;
+    font-size:14px;
+    font-weight:bold;
+}
+
+.editor-reglas{
+    margin-top:24px;
+    display:grid;
+    grid-template-columns:
+        minmax(240px, 0.75fr)
+        minmax(0, 1.25fr);
+    gap:22px;
+}
+
+.selector-tramite-reglas{
+    padding:20px;
+    border-radius:15px;
+    background:#f7f4f5;
+}
+
+.selector-tramite-reglas label{
+    display:block;
+    margin-bottom:8px;
+    color:#555;
+    font-weight:bold;
+}
+
+.selector-tramite-reglas select{
+    width:100%;
+    min-height:46px;
+    padding:10px 12px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    color:#333;
+    font-size:15px;
+}
+
+.informacion-regla{
+    margin-top:18px;
+    padding:16px;
+    border-radius:12px;
+    background:white;
+    border-left:5px solid #6A0F20;
+}
+
+.informacion-regla strong{
+    display:block;
+    color:#6A0F20;
+    font-size:17px;
+}
+
+.informacion-regla span{
+    display:block;
+    margin-top:6px;
+    color:#777;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.configuracion-regla{
+    padding:20px;
+    border:1px solid #e3dadd;
+    border-radius:15px;
+    background:#fcfbfb;
+}
+
+.configuracion-regla.oculto{
+    display:none;
+}
+
+.campo-limite-apoyo{
+    margin-bottom:22px;
+}
+
+.campo-limite-apoyo label{
+    display:block;
+    margin-bottom:8px;
+    color:#555;
+    font-weight:bold;
+}
+
+.campo-limite-apoyo input{
+    width:180px;
+    min-height:44px;
+    padding:9px 12px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    font-size:15px;
+}
+
+.ayuda-regla{
+    margin-top:7px;
+    color:#777;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.columnas-reglas{
+    display:grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap:18px;
+}
+
+.columna-regla{
+    min-width:0;
+    padding:17px;
+    border-radius:13px;
+    background:#f7f4f5;
+}
+
+.columna-regla h3{
+    margin:0 0 6px;
+    color:#6A0F20;
+    font-size:18px;
+}
+
+.columna-regla p{
+    margin:0 0 15px;
+    color:#777;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.lista-mesas-regla{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.opcion-mesa-regla{
+    min-height:50px;
+    padding:11px 13px;
+    border:1px solid #ddd3d6;
+    border-radius:11px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.opcion-mesa-regla:hover{
+    border-color:#8C1C32;
+    box-shadow:0 3px 10px rgba(106,15,32,0.08);
+}
+
+.identidad-mesa-regla{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.identidad-mesa-regla input{
+    width:18px;
+    height:18px;
+    accent-color:#6A0F20;
+    cursor:pointer;
+}
+
+.nombre-mesa-regla{
+    min-width:0;
+}
+
+.nombre-mesa-regla strong{
+    display:block;
+    color:#333;
+    font-size:14px;
+}
+
+.nombre-mesa-regla span{
+    display:block;
+    margin-top:3px;
+    color:#777;
+    font-size:12px;
+}
+
+.orden-mesa-regla{
+    width:75px;
+    min-height:36px;
+    padding:6px 8px;
+    border:1px solid #d7ced0;
+    border-radius:9px;
+    background:white;
+    text-align:center;
+}
+
+.mesa-regla-inactiva{
+    opacity:0.58;
+    background:#eeeeee;
+}
+
+.mesa-regla-inactiva input{
+    cursor:not-allowed;
+}
+
+.sin-mesas-regla{
+    padding:16px;
+    border-radius:10px;
+    background:white;
+    color:#777;
+    text-align:center;
+}
+
+.acciones-reglas{
+    margin-top:22px;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.boton-guardar-reglas{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-recargar-reglas{
+    background:#555;
+    color:white;
+}
+
+.mensaje-reglas{
+    min-height:23px;
+    margin-top:16px;
+    font-weight:bold;
+}
+
+.mensaje-reglas.exito{
+    color:#218342;
+}
+
+.mensaje-reglas.error{
+    color:#a5232f;
+}
+
+.mensaje-reglas.proceso{
+    color:#6A0F20;
+}
+
+.resumen-regla{
+    margin-top:20px;
+    padding:16px;
+    border-radius:12px;
+    background:#f7f4f5;
+    display:grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap:12px;
+}
+
+.dato-regla{
+    padding:13px;
+    border-radius:10px;
+    background:white;
+}
+
+.dato-regla span{
+    display:block;
+    color:#777;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.dato-regla strong{
+    display:block;
+    margin-top:6px;
+    color:#6A0F20;
+    font-size:18px;
+}
+
+@media(max-width:1000px){
+
+    .editor-reglas{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:800px){
+
+    .cabecera-reglas{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .estado-reglas{
+        width:100%;
+    }
+
+    .columnas-reglas{
+        grid-template-columns:1fr;
+    }
+
+    .resumen-regla{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:550px){
+
+    .opcion-mesa-regla{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .orden-mesa-regla{
+        width:100%;
+    }
+
+    .acciones-reglas{
+        flex-direction:column;
+    }
+
+    .acciones-reglas .boton-admin{
+        width:100%;
+    }
+
+}
+
 </style>
 </head>
 
@@ -1401,6 +1757,229 @@ body{
                 </tbody>
 
             </table>
+
+        </div>
+
+    </section>
+
+    <section
+        class="panel panel-reglas solo-admin"
+        id="panelReglasConfiguracion">
+
+        <div class="cabecera-reglas">
+
+            <div>
+
+                <h2>
+                    Prioridades y apoyos
+                </h2>
+
+                <p>
+                    Configura qué puntos de atención
+                    atienden cada trámite y cuándo
+                    deben participar las mesas de apoyo.
+                </p>
+
+            </div>
+
+            <div
+                class="estado-reglas"
+                id="estadoCargaReglas">
+
+                Pendiente de cargar
+
+            </div>
+
+        </div>
+
+        <div class="editor-reglas">
+
+            <div class="selector-tramite-reglas">
+
+                <label for="selectorTramiteReglas">
+                    Trámite que deseas configurar
+                </label>
+
+                <select
+                    id="selectorTramiteReglas"
+                    onchange="seleccionarTramiteReglas()">
+
+                    <option value="">
+                        Selecciona un trámite
+                    </option>
+
+                </select>
+
+                <div class="informacion-regla">
+
+                    <strong id="nombreTramiteRegla">
+                        Ningún trámite seleccionado
+                    </strong>
+
+                    <span id="descripcionTramiteRegla">
+                        Selecciona un trámite para consultar
+                        o modificar sus prioridades.
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div
+                class="configuracion-regla oculto"
+                id="configuracionRegla">
+
+                <div class="campo-limite-apoyo">
+
+                    <label for="limiteApoyoRegla">
+                        Límite para activar mesas de apoyo
+                    </label>
+
+                    <input
+                        id="limiteApoyoRegla"
+                        type="number"
+                        min="1"
+                        max="999"
+                        value="5"
+                        oninput="actualizarResumenRegla()">
+
+                    <div class="ayuda-regla">
+
+                        Cuando exista al menos esta cantidad
+                        de turnos esperando, las mesas de
+                        apoyo podrán comenzar a atenderlos.
+
+                    </div>
+
+                </div>
+
+                <div class="columnas-reglas">
+
+                    <div class="columna-regla">
+
+                        <h3>
+                            Mesas prioritarias
+                        </h3>
+
+                        <p>
+                            Son los puntos de atención
+                            responsables principales del
+                            trámite. El orden determina cuál
+                            tiene mayor prioridad.
+                        </p>
+
+                        <div
+                            class="lista-mesas-regla"
+                            id="listaMesasPrioridad">
+
+                            <div class="sin-mesas-regla">
+                                Selecciona un trámite.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="columna-regla">
+
+                        <h3>
+                            Mesas de apoyo
+                        </h3>
+
+                        <p>
+                            Atienden cuando se alcanza el
+                            límite configurado o cuando no
+                            existe una mesa prioritaria
+                            disponible.
+                        </p>
+
+                        <div
+                            class="lista-mesas-regla"
+                            id="listaMesasApoyo">
+
+                            <div class="sin-mesas-regla">
+                                Selecciona un trámite.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="resumen-regla">
+
+                    <div class="dato-regla">
+
+                        <span>
+                            Prioritarias seleccionadas
+                        </span>
+
+                        <strong id="totalPrioridadesRegla">
+                            0
+                        </strong>
+
+                    </div>
+
+                    <div class="dato-regla">
+
+                        <span>
+                            Apoyos seleccionados
+                        </span>
+
+                        <strong id="totalApoyosRegla">
+                            0
+                        </strong>
+
+                    </div>
+
+                    <div class="dato-regla">
+
+                        <span>
+                            Límite actual
+                        </span>
+
+                        <strong id="limiteActualRegla">
+                            5
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="mensaje-reglas"
+                    id="mensajeReglas">
+                </div>
+
+                <div class="acciones-reglas">
+
+                    <button
+                        class="
+                            boton-admin
+                            boton-recargar-reglas
+                        "
+                        onclick="recargarReglaSeleccionada()">
+
+                        Descartar cambios
+
+                    </button>
+
+                    <button
+                        class="
+                            boton-admin
+                            boton-guardar-reglas
+                        "
+                        id="botonGuardarReglas"
+                        onclick="guardarReglasConfiguracion()">
+
+                        Guardar prioridades y apoyos
+
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -2486,6 +3065,8 @@ async function aplicarPermisosUsuario(){
             cargarTramitesConfiguracion();
 
             cargarMesasConfiguracion();
+
+            cargarReglasConfiguracion();
 
         }
 
@@ -3628,6 +4209,12 @@ async function guardarTramite(){
 
 let mesasConfiguracion = [];
 
+let reglasConfiguracion = [];
+
+let tramiteReglaSeleccionado = null;
+
+let mesasReglas = [];
+
 
 function mostrarFormularioMesa(){
 
@@ -3927,6 +4514,852 @@ async function cargarMesasConfiguracion(){
 
 }
 
+async function cargarReglasConfiguracion(){
+
+    try{
+
+        document.getElementById(
+            "estadoCargaReglas"
+        ).textContent =
+            "Cargando...";
+
+        const response =
+            await fetch(
+                "/api/admin/reglas",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(response.status === 401){
+
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar las reglas"
+            );
+
+        }
+
+        reglasConfiguracion =
+            data.reglas || [];
+
+        mesasReglas =
+            data.mesas || [];
+
+        llenarSelectorReglas();
+
+        document.getElementById(
+            "estadoCargaReglas"
+        ).textContent =
+            `${reglasConfiguracion.length} trámites cargados`;
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "estadoCargaReglas"
+        ).textContent =
+            "Error";
+
+    }
+
+}
+
+function llenarSelectorReglas(){
+
+    const selector =
+        document.getElementById(
+            "selectorTramiteReglas"
+        );
+
+    selector.innerHTML =
+        `
+        <option value="">
+            Selecciona un trámite
+        </option>
+        `;
+
+    for(
+        const regla
+        of reglasConfiguracion
+    ){
+
+        selector.innerHTML +=
+            `
+            <option
+                value="${regla.codigo}">
+                ${regla.nombre}
+            </option>
+            `;
+
+    }
+
+}
+
+function seleccionarTramiteReglas(){
+
+    const codigo =
+        document.getElementById(
+            "selectorTramiteReglas"
+        ).value;
+
+    const contenedor =
+        document.getElementById(
+            "configuracionRegla"
+        );
+
+    const mensaje =
+        document.getElementById(
+            "mensajeReglas"
+        );
+
+    mensaje.textContent = "";
+    mensaje.className =
+        "mensaje-reglas";
+
+    if(!codigo){
+
+        tramiteReglaSeleccionado = null;
+
+        contenedor.classList.add(
+            "oculto"
+        );
+
+        document.getElementById(
+            "nombreTramiteRegla"
+        ).textContent =
+            "Ningún trámite seleccionado";
+
+        document.getElementById(
+            "descripcionTramiteRegla"
+        ).textContent =
+            "Selecciona un trámite para consultar o modificar sus prioridades.";
+
+        return;
+
+    }
+
+    const regla =
+        reglasConfiguracion.find(
+            item =>
+                item.codigo === codigo
+        );
+
+    if(!regla){
+
+        tramiteReglaSeleccionado = null;
+
+        contenedor.classList.add(
+            "oculto"
+        );
+
+        mensaje.textContent =
+            "No se encontró la configuración del trámite.";
+
+        mensaje.classList.add(
+            "error"
+        );
+
+        return;
+
+    }
+
+    tramiteReglaSeleccionado =
+        regla;
+
+    document.getElementById(
+        "nombreTramiteRegla"
+    ).textContent =
+        regla.nombre;
+
+    document.getElementById(
+        "descripcionTramiteRegla"
+    ).textContent =
+        `Código: ${regla.codigo} | Prefijo: ${regla.prefijo}`;
+
+    document.getElementById(
+        "limiteApoyoRegla"
+    ).value =
+        Number(
+            regla.limiteApoyo || 5
+        );
+
+    renderizarMesasRegla(
+        regla
+    );
+
+    actualizarResumenRegla();
+
+    contenedor.classList.remove(
+        "oculto"
+    );
+
+}
+
+function renderizarMesasRegla(regla){
+
+    const prioridades =
+        new Map(
+            (regla.prioridad || [])
+                .map(item => [
+                    Number(item.mesa),
+                    Number(item.orden || 1)
+                ])
+        );
+
+    const apoyos =
+        new Map(
+            (regla.apoyo || [])
+                .map(item => [
+                    Number(item.mesa),
+                    Number(item.orden || 1)
+                ])
+        );
+
+    const listaPrioridad =
+        document.getElementById(
+            "listaMesasPrioridad"
+        );
+
+    const listaApoyo =
+        document.getElementById(
+            "listaMesasApoyo"
+        );
+
+    if(!mesasReglas.length){
+
+        listaPrioridad.innerHTML =
+            `
+            <div class="sin-mesas-regla">
+                No existen puntos de atención.
+            </div>
+            `;
+
+        listaApoyo.innerHTML =
+            `
+            <div class="sin-mesas-regla">
+                No existen puntos de atención.
+            </div>
+            `;
+
+        return;
+
+    }
+
+    listaPrioridad.innerHTML =
+        mesasReglas
+            .map(mesa => {
+
+                const numero =
+                    Number(mesa.numero);
+
+                const seleccionada =
+                    prioridades.has(numero);
+
+                const activa =
+                    Number(mesa.activo) === 1
+                    &&
+                    Number(
+                        mesa.permiteTurnos
+                    ) === 1;
+
+                return crearOpcionMesaRegla({
+                    mesa,
+                    tipo:"prioridad",
+                    seleccionada,
+                    orden:
+                        prioridades.get(numero)
+                        || numero,
+                    activa
+                });
+
+            })
+            .join("");
+
+    listaApoyo.innerHTML =
+        mesasReglas
+            .map(mesa => {
+
+                const numero =
+                    Number(mesa.numero);
+
+                const seleccionada =
+                    apoyos.has(numero);
+
+                const activa =
+                    Number(mesa.activo) === 1
+                    &&
+                    Number(
+                        mesa.permiteTurnos
+                    ) === 1;
+
+                return crearOpcionMesaRegla({
+                    mesa,
+                    tipo:"apoyo",
+                    seleccionada,
+                    orden:
+                        apoyos.get(numero)
+                        || numero,
+                    activa
+                });
+
+            })
+            .join("");
+
+}
+
+function crearOpcionMesaRegla({
+    mesa,
+    tipo,
+    seleccionada,
+    orden,
+    activa
+}){
+
+    const numero =
+        Number(mesa.numero);
+
+    const idCheck =
+        `${tipo}MesaRegla${numero}`;
+
+    const idOrden =
+        `${tipo}OrdenRegla${numero}`;
+
+    const claseInactiva =
+        activa
+            ? ""
+            : "mesa-regla-inactiva";
+
+    const textoEstado =
+        activa
+            ? "Disponible para configurar"
+            : "Punto inactivo o bloqueado";
+
+    return `
+
+        <label class="
+            opcion-mesa-regla
+            ${claseInactiva}
+        ">
+
+            <div class="identidad-mesa-regla">
+
+                <input
+                    type="checkbox"
+                    id="${idCheck}"
+                    data-tipo="${tipo}"
+                    data-mesa="${numero}"
+                    ${seleccionada
+                        ? "checked"
+                        : ""}
+                    ${activa
+                        ? ""
+                        : "disabled"}
+                    onchange="
+                        cambiarSeleccionMesaRegla(
+                            '${tipo}',
+                            ${numero}
+                        )
+                    ">
+
+                <div class="nombre-mesa-regla">
+
+                    <strong>
+                        ${escaparHTML(
+                            mesa.nombre
+                            || `Mesa ${numero}`
+                        )}
+                    </strong>
+
+                    <span>
+                        Mesa ${numero} ·
+                        ${textoEstado}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <input
+                class="orden-mesa-regla"
+                id="${idOrden}"
+                type="number"
+                min="1"
+                max="999"
+                value="${Number(orden || 1)}"
+                ${seleccionada && activa
+                    ? ""
+                    : "disabled"}
+                onchange="actualizarResumenRegla()"
+                title="Orden de prioridad">
+
+        </label>
+
+    `;
+
+}
+
+function cambiarSeleccionMesaRegla(
+    tipo,
+    numero
+){
+
+    const tipoContrario =
+        tipo === "prioridad"
+            ? "apoyo"
+            : "prioridad";
+
+    const checkActual =
+        document.getElementById(
+            `${tipo}MesaRegla${numero}`
+        );
+
+    const ordenActual =
+        document.getElementById(
+            `${tipo}OrdenRegla${numero}`
+        );
+
+    const checkContrario =
+        document.getElementById(
+            `${tipoContrario}MesaRegla${numero}`
+        );
+
+    const ordenContrario =
+        document.getElementById(
+            `${tipoContrario}OrdenRegla${numero}`
+        );
+
+    ordenActual.disabled =
+        !checkActual.checked;
+
+    if(
+        checkActual.checked
+        &&
+        checkContrario
+        &&
+        checkContrario.checked
+    ){
+
+        checkContrario.checked =
+            false;
+
+        ordenContrario.disabled =
+            true;
+
+    }
+
+    actualizarResumenRegla();
+
+}
+
+function actualizarResumenRegla(){
+
+    const prioridades =
+        document.querySelectorAll(
+            'input[data-tipo="prioridad"]:checked'
+        ).length;
+
+    const apoyos =
+        document.querySelectorAll(
+            'input[data-tipo="apoyo"]:checked'
+        ).length;
+
+    const limite =
+        Number(
+            document.getElementById(
+                "limiteApoyoRegla"
+            ).value || 0
+        );
+
+    document.getElementById(
+        "totalPrioridadesRegla"
+    ).textContent =
+        prioridades;
+
+    document.getElementById(
+        "totalApoyosRegla"
+    ).textContent =
+        apoyos;
+
+    document.getElementById(
+        "limiteActualRegla"
+    ).textContent =
+        limite;
+
+}
+
+function obtenerMesasSeleccionadasRegla(
+    tipo
+){
+
+    const seleccionadas =
+        [];
+
+    const checks =
+        document.querySelectorAll(
+            `input[data-tipo="${tipo}"]:checked`
+        );
+
+    checks.forEach(check => {
+
+        const numeroMesa =
+            Number(
+                check.dataset.mesa
+            );
+
+        const campoOrden =
+            document.getElementById(
+                `${tipo}OrdenRegla${numeroMesa}`
+            );
+
+        const orden =
+            Number(
+                campoOrden?.value || 999
+            );
+
+        seleccionadas.push({
+            mesa:numeroMesa,
+            orden:
+                Number.isInteger(orden)
+                && orden > 0
+                    ? orden
+                    : 999
+        });
+
+    });
+
+    seleccionadas.sort(
+        (a, b)=>{
+
+            if(a.orden !== b.orden){
+                return a.orden - b.orden;
+            }
+
+            return a.mesa - b.mesa;
+
+        }
+    );
+
+    return seleccionadas.map(
+        item => item.mesa
+    );
+
+}
+
+async function guardarReglasConfiguracion(){
+
+    if(!tramiteReglaSeleccionado){
+
+        alert(
+            "Primero selecciona un trámite."
+        );
+
+        return;
+
+    }
+
+    const tramite =
+        tramiteReglaSeleccionado.codigo;
+
+    const limiteApoyo =
+        Number(
+            document.getElementById(
+                "limiteApoyoRegla"
+            ).value
+        );
+
+    const prioridad =
+        obtenerMesasSeleccionadasRegla(
+            "prioridad"
+        );
+
+    const apoyo =
+        obtenerMesasSeleccionadasRegla(
+            "apoyo"
+        );
+
+    const mensaje =
+        document.getElementById(
+            "mensajeReglas"
+        );
+
+    const boton =
+        document.getElementById(
+            "botonGuardarReglas"
+        );
+
+    mensaje.textContent = "";
+    mensaje.className =
+        "mensaje-reglas";
+
+    if(
+        !Number.isInteger(limiteApoyo)
+        || limiteApoyo < 1
+        || limiteApoyo > 999
+    ){
+
+        mensaje.textContent =
+            "El límite de apoyo debe estar entre 1 y 999.";
+
+        mensaje.classList.add(
+            "error"
+        );
+
+        return;
+
+    }
+
+    if(prioridad.length === 0){
+
+        mensaje.textContent =
+            "Debes seleccionar al menos una mesa prioritaria.";
+
+        mensaje.classList.add(
+            "error"
+        );
+
+        return;
+
+    }
+
+    const duplicadas =
+        prioridad.filter(
+            numero =>
+                apoyo.includes(numero)
+        );
+
+    if(duplicadas.length > 0){
+
+        mensaje.textContent =
+            "Una mesa no puede ser prioridad y apoyo al mismo tiempo.";
+
+        mensaje.classList.add(
+            "error"
+        );
+
+        return;
+
+    }
+
+    const confirmar =
+        confirm(
+            `¿Guardar la configuración de `
+            + `"${tramiteReglaSeleccionado.nombre}"?\n\n`
+            + `Prioritarias: ${prioridad.length}\n`
+            + `Apoyos: ${apoyo.length}\n`
+            + `Límite: ${limiteApoyo}`
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    boton.disabled = true;
+    boton.textContent =
+        "Guardando configuración...";
+
+    mensaje.textContent =
+        "Guardando prioridades y apoyos...";
+
+    mensaje.classList.add(
+        "proceso"
+    );
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/reglas/${encodeURIComponent(
+                    tramite
+                )}`,
+                {
+                    method:"PUT",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+                        limiteApoyo,
+                        prioridad,
+                        apoyo
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(response.status === 401){
+
+            window.location.href =
+                "/login";
+
+            return;
+
+        }
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo guardar la configuración"
+            );
+
+        }
+
+        mensaje.textContent =
+            data.mensaje
+            || "Configuración guardada correctamente.";
+
+        mensaje.className =
+            "mensaje-reglas exito";
+
+        await recargarReglasManteniendoSeleccion(
+            tramite,
+            true
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al guardar reglas:",
+            error
+        );
+
+        mensaje.textContent =
+            error.message;
+
+        mensaje.className =
+            "mensaje-reglas error";
+
+    }finally{
+
+        boton.disabled = false;
+        boton.textContent =
+            "Guardar prioridades y apoyos";
+
+    }
+
+}
+
+async function recargarReglasManteniendoSeleccion(
+    codigo,
+    conservarMensaje = false
+){
+
+    const mensaje =
+        document.getElementById(
+            "mensajeReglas"
+        );
+
+    const textoMensaje =
+        mensaje.textContent;
+
+    const claseMensaje =
+        mensaje.className;
+
+    await cargarReglasConfiguracion();
+
+    const selector =
+        document.getElementById(
+            "selectorTramiteReglas"
+        );
+
+    selector.value =
+        codigo || "";
+
+    seleccionarTramiteReglas();
+
+    if(conservarMensaje){
+
+        mensaje.textContent =
+            textoMensaje;
+
+        mensaje.className =
+            claseMensaje;
+
+    }
+
+}
+
+function recargarReglaSeleccionada(){
+
+    if(!tramiteReglaSeleccionado){
+
+        return;
+
+    }
+
+    const codigo =
+        tramiteReglaSeleccionado.codigo;
+
+    const confirmar =
+        confirm(
+            "¿Descartar los cambios no guardados?"
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    const regla =
+        reglasConfiguracion.find(
+            item =>
+                item.codigo === codigo
+        );
+
+    if(!regla){
+
+        return;
+
+    }
+
+    tramiteReglaSeleccionado =
+        regla;
+
+    document.getElementById(
+        "limiteApoyoRegla"
+    ).value =
+        Number(
+            regla.limiteApoyo || 5
+        );
+
+    renderizarMesasRegla(
+        regla
+    );
+
+    actualizarResumenRegla();
+
+    const mensaje =
+        document.getElementById(
+            "mensajeReglas"
+        );
+
+    mensaje.textContent =
+        "Cambios descartados.";
+
+    mensaje.className =
+        "mensaje-reglas proceso";
+
+}
 
 function editarMesaConfiguracion(numero){
 
