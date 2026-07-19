@@ -2217,10 +2217,17 @@ body{
 
 </main>
 
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
+
+const socket = io();
 
 let rolActual = null;
 let editandoEstadoMesa = false;
+
+let temporizadorActualizacionPanel = null;
+let panelCargando = false;
 
 const nombresTramites = {
 
@@ -2483,9 +2490,14 @@ function mostrarMesas(mesas){
 
 async function cargarPanel(){
 
-    if(editandoEstadoMesa){
+    if(
+        editandoEstadoMesa
+        || panelCargando
+    ){
         return;
     }
+
+    panelCargando = true;
 
     const indicador =
         document.getElementById("indicadorServidor");
@@ -2536,19 +2548,152 @@ async function cargarPanel(){
             "Última actualización: "
             + new Date().toLocaleTimeString("es-MX");
 
-    }catch(error){
+        }catch(error){
 
-        console.error(error);
+            console.error(error);
 
-        indicador.className =
-            "indicador error";
+            indicador.className =
+                "indicador error";
 
-        estado.textContent =
-            "No se pudo conectar con el servidor";
+            estado.textContent =
+                "No se pudo conectar con el servidor";
 
-    }
+        }finally{
+
+            panelCargando = false;
+
+        }
 
 }
+
+function programarActualizacionPanel(){
+
+    clearTimeout(
+        temporizadorActualizacionPanel
+    );
+
+    temporizadorActualizacionPanel =
+        setTimeout(
+            ()=>{
+
+                cargarPanel();
+
+            },
+            150
+        );
+
+}
+
+socket.on("connect", ()=>{
+
+    const indicador =
+        document.getElementById(
+            "indicadorServidor"
+        );
+
+    const estado =
+        document.getElementById(
+            "estadoServidor"
+        );
+
+    indicador.className =
+        "indicador conectado";
+
+    estado.textContent =
+        "Centro de Control conectado en tiempo real";
+
+    programarActualizacionPanel();
+
+});
+
+
+socket.on("disconnect", ()=>{
+
+    const indicador =
+        document.getElementById(
+            "indicadorServidor"
+        );
+
+    const estado =
+        document.getElementById(
+            "estadoServidor"
+        );
+
+    indicador.className =
+        "indicador error";
+
+    estado.textContent =
+        "Conexión en tiempo real interrumpida";
+
+});
+
+
+socket.on(
+    "nuevoTurno",
+    programarActualizacionPanel
+);
+
+
+socket.on(
+    "turnoFinalizado",
+    programarActualizacionPanel
+);
+
+
+socket.on(
+    "estadoMesaActualizado",
+    programarActualizacionPanel
+);
+
+
+socket.on(
+    "mesasLiberadas",
+    programarActualizacionPanel
+);
+
+
+socket.on(
+    "jornadaCerrada",
+    programarActualizacionPanel
+);
+
+
+socket.on(
+    "configuracionMesasActualizada",
+    ()=>{
+
+        programarActualizacionPanel();
+
+        if(rolActual === "admin"){
+
+            cargarMesasConfiguracion();
+            cargarReglasConfiguracion();
+
+        }
+
+    }
+);
+
+
+socket.on(
+    "reglasActualizadas",
+    ()=>{
+
+        programarActualizacionPanel();
+
+        if(rolActual === "admin"){
+
+            cargarReglasConfiguracion();
+
+        }
+
+    }
+);
+
+socket.on(
+    "turnoCreado",
+    programarActualizacionPanel
+);
 
 function exportarReporte(){
 
@@ -5541,13 +5686,12 @@ async function guardarMesaConfiguracion(){
 }
 
 actualizarReloj();
-cargarPanel();
 cargarRespaldos();
 aplicarPermisosUsuario();
 
 setInterval(cargarRespaldos, 30000);
 setInterval(actualizarReloj, 1000);
-setInterval(cargarPanel, 3000);
+setInterval(cargarPanel, 30000);
 
 </script>
 

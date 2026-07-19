@@ -185,6 +185,21 @@ router.post("/api/turno", async (req, res)=>{
 
                                                     }
 
+                                                    const io =
+                                                        req.app.get("io");
+
+                                                    if(io){
+
+                                                        io.emit("turnoCreado", {
+                                                            id:idTurno,
+                                                            codigo,
+                                                            tramite,
+                                                            nombreTramite:
+                                                                configuracion.nombre
+                                                        });
+
+                                                    }
+
                                                     res.status(201).json({
                                                         success:true,
                                                         id:idTurno,

@@ -181,6 +181,11 @@ const server = http.createServer(app);
 
 const io = new Server(server);
 
+app.set(
+    "io",
+    io
+);
+
 app.get("/login", (req,res)=>{
 
     res.sendFile(
