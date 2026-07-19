@@ -1229,6 +1229,34 @@ app.post("/api/mesa/:numero/estado", async (req, res)=>{
 
         }
 
+                /*
+        Protección real del servidor.
+
+        Aunque alguien intente enviar manualmente una
+        petición, no permitimos descanso, baño, comida
+        u otro estado mientras exista un turno activo.
+        */
+        const turnoActual =
+            await gestorTurnos
+                .obtenerTurnoActualMesa(
+                    numero
+                );
+
+        if(
+            turnoActual
+            && estado !== "disponible"
+        ){
+
+            return res.status(409).json({
+                success:false,
+                mensaje:
+                    `No puedes cambiar el estado mientras `
+                    + `atiendes el turno ${turnoActual.codigo}. `
+                    + "Primero finaliza la atención."
+            });
+
+        }
+
         await gestorMesa.cambiarEstado(
             numero,
             estado,

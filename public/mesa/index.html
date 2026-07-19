@@ -137,7 +137,11 @@ button:hover:not(:disabled){
 
 button:disabled{
     cursor:not-allowed;
-    opacity:0.55;
+    opacity:1;
+    background:#c7c7c7;
+    color:#686868;
+    box-shadow:none;
+    transform:none;
 }
 
 .boton-llamar{
@@ -409,6 +413,26 @@ const btnLlamar =
 const btnFinalizar =
     document.getElementById("btnFinalizar");
 
+const btnDescanso =
+    document.getElementById(
+        "btnDescanso"
+    );
+
+const btnBano =
+    document.getElementById(
+        "btnBano"
+    );
+
+const btnComida =
+    document.getElementById(
+        "btnComida"
+    );
+
+const btnDisponible =
+    document.getElementById(
+        "btnDisponible"
+    );
+
 
 function mostrarAviso(mensaje, tipo = ""){
 
@@ -421,8 +445,46 @@ function mostrarAviso(mensaje, tipo = ""){
 
 }
 
+function actualizarBotonesMesa(){
 
-function mostrarMesaLibre(mensaje = "Mesa disponible"){
+    const atendiendo =
+        Boolean(
+            turnoActual
+        );
+
+    /*
+    Durante una atención no se puede solicitar:
+    descanso, baño o comida.
+    */
+    btnDescanso.disabled =
+        atendiendo;
+
+    btnBano.disabled =
+        atendiendo;
+
+    btnComida.disabled =
+        atendiendo;
+
+    /*
+    Llamar solamente cuando no existe
+    un turno en atención.
+    */
+    btnLlamar.disabled =
+        atendiendo;
+
+    /*
+    Finalizar solamente cuando existe
+    un turno en atención.
+    */
+    btnFinalizar.disabled =
+        !atendiendo;
+
+}
+
+
+function mostrarMesaLibre(
+    mensaje = "Mesa disponible"
+){
 
     turnoActual = null;
 
@@ -432,15 +494,15 @@ function mostrarMesaLibre(mensaje = "Mesa disponible"){
     mensajeEstado.textContent =
         mensaje;
 
-    btnLlamar.disabled = false;
-    btnFinalizar.disabled = true;
+    actualizarBotonesMesa();
 
 }
 
 
 function mostrarTurno(turno){
 
-    turnoActual = turno.id;
+    turnoActual =
+        turno.id;
 
     resultado.textContent =
         turno.codigo;
@@ -448,8 +510,11 @@ function mostrarTurno(turno){
     mensajeEstado.textContent =
         "Atención en proceso";
 
-    btnLlamar.disabled = true;
-    btnFinalizar.disabled = false;
+    actualizarBotonesMesa();
+
+    mostrarAviso(
+        "Finaliza la atención para habilitar Descanso, Baño o Comida."
+    );
 
 }
 
@@ -597,8 +662,7 @@ async function llamar(){
         btnLlamar.textContent =
             "Llamar siguiente turno";
 
-        btnLlamar.disabled =
-            Boolean(turnoActual);
+        actualizarBotonesMesa();
 
     }
 
@@ -695,7 +759,7 @@ async function finalizar(){
             "error"
         );
 
-        btnFinalizar.disabled = false;
+        actualizarBotonesMesa();
 
     }finally{
 
@@ -765,23 +829,6 @@ function aplicarEstadoOperativo(
     const disponible =
         estado === "disponible";
 
-    const botonesPausa = [
-        document.getElementById("btnDescanso"),
-        document.getElementById("btnBano"),
-        document.getElementById("btnComida")
-    ];
-
-    botonesPausa.forEach(boton => {
-
-        boton.disabled =
-            !disponible || Boolean(turnoActual);
-
-    });
-
-    document.getElementById(
-        "btnDisponible"
-    ).disabled = disponible;
-
     if(disponible){
 
         resultado.textContent =
@@ -794,11 +841,17 @@ function aplicarEstadoOperativo(
                 ? "Atención en proceso"
                 : "Mesa disponible";
 
-        btnLlamar.disabled =
-            Boolean(turnoActual);
+        /*
+        Utiliza el estado real del turno
+        para habilitar o bloquear botones.
+        */
+        actualizarBotonesMesa();
 
-        btnFinalizar.disabled =
-            !turnoActual;
+        /*
+        Si está disponible, no necesita
+        el botón Marcar disponible.
+        */
+        btnDisponible.disabled = true;
 
     }else{
 
@@ -806,10 +859,25 @@ function aplicarEstadoOperativo(
             estado.toUpperCase();
 
         mensajeEstado.textContent =
-            motivo || "Mesa no disponible";
+            motivo
+            || "Mesa no disponible";
 
+        /*
+        Mientras está en pausa, ausencia,
+        vacaciones o deshabilitada no puede
+        llamar ni finalizar turnos.
+        */
         btnLlamar.disabled = true;
         btnFinalizar.disabled = true;
+
+        btnDescanso.disabled = true;
+        btnBano.disabled = true;
+        btnComida.disabled = true;
+
+        /*
+        Permite regresar a disponible.
+        */
+        btnDisponible.disabled = false;
 
     }
 
