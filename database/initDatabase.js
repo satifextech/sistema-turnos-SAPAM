@@ -136,6 +136,21 @@ db.serialize(() => {
         )
     `);
 
+    db.run(`
+        CREATE TABLE IF NOT EXISTS configuracion_sistema (
+
+            clave TEXT PRIMARY KEY,
+
+            valor TEXT NOT NULL,
+
+            descripcion TEXT,
+
+            fechaActualizacion DATETIME
+                DEFAULT CURRENT_TIMESTAMP
+
+        )
+    `);
+
     const tramitesIniciales = [
 
         {
@@ -620,6 +635,78 @@ db.run(
         )
         `
     );
+
+    const configuracionesIniciales = [
+
+    {
+        clave:
+            "alerta_cola_advertencia",
+
+        valor:
+            "5",
+
+        descripcion:
+            "Cantidad de turnos para considerar una cola elevada"
+    },
+
+    {
+        clave:
+            "alerta_cola_critica",
+
+        valor:
+            "10",
+
+        descripcion:
+            "Cantidad de turnos para considerar una cola crítica"
+    },
+
+    {
+        clave:
+            "alerta_espera_advertencia",
+
+        valor:
+            "10",
+
+        descripcion:
+            "Minutos promedio para advertencia de espera"
+    },
+
+    {
+        clave:
+            "alerta_espera_critica",
+
+        valor:
+            "20",
+
+        descripcion:
+            "Minutos promedio para alerta crítica de espera"
+    }
+
+];
+
+for(
+    const configuracion
+    of configuracionesIniciales
+){
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO configuracion_sistema
+        (
+            clave,
+            valor,
+            descripcion
+        )
+        VALUES (?, ?, ?)
+        `,
+        [
+            configuracion.clave,
+            configuracion.valor,
+            configuracion.descripcion
+        ]
+    );
+
+}
 
     console.log("Tablas creadas");
 

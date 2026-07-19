@@ -14,6 +14,7 @@ const bcrypt = require("bcrypt");
 const gestorTramites = require("../services/gestorTramites");
 const gestorMesasConfig = require("../services/gestorMesasConfig");
 const gestorReglas = require("../services/gestorReglas");
+const gestorConfiguracion = require("../services/gestorConfiguracion");
 
 const app = express();
 
@@ -582,6 +583,172 @@ app.get("/api/admin/resumen", requerirRoles("admin", "supervisor"), async (req,r
     }
 
 });
+
+app.get(
+    "/api/admin/configuracion/alertas",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const limites =
+                await gestorConfiguracion
+                    .obtenerLimitesAlertas();
+
+            res.json({
+                success:true,
+                limites
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar límites de alertas:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar los límites de alertas"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/configuracion/alertas",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const colaAdvertencia =
+            Number(
+                req.body.colaAdvertencia
+            );
+
+        const colaCritica =
+            Number(
+                req.body.colaCritica
+            );
+
+        const esperaAdvertencia =
+            Number(
+                req.body.esperaAdvertencia
+            );
+
+        const esperaCritica =
+            Number(
+                req.body.esperaCritica
+            );
+
+        const valores = [
+
+            colaAdvertencia,
+
+            colaCritica,
+
+            esperaAdvertencia,
+
+            esperaCritica
+
+        ];
+
+        const valoresValidos =
+            valores.every(
+                valor =>
+                    Number.isInteger(valor)
+                    && valor >= 1
+                    && valor <= 999
+            );
+
+        if(!valoresValidos){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Todos los límites deben ser números enteros entre 1 y 999"
+            });
+
+        }
+
+        if(
+            colaCritica
+            <= colaAdvertencia
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La alerta crítica de cola debe ser mayor que la advertencia"
+            });
+
+        }
+
+        if(
+            esperaCritica
+            <= esperaAdvertencia
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La espera crítica debe ser mayor que la espera de advertencia"
+            });
+
+        }
+
+        try{
+
+            const limites =
+                await gestorConfiguracion
+                    .guardarLimitesAlertas({
+
+                        colaAdvertencia,
+
+                        colaCritica,
+
+                        esperaAdvertencia,
+
+                        esperaCritica
+
+                    });
+
+            io.emit(
+                "configuracionAlertasActualizada",
+                {
+                    limites
+                }
+            );
+
+            res.json({
+                success:true,
+                limites,
+                mensaje:
+                    "Límites de alertas guardados correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al guardar límites de alertas:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron guardar los límites de alertas"
+            });
+
+        }
+
+    }
+);
 
 app.get(
     "/api/recepcion/resumen",
