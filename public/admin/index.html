@@ -1265,6 +1265,101 @@ body{
 
 }
 
+/* =========================================================
+   REGISTRO DE ACTIVIDAD EN VIVO
+   ========================================================= */
+
+.panel-actividad{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-actividad{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:18px;
+}
+
+.cabecera-actividad h2{
+    margin:0 0 5px;
+}
+
+.cabecera-actividad p{
+    margin:0;
+    color:#777;
+}
+
+.boton-limpiar-actividad{
+    background:#555;
+    color:white;
+}
+
+.lista-actividad{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:420px;
+    overflow-y:auto;
+}
+
+.evento-actividad{
+    padding:13px 15px;
+    border-left:5px solid #6A0F20;
+    border-radius:10px;
+    background:#f7f4f5;
+    display:grid;
+    grid-template-columns:90px minmax(0, 1fr);
+    gap:14px;
+    align-items:start;
+}
+
+.evento-actividad.exito{
+    border-left-color:#218342;
+}
+
+.evento-actividad.aviso{
+    border-left-color:#d79a16;
+}
+
+.evento-actividad.error{
+    border-left-color:#a5232f;
+}
+
+.hora-actividad{
+    color:#6A0F20;
+    font-weight:bold;
+    font-variant-numeric:tabular-nums;
+}
+
+.texto-actividad{
+    color:#333;
+    line-height:1.45;
+}
+
+.sin-actividad{
+    padding:20px;
+    border-radius:10px;
+    background:#f7f7f7;
+    color:#777;
+    text-align:center;
+}
+
+@media(max-width:600px){
+
+    .cabecera-actividad{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .evento-actividad{
+        grid-template-columns:1fr;
+        gap:5px;
+    }
+
+}
+
 </style>
 </head>
 
@@ -1409,6 +1504,48 @@ body{
             <div class="mesas" id="listaMesas"></div>
 
         </article>
+
+    </section>
+
+    <section class="panel panel-actividad">
+
+        <div class="cabecera-actividad">
+
+            <div>
+
+                <h2>
+                    Actividad en tiempo real
+                </h2>
+
+                <p>
+                    Últimos movimientos registrados durante
+                    esta sesión del Centro de Control.
+                </p>
+
+            </div>
+
+            <button
+                class="
+                    boton-admin
+                    boton-limpiar-actividad
+                "
+                onclick="limpiarActividad()">
+
+                Limpiar actividad
+
+            </button>
+
+        </div>
+
+        <div
+            class="lista-actividad"
+            id="listaActividad">
+
+            <div class="sin-actividad">
+                Esperando actividad del sistema...
+            </div>
+
+        </div>
 
     </section>
 
@@ -2229,6 +2366,11 @@ let editandoEstadoMesa = false;
 let temporizadorActualizacionPanel = null;
 let panelCargando = false;
 
+const actividadSistema = [];
+
+const LIMITE_ACTIVIDAD =
+    50;
+
 function actualizarReloj(){
 
     const ahora = new Date();
@@ -2580,6 +2722,118 @@ function programarActualizacionPanel(){
 
 }
 
+function registrarActividad(
+    texto,
+    tipo = "normal"
+){
+
+    const contenido =
+        String(texto || "")
+            .trim();
+
+    if(!contenido){
+        return;
+    }
+
+    actividadSistema.unshift({
+        hora:
+            new Date().toLocaleTimeString(
+                "es-MX"
+            ),
+        texto:
+            contenido,
+        tipo
+    });
+
+    if(
+        actividadSistema.length
+        > LIMITE_ACTIVIDAD
+    ){
+
+        actividadSistema.length =
+            LIMITE_ACTIVIDAD;
+
+    }
+
+    renderizarActividad();
+
+}
+
+
+function renderizarActividad(){
+
+    const contenedor =
+        document.getElementById(
+            "listaActividad"
+        );
+
+    if(!contenedor){
+        return;
+    }
+
+    if(
+        actividadSistema.length === 0
+    ){
+
+        contenedor.innerHTML =
+            `
+            <div class="sin-actividad">
+                Esperando actividad del sistema...
+            </div>
+            `;
+
+        return;
+
+    }
+
+    contenedor.innerHTML =
+        actividadSistema
+            .map(evento => `
+
+                <div class="
+                    evento-actividad
+                    ${evento.tipo}
+                ">
+
+                    <div class="hora-actividad">
+                        ${escaparHTML(evento.hora)}
+                    </div>
+
+                    <div class="texto-actividad">
+                        ${escaparHTML(evento.texto)}
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+}
+
+
+function limpiarActividad(){
+
+    if(
+        actividadSistema.length === 0
+    ){
+        return;
+    }
+
+    const confirmar =
+        confirm(
+            "¿Limpiar el registro visual de actividad?"
+        );
+
+    if(!confirmar){
+        return;
+    }
+
+    actividadSistema.length = 0;
+
+    renderizarActividad();
+
+}
+
 socket.on("connect", ()=>{
 
     const indicador =
@@ -2599,6 +2853,11 @@ socket.on("connect", ()=>{
         "Centro de Control conectado en tiempo real";
 
     programarActualizacionPanel();
+
+    registrarActividad(
+        "Centro de Control conectado al servidor.",
+        "exito"
+    );
 
 });
 
@@ -2621,42 +2880,138 @@ socket.on("disconnect", ()=>{
     estado.textContent =
         "Conexión en tiempo real interrumpida";
 
+    registrarActividad(
+        "Se perdió la conexión en tiempo real con el servidor.",
+        "error"
+);
+
 });
+
+socket.on(
+    "turnoCreado",
+    data => {
+
+        registrarActividad(
+            `Turno ${data.codigo} generado para `
+            + `${
+                data.nombreTramite
+                || data.tramite
+                || "un trámite"
+            }.`,
+            "exito"
+        );
+
+        programarActualizacionPanel();
+
+    }
+);
 
 
 socket.on(
     "nuevoTurno",
-    programarActualizacionPanel
+    data => {
+
+        registrarActividad(
+            `${data.nombreMesa || `Mesa ${data.mesa}`} `
+            + `llamó el turno ${data.codigo} `
+            + `de ${
+                data.nombreTramite
+                || data.tramite
+                || "un trámite"
+            }.`,
+            "aviso"
+        );
+
+        programarActualizacionPanel();
+
+    }
 );
 
 
 socket.on(
     "turnoFinalizado",
-    programarActualizacionPanel
+    data => {
+
+        registrarActividad(
+            data.codigo
+                ? `Turno ${data.codigo} finalizado.`
+                : "Un turno fue finalizado.",
+            "exito"
+        );
+
+        programarActualizacionPanel();
+
+    }
 );
 
 
 socket.on(
     "estadoMesaActualizado",
-    programarActualizacionPanel
+    data => {
+
+        const nombresEstados = {
+            disponible:"disponible",
+            pausa:"en pausa",
+            ausente:"ausente",
+            vacaciones:"en vacaciones",
+            deshabilitada:"deshabilitada"
+        };
+
+        registrarActividad(
+            `Mesa ${data.numero} cambió a `
+            + `${
+                nombresEstados[data.estado]
+                || data.estado
+            }.`,
+            "aviso"
+        );
+
+        programarActualizacionPanel();
+
+    }
 );
 
 
 socket.on(
     "mesasLiberadas",
-    programarActualizacionPanel
+    ()=>{
+
+        registrarActividad(
+            "Todas las mesas en atención fueron liberadas.",
+            "aviso"
+        );
+
+        programarActualizacionPanel();
+
+    }
 );
 
 
 socket.on(
     "jornadaCerrada",
-    programarActualizacionPanel
+    data => {
+
+        registrarActividad(
+            `Jornada cerrada. `
+            + `Finalizados: ${Number(data.finalizados || 0)}. `
+            + `Cancelados: ${Number(data.cancelados || 0)}.`,
+            "aviso"
+        );
+
+        programarActualizacionPanel();
+
+    }
 );
 
 
 socket.on(
     "configuracionMesasActualizada",
     ()=>{
+
+        registrarActividad(
+            "La configuración de puntos de atención fue actualizada.",
+            "aviso"
+        );
 
         programarActualizacionPanel();
 
@@ -2675,6 +3030,11 @@ socket.on(
     "reglasActualizadas",
     ()=>{
 
+        registrarActividad(
+            "Las prioridades y apoyos fueron actualizados.",
+            "aviso"
+        );
+
         programarActualizacionPanel();
 
         if(rolActual === "admin"){
@@ -2684,11 +3044,6 @@ socket.on(
         }
 
     }
-);
-
-socket.on(
-    "turnoCreado",
-    programarActualizacionPanel
 );
 
 function exportarReporte(){
