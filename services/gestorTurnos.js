@@ -580,6 +580,119 @@ obtenerTurnosDia(){
 
 }
 
+obtenerUltimosTurnosPantalla(
+    limite = 5
+){
+
+    return new Promise(
+        (resolve, reject)=>{
+
+            const cantidad =
+                Number.isInteger(
+                    Number(limite)
+                )
+                && Number(limite) > 0
+                    ? Math.min(
+                        Number(limite),
+                        20
+                    )
+                    : 5;
+
+            db.all(
+                `
+                SELECT
+                    t.id,
+                    t.codigo,
+                    t.tramite,
+                    t.mesa,
+                    t.fechaLlamado,
+
+                    tc.nombre AS nombreTramite,
+
+                    mc.nombre AS nombreMesa
+
+                FROM turnos t
+
+                LEFT JOIN tramites_config tc
+                    ON tc.codigo=t.tramite
+
+                LEFT JOIN mesas_config mc
+                    ON mc.numero=t.mesa
+
+                WHERE
+                    t.fechaLlamado IS NOT NULL
+                    AND t.mesa IS NOT NULL
+                    AND date(
+                        t.fechaCreacion,
+                        'localtime'
+                    )
+                    =
+                    date(
+                        'now',
+                        'localtime'
+                    )
+
+                ORDER BY
+                    t.fechaLlamado DESC,
+                    t.id DESC
+
+                LIMIT ?
+                `,
+                [cantidad],
+                (err, filas)=>{
+
+                    if(err){
+
+                        reject(err);
+                        return;
+
+                    }
+
+                    const turnos =
+                        filas.map(
+                            fila => ({
+
+                                id:
+                                    Number(
+                                        fila.id
+                                    ),
+
+                                codigo:
+                                    fila.codigo,
+
+                                tramite:
+                                    fila.tramite,
+
+                                nombreTramite:
+                                    fila.nombreTramite
+                                    || fila.tramite
+                                    || "",
+
+                                mesa:
+                                    Number(
+                                        fila.mesa
+                                    ),
+
+                                nombreMesa:
+                                    fila.nombreMesa
+                                    || `Mesa ${fila.mesa}`,
+
+                                fechaLlamado:
+                                    fila.fechaLlamado
+
+                            })
+                        );
+
+                    resolve(turnos);
+
+                }
+            );
+
+        }
+    );
+
+}
+
 liberarMesas(){
 
     return new Promise((resolve, reject)=>{

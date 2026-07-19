@@ -436,8 +436,7 @@ function actualizarPantallaTurno(data){
         lista.pop();
     }
 
-    document.getElementById("lista").innerHTML =
-        lista.join("<br>");
+    renderizarListaTurnos();
 
     const tarjetaTurno =
         document.getElementById("tarjetaTurno");
@@ -460,6 +459,97 @@ function actualizarPantallaTurno(data){
         tarjetaMesa.classList.remove("resaltar");
 
     }, 1300);
+
+}
+
+function renderizarListaTurnos(){
+
+    document.getElementById(
+        "lista"
+    ).innerHTML =
+        lista.join("<br>");
+
+}
+
+async function cargarUltimosTurnos(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/pantalla/ultimos",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudieron cargar los últimos turnos"
+            );
+
+        }
+
+        lista.length = 0;
+
+        for(
+            const turno
+            of data.turnos || []
+        ){
+
+            const nombreMesa =
+                String(
+                    turno.nombreMesa
+                    || `Mesa ${turno.mesa}`
+                ).trim();
+
+            lista.push(
+                `${turno.codigo} → ${nombreMesa}`
+            );
+
+        }
+
+        renderizarListaTurnos();
+
+        /*
+        Mostramos también el turno más reciente
+        en las tarjetas principales, pero sin
+        reproducir sonido ni voz.
+        */
+        const ultimo =
+            data.turnos?.[0];
+
+        if(ultimo){
+
+            document.getElementById(
+                "turno"
+            ).textContent =
+                ultimo.codigo;
+
+            document.getElementById(
+                "mesa"
+            ).textContent =
+                ultimo.nombreMesa
+                || `Mesa ${ultimo.mesa}`;
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Error al recuperar últimos turnos:",
+            error
+        );
+
+    }
 
 }
 
@@ -644,6 +734,8 @@ function actualizarReloj(){
 
 setInterval(actualizarReloj, 1000);
 actualizarReloj();
+
+cargarUltimosTurnos();
 
 socket.on("nuevoTurno", (data)=>{
 

@@ -294,6 +294,41 @@ app.get("/", (req, res) => {
     res.send("Servidor funcionando");
 });
 
+app.get(
+    "/api/pantalla/ultimos",
+    async (req, res)=>{
+
+        try{
+
+            const turnos =
+                await gestorTurnos
+                    .obtenerUltimosTurnosPantalla(
+                        5
+                    );
+
+            res.json({
+                success:true,
+                turnos
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cargar últimos turnos:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron cargar los últimos turnos"
+            });
+
+        }
+
+    }
+);
+
 app.post("/api/llamar", async (req, res) => {
 
     const { mesa } = req.body;
