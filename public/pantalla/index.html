@@ -416,14 +416,20 @@ function esperar(ms){
 
 function actualizarPantallaTurno(data){
 
+    const nombreMesa =
+        String(
+            data.nombreMesa
+            || `Mesa ${data.mesa}`
+        ).trim();
+
     document.getElementById("turno").innerHTML =
         data.codigo;
 
-    document.getElementById("mesa").innerHTML =
-        "Mesa " + data.mesa;
+    document.getElementById("mesa").textContent =
+        nombreMesa;
 
     lista.unshift(
-        `${data.codigo} → Mesa ${data.mesa}`
+        `${data.codigo} → ${nombreMesa}`
     );
 
     if(lista.length > 5){
@@ -469,6 +475,12 @@ async function procesarColaAnuncios(){
 
         const data = colaAnuncios.shift();
 
+        const nombreMesa =
+            String(
+                data.nombreMesa
+                || `Mesa ${data.mesa}`
+            ).trim();
+
         // El turno cambia solamente cuando empieza su anuncio
         actualizarPantallaTurno(data);
 
@@ -513,7 +525,7 @@ async function procesarColaAnuncios(){
         await hablar(
             encabezadoTramite +
             `${formatearPrefijo(prefijo)} ${numero}. ` +
-            `Favor de pasar a la mesa ${data.mesa}.`
+            `Favor de pasar a ${nombreMesa}.`
         );
 
         // Mantener el turno visible 2 segundos más
@@ -571,6 +583,12 @@ reproductor.addEventListener("ended", ()=>{
 
 function mostrarOverlayTurno(data){
 
+    const nombreMesa =
+        String(
+            data.nombreMesa
+            || `Mesa ${data.mesa}`
+        ).trim();
+
     const videoBox =
         document.getElementById("videoBox");
 
@@ -580,8 +598,8 @@ function mostrarOverlayTurno(data){
     document.getElementById("overlayCodigo").innerHTML =
         data.codigo;
 
-    document.getElementById("overlayMesa").innerHTML =
-        "MESA " + data.mesa;
+    document.getElementById("overlayMesa").textContent =
+        nombreMesa.toUpperCase();
 
     reproductor.volume = 0.08;
 

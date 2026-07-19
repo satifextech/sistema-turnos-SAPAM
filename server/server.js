@@ -379,9 +379,16 @@ app.post("/api/llamar", async (req, res) => {
             || turno.tramite
             || "";
 
+        const nombreMesa =
+            String(
+                mesaConfig.nombre
+                || `Mesa ${mesa}`
+            ).trim();
+
         io.emit("nuevoTurno", {
             codigo:turno.codigo,
-            mesa,
+            mesa:Number(mesa),
+            nombreMesa,
             tramite:turno.tramite,
             nombreTramite
         });
@@ -392,7 +399,8 @@ app.post("/api/llamar", async (req, res) => {
             codigo:turno.codigo,
             tramite:turno.tramite,
             nombreTramite,
-            mesa
+            mesa:Number(mesa),
+            nombreMesa
         });
 
     } catch (error) {
