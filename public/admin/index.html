@@ -1986,6 +1986,253 @@ body{
 
 }
 
+/* =========================================================
+   HISTORIAL Y CONSULTA DE TURNOS
+   ========================================================= */
+
+.panel-historial{
+    margin-top:24px;
+    margin-bottom:24px;
+}
+
+.cabecera-historial{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:22px;
+}
+
+.cabecera-historial h2{
+    margin:0 0 5px;
+    color:#6A0F20;
+}
+
+.cabecera-historial p{
+    margin:0;
+    color:#777;
+    line-height:1.5;
+}
+
+.boton-exportar-historial{
+    background:#218342;
+    color:white;
+}
+
+.filtros-historial{
+    padding:20px;
+    border-radius:15px;
+    background:#f7f4f5;
+    display:grid;
+    grid-template-columns:
+        repeat(4, minmax(170px, 1fr));
+    gap:16px;
+}
+
+.campo-historial label{
+    display:block;
+    margin-bottom:7px;
+    color:#555;
+    font-size:14px;
+    font-weight:bold;
+}
+
+.campo-historial input,
+.campo-historial select{
+    width:100%;
+    min-height:44px;
+    padding:9px 11px;
+    border:1px solid #d7ced0;
+    border-radius:10px;
+    background:white;
+    color:#333;
+    font-size:14px;
+}
+
+.acciones-historial{
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.boton-consultar-historial{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-limpiar-historial{
+    background:#777;
+    color:white;
+}
+
+.resumen-historial{
+    margin-top:20px;
+    display:grid;
+    grid-template-columns:
+        repeat(5, minmax(130px, 1fr));
+    gap:13px;
+}
+
+.dato-historial{
+    padding:15px;
+    border-radius:12px;
+    background:#f7f4f5;
+    border-left:5px solid #6A0F20;
+}
+
+.dato-historial span{
+    display:block;
+    color:#777;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.dato-historial strong{
+    display:block;
+    margin-top:7px;
+    color:#6A0F20;
+    font-size:25px;
+}
+
+.tabla-historial{
+    width:100%;
+    min-width:1200px;
+    border-collapse:collapse;
+}
+
+.tabla-historial th,
+.tabla-historial td{
+    padding:12px;
+    border-bottom:1px solid #e4dcde;
+    text-align:left;
+    vertical-align:middle;
+    white-space:nowrap;
+}
+
+.tabla-historial th{
+    color:#6A0F20;
+    background:#f7f4f5;
+    position:sticky;
+    top:0;
+}
+
+.folio-historial{
+    color:#6A0F20;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.estado-turno-historial{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:18px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.estado-turno-historial.espera{
+    color:#81510c;
+    background:#ffe9b8;
+}
+
+.estado-turno-historial.atendiendo{
+    color:#245d8d;
+    background:#dcecff;
+}
+
+.estado-turno-historial.finalizado{
+    color:#176a32;
+    background:#dff3e5;
+}
+
+.estado-turno-historial.cancelado{
+    color:#8d2831;
+    background:#f7d9dd;
+}
+
+.paginacion-historial{
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.boton-pagina-historial{
+    border:none;
+    border-radius:10px;
+    padding:10px 15px;
+    background:#6A0F20;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.boton-pagina-historial:disabled{
+    background:#c4c4c4;
+    color:#666;
+    cursor:not-allowed;
+}
+
+.informacion-pagina{
+    color:#555;
+    font-weight:bold;
+}
+
+.mensaje-historial{
+    min-height:23px;
+    margin-top:15px;
+    font-weight:bold;
+}
+
+.mensaje-historial.error{
+    color:#a5232f;
+}
+
+.mensaje-historial.exito{
+    color:#218342;
+}
+
+@media(max-width:1100px){
+
+    .filtros-historial{
+        grid-template-columns:
+            repeat(2, minmax(170px, 1fr));
+    }
+
+    .resumen-historial{
+        grid-template-columns:
+            repeat(3, minmax(130px, 1fr));
+    }
+
+}
+
+@media(max-width:650px){
+
+    .cabecera-historial{
+        flex-direction:column;
+    }
+
+    .filtros-historial,
+    .resumen-historial{
+        grid-template-columns:1fr;
+    }
+
+    .acciones-historial{
+        flex-direction:column;
+    }
+
+    .acciones-historial button,
+    .boton-exportar-historial{
+        width:100%;
+    }
+
+}
+
 </style>
 </head>
 
@@ -3099,6 +3346,343 @@ body{
     </section>
 
     <section
+        class="panel panel-historial"
+        id="panelHistorialTurnos">
+
+        <div class="cabecera-historial">
+
+            <div>
+
+                <h2>
+                    Historial y consulta de turnos
+                </h2>
+
+                <p>
+                    Consulta la información almacenada en la
+                    base de datos. Este apartado es únicamente
+                    de lectura y no modifica los registros.
+                </p>
+
+            </div>
+
+            <button
+                class="
+                    boton-admin
+                    boton-exportar-historial
+                "
+                onclick="exportarHistorialTurnos()">
+
+                Exportar resultados
+
+            </button>
+
+        </div>
+
+        <div class="filtros-historial">
+
+            <div class="campo-historial">
+
+                <label for="historialCodigo">
+                    Número de turno
+                </label>
+
+                <input
+                    id="historialCodigo"
+                    maxlength="20"
+                    placeholder="Ejemplo: CA025"
+                    onkeydown="
+                        if(event.key === 'Enter'){
+                            consultarHistorialDesdeInicio();
+                        }
+                    ">
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialFechaInicio">
+                    Fecha inicial
+                </label>
+
+                <input
+                    id="historialFechaInicio"
+                    type="date">
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialFechaFin">
+                    Fecha final
+                </label>
+
+                <input
+                    id="historialFechaFin"
+                    type="date">
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialTramite">
+                    Trámite
+                </label>
+
+                <select id="historialTramite">
+
+                    <option value="">
+                        Todos los trámites
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialEstado">
+                    Estado
+                </label>
+
+                <select id="historialEstado">
+
+                    <option value="">
+                        Todos los estados
+                    </option>
+
+                    <option value="espera">
+                        En espera
+                    </option>
+
+                    <option value="atendiendo">
+                        En atención
+                    </option>
+
+                    <option value="finalizado">
+                        Finalizado
+                    </option>
+
+                    <option value="cancelado">
+                        Cancelado
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialMesa">
+                    Punto de atención
+                </label>
+
+                <select id="historialMesa">
+
+                    <option value="">
+                        Todos los puntos
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="campo-historial">
+
+                <label for="historialLimite">
+                    Resultados por página
+                </label>
+
+                <select id="historialLimite">
+
+                    <option value="10">
+                        10 resultados
+                    </option>
+
+                    <option value="25" selected>
+                        25 resultados
+                    </option>
+
+                    <option value="50">
+                        50 resultados
+                    </option>
+
+                    <option value="100">
+                        100 resultados
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="acciones-historial">
+
+                <button
+                    class="
+                        boton-admin
+                        boton-limpiar-historial
+                    "
+                    onclick="limpiarFiltrosHistorial()">
+
+                    Limpiar filtros
+
+                </button>
+
+                <button
+                    class="
+                        boton-admin
+                        boton-consultar-historial
+                    "
+                    onclick="consultarHistorialDesdeInicio()">
+
+                    Consultar
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="resumen-historial">
+
+            <div class="dato-historial">
+
+                <span>
+                    Resultados
+                </span>
+
+                <strong id="historialTotal">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="dato-historial">
+
+                <span>
+                    En espera
+                </span>
+
+                <strong id="historialEspera">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="dato-historial">
+
+                <span>
+                    En atención
+                </span>
+
+                <strong id="historialAtendiendo">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="dato-historial">
+
+                <span>
+                    Finalizados
+                </span>
+
+                <strong id="historialFinalizados">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="dato-historial">
+
+                <span>
+                    Cancelados
+                </span>
+
+                <strong id="historialCancelados">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div
+            class="mensaje-historial"
+            id="mensajeHistorial">
+        </div>
+
+        <div class="tabla-contenedor">
+
+            <table class="tabla-historial">
+
+                <thead>
+
+                    <tr>
+                        <th>Turno</th>
+                        <th>Trámite</th>
+                        <th>Estado</th>
+                        <th>Punto de atención</th>
+                        <th>Creado</th>
+                        <th>Llamado</th>
+                        <th>Finalizado</th>
+                        <th>Espera</th>
+                        <th>Atención</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="listaHistorialTurnos">
+
+                    <tr>
+
+                        <td colspan="9">
+                            Presiona Consultar para cargar
+                            el historial.
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="paginacion-historial">
+
+            <button
+                class="boton-pagina-historial"
+                id="btnHistorialAnterior"
+                onclick="cambiarPaginaHistorial(-1)"
+                disabled>
+
+                Anterior
+
+            </button>
+
+            <span
+                class="informacion-pagina"
+                id="informacionPaginaHistorial">
+
+                Página 1 de 1
+
+            </span>
+
+            <button
+                class="boton-pagina-historial"
+                id="btnHistorialSiguiente"
+                onclick="cambiarPaginaHistorial(1)"
+                disabled>
+
+                Siguiente
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <section
         class="
             panel
             panel-config-alertas
@@ -3367,6 +3951,9 @@ let ultimoEstadoPanel = {
     mesas:[]
 
 };
+
+let paginaHistorialActual = 1;
+let totalPaginasHistorial = 1;
 
 let temporizadorActualizacionPanel = null;
 let panelCargando = false;
@@ -6421,6 +7008,10 @@ async function aplicarPermisosUsuario(){
 
         }
 
+        await cargarOpcionesHistorial();
+
+        consultarHistorialTurnos();
+
         cargarPanel();
 
     }catch(error){
@@ -8874,6 +9465,821 @@ async function guardarMesaConfiguracion(){
 
         mensaje.textContent =
             error.message;
+
+    }
+
+}
+
+function construirParametrosHistorial(
+    incluirPagina = true
+){
+
+    const parametros =
+        new URLSearchParams();
+
+    const codigo =
+        document.getElementById(
+            "historialCodigo"
+        ).value.trim();
+
+    const fechaInicio =
+        document.getElementById(
+            "historialFechaInicio"
+        ).value;
+
+    const fechaFin =
+        document.getElementById(
+            "historialFechaFin"
+        ).value;
+
+    const tramite =
+        document.getElementById(
+            "historialTramite"
+        ).value;
+
+    const estado =
+        document.getElementById(
+            "historialEstado"
+        ).value;
+
+    const mesa =
+        document.getElementById(
+            "historialMesa"
+        ).value;
+
+    const limite =
+        document.getElementById(
+            "historialLimite"
+        ).value;
+
+    if(codigo){
+        parametros.set(
+            "codigo",
+            codigo
+        );
+    }
+
+    if(fechaInicio){
+        parametros.set(
+            "fechaInicio",
+            fechaInicio
+        );
+    }
+
+    if(fechaFin){
+        parametros.set(
+            "fechaFin",
+            fechaFin
+        );
+    }
+
+    if(tramite){
+        parametros.set(
+            "tramite",
+            tramite
+        );
+    }
+
+    if(estado){
+        parametros.set(
+            "estado",
+            estado
+        );
+    }
+
+    if(mesa){
+        parametros.set(
+            "mesa",
+            mesa
+        );
+    }
+
+    if(incluirPagina){
+
+        parametros.set(
+            "pagina",
+            paginaHistorialActual
+        );
+
+        parametros.set(
+            "limite",
+            limite
+        );
+
+    }
+
+    return parametros;
+
+}
+
+
+function traducirEstadoHistorial(
+    estado
+){
+
+    const nombres = {
+        espera:
+            "En espera",
+        atendiendo:
+            "En atención",
+        finalizado:
+            "Finalizado",
+        cancelado:
+            "Cancelado"
+    };
+
+    return nombres[estado]
+        || estado
+        || "Sin estado";
+
+}
+
+
+function formatearFechaHistorial(
+    fecha
+){
+
+    if(!fecha){
+        return "—";
+    }
+
+    const texto =
+        String(fecha);
+
+    const fechaCompatible =
+        texto.includes("T")
+            ? texto
+            : texto.replace(
+                " ",
+                "T"
+            ) + "Z";
+
+    const valor =
+        new Date(
+            fechaCompatible
+        );
+
+    if(
+        Number.isNaN(
+            valor.getTime()
+        )
+    ){
+        return texto;
+    }
+
+    return valor.toLocaleString(
+        "es-MX",
+        {
+            dateStyle:"short",
+            timeStyle:"medium"
+        }
+    );
+
+}
+
+
+function formatearMinutosHistorial(
+    minutos
+){
+
+    if(
+        minutos === null
+        || minutos === undefined
+        || minutos === ""
+    ){
+        return "—";
+    }
+
+    const valor =
+        Number(minutos);
+
+    if(!Number.isFinite(valor)){
+        return "—";
+    }
+
+    return `${valor.toFixed(2)} min`;
+
+}
+
+
+function mostrarResumenHistorial(
+    resumen
+){
+
+    document.getElementById(
+        "historialTotal"
+    ).textContent =
+        Number(
+            resumen.total || 0
+        );
+
+    document.getElementById(
+        "historialEspera"
+    ).textContent =
+        Number(
+            resumen.espera || 0
+        );
+
+    document.getElementById(
+        "historialAtendiendo"
+    ).textContent =
+        Number(
+            resumen.atendiendo || 0
+        );
+
+    document.getElementById(
+        "historialFinalizados"
+    ).textContent =
+        Number(
+            resumen.finalizados || 0
+        );
+
+    document.getElementById(
+        "historialCancelados"
+    ).textContent =
+        Number(
+            resumen.cancelados || 0
+        );
+
+}
+
+
+function mostrarTurnosHistorial(
+    turnos
+){
+
+    const cuerpo =
+        document.getElementById(
+            "listaHistorialTurnos"
+        );
+
+    if(!turnos.length){
+
+        cuerpo.innerHTML = `
+
+            <tr>
+
+                <td colspan="9">
+
+                    <div class="sin-datos">
+                        No se encontraron turnos con
+                        los filtros seleccionados.
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+    cuerpo.innerHTML =
+        turnos.map(
+            turno => `
+
+                <tr>
+
+                    <td>
+
+                        <span class="folio-historial">
+
+                            ${
+                                escaparHTML(
+                                    turno.codigo
+                                )
+                            }
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                turno.nombreTramite
+                                || turno.tramite
+                                || "—"
+                            )
+                        }
+                    </td>
+
+                    <td>
+
+                        <span class="
+                            estado-turno-historial
+                            ${
+                                escaparHTML(
+                                    turno.estado
+                                )
+                            }
+                        ">
+
+                            ${
+                                escaparHTML(
+                                    traducirEstadoHistorial(
+                                        turno.estado
+                                    )
+                                )
+                            }
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                turno.nombreMesa
+                                || "Sin asignar"
+                            )
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                formatearFechaHistorial(
+                                    turno.fechaCreacion
+                                )
+                            )
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                formatearFechaHistorial(
+                                    turno.fechaLlamado
+                                )
+                            )
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                formatearFechaHistorial(
+                                    turno.fechaFinalizado
+                                )
+                            )
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                formatearMinutosHistorial(
+                                    turno.tiempoEsperaMinutos
+                                )
+                            )
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            escaparHTML(
+                                formatearMinutosHistorial(
+                                    turno.tiempoAtencionMinutos
+                                )
+                            )
+                        }
+                    </td>
+
+                </tr>
+
+            `
+        ).join("");
+
+}
+
+
+function actualizarPaginacionHistorial(
+    paginacion
+){
+
+    paginaHistorialActual =
+        Number(
+            paginacion.pagina || 1
+        );
+
+    totalPaginasHistorial =
+        Math.max(
+            1,
+            Number(
+                paginacion.totalPaginas
+                || 1
+            )
+        );
+
+    document.getElementById(
+        "informacionPaginaHistorial"
+    ).textContent =
+        `Página ${paginaHistorialActual} `
+        + `de ${totalPaginasHistorial}`;
+
+    document.getElementById(
+        "btnHistorialAnterior"
+    ).disabled =
+        paginaHistorialActual <= 1;
+
+    document.getElementById(
+        "btnHistorialSiguiente"
+    ).disabled =
+        paginaHistorialActual
+        >= totalPaginasHistorial;
+
+}
+
+
+async function consultarHistorialTurnos(){
+
+    const mensaje =
+        document.getElementById(
+            "mensajeHistorial"
+        );
+
+    const cuerpo =
+        document.getElementById(
+            "listaHistorialTurnos"
+        );
+
+    mensaje.textContent =
+        "Consultando historial...";
+
+    mensaje.className =
+        "mensaje-historial";
+
+    cuerpo.innerHTML = `
+
+        <tr>
+
+            <td colspan="9">
+                Cargando información...
+            </td>
+
+        </tr>
+
+    `;
+
+    try{
+
+        const parametros =
+            construirParametrosHistorial(
+                true
+            );
+
+        const response =
+            await fetch(
+                "/api/admin/historial-turnos?"
+                + parametros.toString(),
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo consultar el historial"
+            );
+
+        }
+
+        mostrarResumenHistorial(
+            data.resumen
+        );
+
+        mostrarTurnosHistorial(
+            data.turnos
+        );
+
+        actualizarPaginacionHistorial(
+            data.paginacion
+        );
+
+        mensaje.textContent =
+            `${data.paginacion.totalResultados} `
+            + "resultado(s) encontrado(s).";
+
+        mensaje.className =
+            "mensaje-historial exito";
+
+    }catch(error){
+
+        console.error(
+            "Error al consultar historial:",
+            error
+        );
+
+        mensaje.textContent =
+            error.message;
+
+        mensaje.className =
+            "mensaje-historial error";
+
+        cuerpo.innerHTML = `
+
+            <tr>
+
+                <td colspan="9">
+
+                    <div class="sin-datos">
+                        No fue posible cargar
+                        el historial.
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+function consultarHistorialDesdeInicio(){
+
+    paginaHistorialActual = 1;
+
+    consultarHistorialTurnos();
+
+}
+
+
+function cambiarPaginaHistorial(
+    cambio
+){
+
+    const nuevaPagina =
+        paginaHistorialActual
+        + Number(cambio);
+
+    if(
+        nuevaPagina < 1
+        || nuevaPagina
+            > totalPaginasHistorial
+    ){
+        return;
+    }
+
+    paginaHistorialActual =
+        nuevaPagina;
+
+    consultarHistorialTurnos();
+
+    document.getElementById(
+        "panelHistorialTurnos"
+    ).scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+    });
+
+}
+
+
+function limpiarFiltrosHistorial(){
+
+    document.getElementById(
+        "historialCodigo"
+    ).value = "";
+
+    document.getElementById(
+        "historialFechaInicio"
+    ).value = "";
+
+    document.getElementById(
+        "historialFechaFin"
+    ).value = "";
+
+    document.getElementById(
+        "historialTramite"
+    ).value = "";
+
+    document.getElementById(
+        "historialEstado"
+    ).value = "";
+
+    document.getElementById(
+        "historialMesa"
+    ).value = "";
+
+    document.getElementById(
+        "historialLimite"
+    ).value = "25";
+
+    paginaHistorialActual = 1;
+
+    consultarHistorialTurnos();
+
+}
+
+
+function exportarHistorialTurnos(){
+
+    const parametros =
+        construirParametrosHistorial(
+            false
+        );
+
+    const direccion =
+        "/api/admin/historial-turnos/exportar"
+        + (
+            parametros.toString()
+                ? "?" + parametros.toString()
+                : ""
+        );
+
+    window.location.href =
+        direccion;
+
+}
+
+async function cargarOpcionesHistorial(){
+
+    await Promise.all([
+        cargarTramitesHistorial(),
+        cargarMesasHistorial()
+    ]);
+
+}
+
+
+async function cargarTramitesHistorial(){
+
+    const selector =
+        document.getElementById(
+            "historialTramite"
+        );
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/tramites",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        if(
+            response.status === 401
+            || response.status === 403
+        ){
+
+            /*
+            Un supervisor puede consultar el historial,
+            aunque las rutas de configuración de trámites
+            sean exclusivas del administrador.
+            */
+            return;
+
+        }
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+            return;
+        }
+
+        const valorActual =
+            selector.value;
+
+        selector.innerHTML = `
+
+            <option value="">
+                Todos los trámites
+            </option>
+
+            ${
+                data.tramites.map(
+                    tramite => `
+
+                        <option value="${
+                            escaparHTML(
+                                tramite.codigo
+                            )
+                        }">
+
+                            ${
+                                escaparHTML(
+                                    tramite.nombre
+                                    || tramite.codigo
+                                )
+                            }
+
+                        </option>
+
+                    `
+                ).join("")
+            }
+
+        `;
+
+        selector.value =
+            valorActual;
+
+    }catch(error){
+
+        console.error(
+            "No se pudieron cargar trámites del historial:",
+            error
+        );
+
+    }
+
+}
+
+
+async function cargarMesasHistorial(){
+
+    const selector =
+        document.getElementById(
+            "historialMesa"
+        );
+
+    try{
+
+        /*
+        Resumen está disponible para administrador
+        y supervisor y contiene las mesas.
+        */
+        const response =
+            await fetch(
+                "/api/admin/resumen",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+            return;
+        }
+
+        const valorActual =
+            selector.value;
+
+        selector.innerHTML = `
+
+            <option value="">
+                Todos los puntos
+            </option>
+
+            ${
+                data.mesas.map(
+                    mesa => `
+
+                        <option value="${
+                            Number(
+                                mesa.numero
+                            )
+                        }">
+
+                            ${
+                                escaparHTML(
+                                    mesa.nombre
+                                    || `Mesa ${mesa.numero}`
+                                )
+                            }
+
+                        </option>
+
+                    `
+                ).join("")
+            }
+
+        `;
+
+        selector.value =
+            valorActual;
+
+    }catch(error){
+
+        console.error(
+            "No se pudieron cargar mesas del historial:",
+            error
+        );
 
     }
 

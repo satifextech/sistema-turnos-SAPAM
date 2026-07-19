@@ -961,6 +961,328 @@ app.post(
     }
 );
 
+app.get(
+    "/api/admin/historial-turnos",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    async (req, res)=>{
+
+        const estadosPermitidos = [
+            "",
+            "espera",
+            "atendiendo",
+            "finalizado",
+            "cancelado"
+        ];
+
+        const estado =
+            String(
+                req.query.estado || ""
+            )
+                .trim()
+                .toLowerCase();
+
+        if(
+            !estadosPermitidos.includes(
+                estado
+            )
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El estado seleccionado no es válido"
+            });
+
+        }
+
+        const mesaRecibida =
+            String(
+                req.query.mesa || ""
+            ).trim();
+
+        if(
+            mesaRecibida
+            &&
+            (
+                !Number.isInteger(
+                    Number(mesaRecibida)
+                )
+                ||
+                Number(mesaRecibida) <= 0
+            )
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El punto de atención seleccionado no es válido"
+            });
+
+        }
+
+        const fechaValida =
+            valor =>
+                !valor
+                ||
+                /^\d{4}-\d{2}-\d{2}$/
+                    .test(valor);
+
+        const fechaInicio =
+            String(
+                req.query.fechaInicio || ""
+            ).trim();
+
+        const fechaFin =
+            String(
+                req.query.fechaFin || ""
+            ).trim();
+
+        if(
+            !fechaValida(fechaInicio)
+            ||
+            !fechaValida(fechaFin)
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El formato de las fechas no es válido"
+            });
+
+        }
+
+        if(
+            fechaInicio
+            && fechaFin
+            && fechaInicio > fechaFin
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "La fecha inicial no puede ser posterior a la fecha final"
+            });
+
+        }
+
+        try{
+
+            const resultado =
+                await gestorTurnos
+                    .consultarHistorialTurnos({
+
+                        codigo:
+                            req.query.codigo,
+
+                        fechaInicio,
+
+                        fechaFin,
+
+                        tramite:
+                            req.query.tramite,
+
+                        estado,
+
+                        mesa:
+                            mesaRecibida,
+
+                        pagina:
+                            req.query.pagina,
+
+                        limite:
+                            req.query.limite
+
+                    });
+
+            res.json({
+                success:true,
+                ...resultado
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar historial de turnos:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo consultar el historial de turnos"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/historial-turnos/exportar",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const turnos =
+                await gestorTurnos
+                    .obtenerHistorialParaExportar({
+
+                        codigo:
+                            req.query.codigo,
+
+                        fechaInicio:
+                            req.query.fechaInicio,
+
+                        fechaFin:
+                            req.query.fechaFin,
+
+                        tramite:
+                            req.query.tramite,
+
+                        estado:
+                            req.query.estado,
+
+                        mesa:
+                            req.query.mesa
+
+                    });
+
+            const traducirEstado =
+                estado => {
+
+                    const nombres = {
+                        espera:
+                            "En espera",
+                        atendiendo:
+                            "En atención",
+                        finalizado:
+                            "Finalizado",
+                        cancelado:
+                            "Cancelado"
+                    };
+
+                    return nombres[estado]
+                        || estado
+                        || "";
+
+                };
+
+            const escaparCSV =
+                valor => {
+
+                    if(
+                        valor === null
+                        || valor === undefined
+                    ){
+                        return '""';
+                    }
+
+                    const texto =
+                        String(valor)
+                            .replace(
+                                /"/g,
+                                '""'
+                            );
+
+                    return `"${texto}"`;
+
+                };
+
+            const encabezados = [
+                "Turno",
+                "Trámite",
+                "Estado",
+                "Punto de atención",
+                "Fecha de creación",
+                "Fecha de llamado",
+                "Fecha de finalización",
+                "Espera en minutos",
+                "Atención en minutos"
+            ];
+
+            const filas =
+                turnos.map(
+                    turno => [
+
+                        turno.codigo,
+
+                        turno.nombreTramite,
+
+                        traducirEstado(
+                            turno.estado
+                        ),
+
+                        turno.nombreMesa,
+
+                        turno.fechaCreacion,
+
+                        turno.fechaLlamado,
+
+                        turno.fechaFinalizado,
+
+                        turno.tiempoEsperaMinutos,
+
+                        turno.tiempoAtencionMinutos
+
+                    ]
+                        .map(escaparCSV)
+                        .join(",")
+                );
+
+            const csv = [
+
+                encabezados
+                    .map(escaparCSV)
+                    .join(","),
+
+                ...filas
+
+            ].join("\r\n");
+
+            const fecha =
+                new Date()
+                    .toISOString()
+                    .slice(0, 10);
+
+            res.setHeader(
+                "Content-Type",
+                "text/csv; charset=utf-8"
+            );
+
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="historial-turnos-${fecha}.csv"`
+            );
+
+            res.send(
+                "\uFEFF" + csv
+            );
+
+        }catch(error){
+
+            console.error(
+                "Error al exportar historial:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo exportar el historial"
+            });
+
+        }
+
+    }
+);
+
 app.get("/api/admin/exportar-csv", requerirRoles("admin", "supervisor"), async (req, res)=>{
 
     try{
@@ -2210,7 +2532,10 @@ app.delete(
 
 app.get(
     "/api/admin/tramites",
-    requerirAdmin,
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
     async (req, res)=>{
 
         try{
@@ -2566,7 +2891,10 @@ app.put(
 
 app.get(
     "/api/admin/mesas-config",
-    requerirAdmin,
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
     async (req, res)=>{
 
         try{

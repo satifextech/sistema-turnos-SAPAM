@@ -914,6 +914,556 @@ reiniciarFolios(){
 
 }
 
+construirFiltrosHistorial(filtros = {}){
+
+    const condiciones = [];
+    const parametros = [];
+
+    const codigo =
+        String(
+            filtros.codigo || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    const fechaInicio =
+        String(
+            filtros.fechaInicio || ""
+        ).trim();
+
+    const fechaFin =
+        String(
+            filtros.fechaFin || ""
+        ).trim();
+
+    const tramite =
+        String(
+            filtros.tramite || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    const estado =
+        String(
+            filtros.estado || ""
+        )
+            .trim()
+            .toLowerCase();
+
+    const mesa =
+        Number(
+            filtros.mesa
+        );
+
+    if(codigo){
+
+        condiciones.push(
+            "UPPER(t.codigo) LIKE ?"
+        );
+
+        parametros.push(
+            `%${codigo}%`
+        );
+
+    }
+
+    if(fechaInicio){
+
+        condiciones.push(
+            `
+            date(
+                t.fechaCreacion,
+                'localtime'
+            ) >= date(?)
+            `
+        );
+
+        parametros.push(
+            fechaInicio
+        );
+
+    }
+
+    if(fechaFin){
+
+        condiciones.push(
+            `
+            date(
+                t.fechaCreacion,
+                'localtime'
+            ) <= date(?)
+            `
+        );
+
+        parametros.push(
+            fechaFin
+        );
+
+    }
+
+    if(tramite){
+
+        condiciones.push(
+            "t.tramite = ?"
+        );
+
+        parametros.push(
+            tramite
+        );
+
+    }
+
+    if(estado){
+
+        condiciones.push(
+            "t.estado = ?"
+        );
+
+        parametros.push(
+            estado
+        );
+
+    }
+
+    if(
+        Number.isInteger(mesa)
+        && mesa > 0
+    ){
+
+        condiciones.push(
+            "t.mesa = ?"
+        );
+
+        parametros.push(
+            mesa
+        );
+
+    }
+
+    const where =
+        condiciones.length
+            ? `WHERE ${condiciones.join(" AND ")}`
+            : "";
+
+    return {
+        where,
+        parametros
+    };
+
+}
+
+
+consultarHistorialTurnos(
+    filtros = {}
+){
+
+    return new Promise(
+        async (resolve, reject)=>{
+
+            try{
+
+                const paginaRecibida =
+                    Number(
+                        filtros.pagina
+                    );
+
+                const limiteRecibido =
+                    Number(
+                        filtros.limite
+                    );
+
+                const pagina =
+                    Number.isInteger(
+                        paginaRecibida
+                    )
+                    && paginaRecibida > 0
+                        ? paginaRecibida
+                        : 1;
+
+                const limite =
+                    Number.isInteger(
+                        limiteRecibido
+                    )
+                    && limiteRecibido >= 10
+                    && limiteRecibido <= 100
+                        ? limiteRecibido
+                        : 25;
+
+                const desplazamiento =
+                    (pagina - 1)
+                    * limite;
+
+                const {
+                    where,
+                    parametros
+                } =
+                    this.construirFiltrosHistorial(
+                        filtros
+                    );
+
+                const consultarTotal =
+                    new Promise(
+                        (resolver, rechazar)=>{
+
+                            db.get(
+                                `
+                                SELECT
+                                    COUNT(*) AS total,
+
+                                    SUM(
+                                        CASE
+                                            WHEN t.estado='espera'
+                                            THEN 1
+                                            ELSE 0
+                                        END
+                                    ) AS espera,
+
+                                    SUM(
+                                        CASE
+                                            WHEN t.estado='atendiendo'
+                                            THEN 1
+                                            ELSE 0
+                                        END
+                                    ) AS atendiendo,
+
+                                    SUM(
+                                        CASE
+                                            WHEN t.estado='finalizado'
+                                            THEN 1
+                                            ELSE 0
+                                        END
+                                    ) AS finalizados,
+
+                                    SUM(
+                                        CASE
+                                            WHEN t.estado='cancelado'
+                                            THEN 1
+                                            ELSE 0
+                                        END
+                                    ) AS cancelados
+
+                                FROM turnos t
+
+                                ${where}
+                                `,
+                                parametros,
+                                (error, fila)=>{
+
+                                    if(error){
+
+                                        rechazar(error);
+                                        return;
+
+                                    }
+
+                                    resolver({
+                                        total:
+                                            Number(
+                                                fila?.total
+                                                || 0
+                                            ),
+
+                                        espera:
+                                            Number(
+                                                fila?.espera
+                                                || 0
+                                            ),
+
+                                        atendiendo:
+                                            Number(
+                                                fila?.atendiendo
+                                                || 0
+                                            ),
+
+                                        finalizados:
+                                            Number(
+                                                fila?.finalizados
+                                                || 0
+                                            ),
+
+                                        cancelados:
+                                            Number(
+                                                fila?.cancelados
+                                                || 0
+                                            )
+                                    });
+
+                                }
+                            );
+
+                        }
+                    );
+
+                const consultarTurnos =
+                    new Promise(
+                        (resolver, rechazar)=>{
+
+                            db.all(
+                                `
+                                SELECT
+                                    t.id,
+                                    t.codigo,
+                                    t.tramite,
+
+                                    COALESCE(
+                                        tc.nombre,
+                                        t.tramite
+                                    ) AS nombreTramite,
+
+                                    t.estado,
+                                    t.mesa,
+
+                                    CASE
+                                        WHEN t.mesa IS NULL
+                                        THEN NULL
+                                        ELSE COALESCE(
+                                            mc.nombre,
+                                            'Mesa ' || t.mesa
+                                        )
+                                    END AS nombreMesa,
+
+                                    t.fechaCreacion,
+                                    t.fechaLlamado,
+                                    t.fechaFinalizado,
+
+                                    ROUND(
+                                        CASE
+                                            WHEN
+                                                t.fechaLlamado
+                                                IS NOT NULL
+                                            THEN
+                                                (
+                                                    julianday(
+                                                        t.fechaLlamado
+                                                    )
+                                                    -
+                                                    julianday(
+                                                        t.fechaCreacion
+                                                    )
+                                                ) * 1440
+                                        END,
+                                        2
+                                    ) AS tiempoEsperaMinutos,
+
+                                    ROUND(
+                                        CASE
+                                            WHEN
+                                                t.fechaLlamado
+                                                IS NOT NULL
+                                                AND
+                                                t.fechaFinalizado
+                                                IS NOT NULL
+                                            THEN
+                                                (
+                                                    julianday(
+                                                        t.fechaFinalizado
+                                                    )
+                                                    -
+                                                    julianday(
+                                                        t.fechaLlamado
+                                                    )
+                                                ) * 1440
+                                        END,
+                                        2
+                                    ) AS tiempoAtencionMinutos
+
+                                FROM turnos t
+
+                                LEFT JOIN tramites_config tc
+                                    ON tc.codigo=t.tramite
+
+                                LEFT JOIN mesas_config mc
+                                    ON mc.numero=t.mesa
+
+                                ${where}
+
+                                ORDER BY
+                                    t.id DESC
+
+                                LIMIT ?
+                                OFFSET ?
+                                `,
+                                [
+                                    ...parametros,
+                                    limite,
+                                    desplazamiento
+                                ],
+                                (error, filas)=>{
+
+                                    if(error){
+
+                                        rechazar(error);
+                                        return;
+
+                                    }
+
+                                    resolver(
+                                        filas || []
+                                    );
+
+                                }
+                            );
+
+                        }
+                    );
+
+                const [
+                    resumen,
+                    turnos
+                ] =
+                    await Promise.all([
+                        consultarTotal,
+                        consultarTurnos
+                    ]);
+
+                const totalPaginas =
+                    resumen.total > 0
+                        ? Math.ceil(
+                            resumen.total
+                            / limite
+                        )
+                        : 1;
+
+                resolve({
+                    turnos,
+                    resumen,
+                    paginacion:{
+                        pagina,
+                        limite,
+                        totalResultados:
+                            resumen.total,
+                        totalPaginas
+                    }
+                });
+
+            }catch(error){
+
+                reject(error);
+
+            }
+
+        }
+    );
+
+}
+
+
+obtenerHistorialParaExportar(
+    filtros = {}
+){
+
+    return new Promise(
+        (resolve, reject)=>{
+
+            const {
+                where,
+                parametros
+            } =
+                this.construirFiltrosHistorial(
+                    filtros
+                );
+
+            db.all(
+                `
+                SELECT
+                    t.codigo,
+
+                    COALESCE(
+                        tc.nombre,
+                        t.tramite
+                    ) AS nombreTramite,
+
+                    t.estado,
+
+                    CASE
+                        WHEN t.mesa IS NULL
+                        THEN NULL
+                        ELSE COALESCE(
+                            mc.nombre,
+                            'Mesa ' || t.mesa
+                        )
+                    END AS nombreMesa,
+
+                    t.fechaCreacion,
+                    t.fechaLlamado,
+                    t.fechaFinalizado,
+
+                    ROUND(
+                        CASE
+                            WHEN
+                                t.fechaLlamado
+                                IS NOT NULL
+                            THEN
+                                (
+                                    julianday(
+                                        t.fechaLlamado
+                                    )
+                                    -
+                                    julianday(
+                                        t.fechaCreacion
+                                    )
+                                ) * 1440
+                        END,
+                        2
+                    ) AS tiempoEsperaMinutos,
+
+                    ROUND(
+                        CASE
+                            WHEN
+                                t.fechaLlamado
+                                IS NOT NULL
+                                AND
+                                t.fechaFinalizado
+                                IS NOT NULL
+                            THEN
+                                (
+                                    julianday(
+                                        t.fechaFinalizado
+                                    )
+                                    -
+                                    julianday(
+                                        t.fechaLlamado
+                                    )
+                                ) * 1440
+                        END,
+                        2
+                    ) AS tiempoAtencionMinutos
+
+                FROM turnos t
+
+                LEFT JOIN tramites_config tc
+                    ON tc.codigo=t.tramite
+
+                LEFT JOIN mesas_config mc
+                    ON mc.numero=t.mesa
+
+                ${where}
+
+                ORDER BY
+                    t.id DESC
+                `,
+                parametros,
+                (error, filas)=>{
+
+                    if(error){
+
+                        reject(error);
+                        return;
+
+                    }
+
+                    resolve(
+                        filas || []
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
 }
 
 module.exports = new GestorTurnos();
