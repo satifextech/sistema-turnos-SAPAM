@@ -363,15 +363,35 @@ app.post("/api/llamar", async (req, res) => {
             mesa
         );
 
+        /*
+        Obtenemos desde SQLite el nombre visible
+        del trámite. Esto permite anunciar también
+        los trámites creados desde Administración.
+        */
+        const tramiteConfig =
+            await gestorTramites
+                .buscarPorCodigo(
+                    turno.tramite
+                );
+
+        const nombreTramite =
+            tramiteConfig?.nombre
+            || turno.tramite
+            || "";
+
         io.emit("nuevoTurno", {
-            codigo: turno.codigo,
-            mesa
+            codigo:turno.codigo,
+            mesa,
+            tramite:turno.tramite,
+            nombreTramite
         });
 
         res.json({
             success:true,
-            id: turno.id,
+            id:turno.id,
             codigo:turno.codigo,
+            tramite:turno.tramite,
+            nombreTramite,
             mesa
         });
 

@@ -1,72 +1,37 @@
-const mesas = require("../config/mesas");
-const tramites = require("../config/tramites");
-const reglasApoyo = require("../config/reglasApoyo");
-const db = require("../database/db");
-const gestorTurnos = require("./gestorTurnos");
-const gestorMesa = require("./gestorMesa");
-const gestorReglas = require("./gestorReglas");
+const gestorTurnos =
+    require("./gestorTurnos");
+
+const gestorReglas =
+    require("./gestorReglas");
+
 
 class Asignador {
 
-    constructor() {
 
-        this.mesas = mesas;
-        this.tramites = tramites;
-        this.reglasApoyo = reglasApoyo;
+    /*
+    Busca primero un turno prioritario.
 
-    }
+    Si no existe ninguno, intenta localizar
+    un turno que pueda ser atendido como apoyo.
+    */
+    async buscarTurno(numeroMesa){
 
-    /*obtenerReglas(tramite){
+        const mesa =
+            Number(numeroMesa);
 
-        return this.reglas.tramites[tramite];
+        if(
+            !Number.isInteger(mesa)
+            || mesa <= 0
+        ){
 
-    }*/
-
-    obtenerMesa(mesa){
-
-        return this.mesas[mesa];
-
-    }
-
-    obtenerTramite(tramite){
-
-        return this.tramites[tramite];
-
-    }
-
-    obtenerMesasPrioritarias(tramite){
-
-        const resultado = [];
-
-        for(const numero in this.mesas){
-
-            const configuracion =
-                this.mesas[numero];
-
-            const esPrioritaria =
-                configuracion.prioridad.some(
-                    regla =>
-                        regla.tramite === tramite
-                );
-
-            if(esPrioritaria){
-
-                resultado.push(
-                    Number(numero)
-                );
-
-            }
+            return null;
 
         }
 
-        return resultado;
-
-    }
-
-    async buscarTurno(mesa){
-
         let turno =
-            await this.buscarTurnoPrioridad(mesa);
+            await this.buscarTurnoPrioridad(
+                mesa
+            );
 
         if(turno){
 
@@ -75,96 +40,59 @@ class Asignador {
         }
 
         turno =
-            await this.buscarTurnoApoyo(mesa);
+            await this.buscarTurnoApoyo(
+                mesa
+            );
 
         return turno;
 
     }
 
 
-    async necesitaApoyo(tramite){
+    /*
+    Obtiene desde SQLite todos los trámites
+    asociados al punto de atención indicado.
+    */
+    async obtenerConfiguracionMesa(
+        numeroMesa
+    ){
 
-        /*
-        Contamos cuántos turnos de este trámite
-        se encuentran actualmente en espera.
-        */
-        const pendientes =
-            await gestorTurnos.contarPendientes(
-                tramite
-            );
-
-        if(pendientes === 0){
-
-            return false;
-
-        }
-
-        /*
-        Consultamos en SQLite la configuración general
-        del trámite, incluido su límite de apoyo.
-        */
-        const reglaTramite =
+        const reglas =
             await gestorReglas
-                .obtenerReglaTramite(tramite);
-
-        /*
-        Si el trámite no tiene una regla dinámica,
-        no permitimos apoyo para evitar asignaciones
-        incorrectas.
-        */
-        if(
-            !reglaTramite
-            || Number(reglaTramite.activo) !== 1
-        ){
-
-            return false;
-
-        }
-
-        /*
-        Consultamos las mesas prioritarias activas
-        configuradas para este trámite.
-        */
-        const mesasPrioritarias =
-            await gestorReglas
-                .obtenerMesasPrioritarias(
-                    tramite
+                .obtenerReglasParaMesa(
+                    numeroMesa
                 );
 
-        /*
-        El gestor devuelve solamente las mesas
-        prioritarias que están disponibles.
-        Si el arreglo está vacío, significa que ninguna
-        mesa prioritaria puede atender en este momento.
-        */
-        const existePrioritariaDisponible =
-            mesasPrioritarias.length > 0;
+        return {
 
-        /*
-        Si ninguna mesa prioritaria está disponible,
-        una mesa de apoyo puede atender desde el
-        primer turno pendiente.
-        */
-        if(!existePrioritariaDisponible){
+            prioridad:
+                reglas.filter(
+                    regla =>
+                        regla.tipo
+                        === "prioridad"
+                ),
 
-            return true;
+            apoyo:
+                reglas.filter(
+                    regla =>
+                        regla.tipo
+                        === "apoyo"
+                )
 
-        }
-
-        const limite =
-            Number(reglaTramite.limiteApoyo);
-
-        return pendientes >= limite;
+        };
 
     }
 
-    async buscarTurnoPrioridad(numeroMesa){
 
-        /*
-        Obtiene primero la configuración dinámica.
-        Si aún no existe utilizará automáticamente
-        la configuración antigua.
-        */
+    /*
+    Busca turnos pertenecientes a los trámites
+    prioritarios de la mesa.
+
+    Las reglas ya llegan ordenadas desde SQLite.
+    */
+    async buscarTurnoPrioridad(
+        numeroMesa
+    ){
 
         const configuracion =
             await this.obtenerConfiguracionMesa(
@@ -172,43 +100,28 @@ class Asignador {
             );
 
         if(
-            !configuracion
+            !Array.isArray(
+                configuracion.prioridad
+            )
             ||
-            configuracion.prioridad.length===0
+            configuracion.prioridad.length === 0
         ){
 
             return null;
 
         }
 
-        /*
-        Recorremos cada prioridad
-        en el orden definido.
-        */
-
         for(
-            const prioridad
+            const regla
             of configuracion.prioridad
         ){
 
-            /*
-            Cuando viene desde SQLite
-            el nombre del trámite está
-            en "tramite".
-            */
+            const tramite =
+                String(
+                    regla.tramite || ""
+                ).trim();
 
-            const codigoTramite =
-                prioridad.tramite
-                ||
-                prioridad.codigo
-                ||
-                prioridad.nombre
-                ||
-                prioridad.id
-                ||
-                prioridad.tramiteCodigo;
-
-            if(!codigoTramite){
+            if(!tramite){
 
                 continue;
 
@@ -217,7 +130,7 @@ class Asignador {
             const turno =
                 await gestorTurnos
                     .buscarPrimerTurno(
-                        [codigoTramite]
+                        [tramite]
                     );
 
             if(turno){
@@ -233,38 +146,40 @@ class Asignador {
     }
 
 
-    async buscarTurnoApoyo(mesa){
+    /*
+    Busca turnos de los trámites configurados
+    como apoyo para la mesa.
+    */
+    async buscarTurnoApoyo(
+        numeroMesa
+    ){
 
-        /*
-        Obtenemos las reglas dinámicas de la mesa.
-        Si no existen, el método conserva temporalmente
-        la compatibilidad con la configuración antigua.
-        */
-        const mesaConfig =
-            await this.obtenerConfiguracionMesa(mesa);
+        const configuracion =
+            await this.obtenerConfiguracionMesa(
+                numeroMesa
+            );
 
         if(
-            !mesaConfig
-            || !Array.isArray(mesaConfig.apoyo)
-            || mesaConfig.apoyo.length === 0
+            !Array.isArray(
+                configuracion.apoyo
+            )
+            ||
+            configuracion.apoyo.length === 0
         ){
 
             return null;
 
         }
 
-        /*
-        Recorremos los trámites de apoyo respetando
-        el orden configurado.
-        */
-        for(const apoyo of mesaConfig.apoyo){
+        for(
+            const regla
+            of configuracion.apoyo
+        ){
 
             const tramite =
-                apoyo.tramite
-                || apoyo.codigo
-                || apoyo.nombre
-                || apoyo.id
-                || apoyo.tramiteCodigo;
+                String(
+                    regla.tramite || ""
+                ).trim();
 
             if(!tramite){
 
@@ -272,57 +187,22 @@ class Asignador {
 
             }
 
-            /*
-            Comprobamos si el trámite ya alcanzó
-            las condiciones necesarias para recibir apoyo.
-            */
-            const necesita =
-                await this.necesitaApoyo(tramite);
+            const necesitaApoyo =
+                await this.necesitaApoyo(
+                    tramite
+                );
 
-            if(!necesita){
+            if(!necesitaApoyo){
 
                 continue;
 
             }
 
-            /*
-            Buscamos el turno más antiguo que esté
-            esperando para este trámite.
-            */
             const turno =
-                await new Promise(
-                    (resolve, reject)=>{
-
-                        db.get(
-                            `
-                            SELECT *
-                            FROM turnos
-
-                            WHERE
-                                estado='espera'
-                                AND tramite=?
-
-                            ORDER BY id ASC
-
-                            LIMIT 1
-                            `,
-                            [tramite],
-                            (err, row)=>{
-
-                                if(err){
-
-                                    reject(err);
-                                    return;
-
-                                }
-
-                                resolve(row || null);
-
-                            }
-                        );
-
-                    }
-                );
+                await gestorTurnos
+                    .buscarPrimerTurno(
+                        [tramite]
+                    );
 
             if(turno){
 
@@ -336,89 +216,95 @@ class Asignador {
 
     }
 
-async obtenerConfiguracionMesa(numeroMesa){
 
     /*
-    Primero intentaremos obtener las reglas
-    dinámicas almacenadas en SQLite.
-    */
+    Determina si una mesa de apoyo puede atender
+    un trámite.
 
-    const reglas =
-        await gestorReglas
-            .obtenerReglasParaMesa(
-                numeroMesa
+    Puede hacerlo cuando:
+
+    1. No existe ninguna mesa prioritaria disponible.
+
+    2. La cantidad de turnos pendientes alcanzó
+       el límite configurado en Administración.
+    */
+    async necesitaApoyo(tramite){
+
+        const pendientes =
+            await gestorTurnos
+                .contarPendientes(
+                    tramite
+                );
+
+        if(pendientes === 0){
+
+            return false;
+
+        }
+
+        const reglaTramite =
+            await gestorReglas
+                .obtenerReglaTramite(
+                    tramite
+                );
+
+        if(
+            !reglaTramite
+            ||
+            Number(
+                reglaTramite.activo
+            ) !== 1
+        ){
+
+            return false;
+
+        }
+
+        /*
+        Este método devuelve únicamente las mesas
+        prioritarias que actualmente están:
+
+        - activas;
+        - habilitadas para turnos;
+        - en estado disponible.
+        */
+        const mesasPrioritariasDisponibles =
+            await gestorReglas
+                .obtenerMesasPrioritarias(
+                    tramite
+                );
+
+        if(
+            mesasPrioritariasDisponibles
+                .length === 0
+        ){
+
+            return true;
+
+        }
+
+        const limite =
+            Number(
+                reglaTramite.limiteApoyo
             );
 
-    /*
-    Si existen reglas dinámicas,
-    utilizaremos únicamente esas.
-    */
+        if(
+            !Number.isInteger(limite)
+            ||
+            limite < 1
+        ){
 
-    if(
-        reglas
-        &&
-        reglas.length > 0
-    ){
+            return false;
 
-        return{
+        }
 
-            origen:"sqlite",
-
-            prioridad:
-                reglas
-                    .filter(
-                        r =>
-                            r.tipo==="prioridad"
-                    ),
-
-            apoyo:
-                reglas
-                    .filter(
-                        r =>
-                            r.tipo==="apoyo"
-                    )
-
-        };
+        return pendientes >= limite;
 
     }
 
-    /*
-    Compatibilidad temporal.
-    */
-
-    const configuracionVieja =
-        this.obtenerMesa(numeroMesa);
-
-    if(!configuracionVieja){
-
-        return{
-
-            origen:"ninguno",
-
-            prioridad:[],
-
-            apoyo:[]
-
-        };
-
-    }
-
-    return{
-
-        origen:"config",
-
-        prioridad:
-            configuracionVieja.prioridad,
-
-        apoyo:
-            configuracionVieja.apoyo
-
-    };
 
 }
 
 
-
-}
-
-module.exports = new Asignador();
+module.exports =
+    new Asignador();

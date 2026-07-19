@@ -380,9 +380,13 @@ function obtenerNombreTramite(codigo){
 
 function obtenerPrefijo(codigo){
 
-    const prefijos = ["CA","AF","AB","C1","C2","RE","SU","IN","GT"];
+    const coincidencia =
+        String(codigo || "")
+            .match(/^[A-Za-z]+/);
 
-    return prefijos.find(p => codigo.startsWith(p)) || "";
+    return coincidencia
+        ? coincidencia[0].toUpperCase()
+        : "";
 
 }
 
@@ -505,7 +509,12 @@ async function procesarColaAnuncios(){
         await esperar(2200);
 
         const tramite =
-            obtenerNombreTramite(data.codigo);
+            String(
+                data.nombreTramite
+                || data.tramite
+                || obtenerNombreTramite(data.codigo)
+                || ""
+            ).trim();
 
         const prefijo =
             obtenerPrefijo(data.codigo);
@@ -514,7 +523,7 @@ async function procesarColaAnuncios(){
             obtenerNumeroTurno(data.codigo);
 
         const tramiteLimpio =
-            String(tramite || "")
+            tramite
                 .replace(/^turno\s*/i, "")
                 .trim();
 
