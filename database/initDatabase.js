@@ -680,6 +680,50 @@ db.run(
 
         descripcion:
             "Minutos promedio para alerta crítica de espera"
+    },
+
+    {
+        clave:
+            "volumen_voz",
+
+        valor:
+            "100",
+
+        descripcion:
+            "Volumen de los anuncios de voz de la pantalla"
+    },
+
+    {
+        clave:
+            "volumen_video",
+
+        valor:
+            "35",
+
+        descripcion:
+            "Volumen normal de los videos de la pantalla"
+    },
+
+    {
+        clave:
+            "voz_silenciada",
+
+        valor:
+            "0",
+
+        descripcion:
+            "Indica si los anuncios de voz están silenciados"
+    },
+
+    {
+        clave:
+            "video_silenciado",
+
+        valor:
+            "0",
+
+        descripcion:
+            "Indica si los videos están silenciados"
     }
 
 ];

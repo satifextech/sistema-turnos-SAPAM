@@ -585,6 +585,171 @@ app.get("/api/admin/resumen", requerirRoles("admin", "supervisor"), async (req,r
 });
 
 app.get(
+    "/api/pantalla/configuracion-multimedia",
+    async (req, res)=>{
+
+        try{
+
+            const configuracion =
+                await gestorConfiguracion
+                    .obtenerConfiguracionMultimedia();
+
+            res.json({
+                success:true,
+                configuracion
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar configuración multimedia:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo consultar la configuración multimedia"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/configuracion/multimedia",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const configuracion =
+                await gestorConfiguracion
+                    .obtenerConfiguracionMultimedia();
+
+            res.json({
+                success:true,
+                configuracion
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cargar configuración multimedia:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo cargar la configuración multimedia"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/configuracion/multimedia",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const volumenVoz =
+            Number(
+                req.body.volumenVoz
+            );
+
+        const volumenVideo =
+            Number(
+                req.body.volumenVideo
+            );
+
+        const vozSilenciada =
+            req.body.vozSilenciada
+            === true;
+
+        const videoSilenciado =
+            req.body.videoSilenciado
+            === true;
+
+        const volumenValido =
+            valor =>
+                Number.isInteger(valor)
+                && valor >= 0
+                && valor <= 100;
+
+        if(
+            !volumenValido(
+                volumenVoz
+            )
+            ||
+            !volumenValido(
+                volumenVideo
+            )
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Los volúmenes deben ser números enteros entre 0 y 100"
+            });
+
+        }
+
+        try{
+
+            const configuracion =
+                await gestorConfiguracion
+                    .guardarConfiguracionMultimedia({
+
+                        volumenVoz,
+
+                        volumenVideo,
+
+                        vozSilenciada,
+
+                        videoSilenciado
+
+                    });
+
+            io.emit(
+                "configuracionMultimediaActualizada",
+                {
+                    configuracion
+                }
+            );
+
+            res.json({
+                success:true,
+                configuracion,
+                mensaje:
+                    "Configuración multimedia guardada correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al guardar configuración multimedia:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo guardar la configuración multimedia"
+            });
+
+        }
+
+    }
+);
+
+app.get(
     "/api/admin/configuracion/alertas",
     requerirRoles(
         "admin",

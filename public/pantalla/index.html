@@ -338,21 +338,54 @@ const socket = io();
 
 const lista = [];
 
+let configuracionMultimedia = {
+
+    volumenVoz:100,
+
+    volumenVideo:35,
+
+    vozSilenciada:false,
+
+    videoSilenciado:false
+
+};
+
+let videoReducidoPorAnuncio = false;
+
 const sonido = new Audio("/assets/sonidos/ding.mp3");
 
-sonido.volume = 1;
+sonido.volume =
+    configuracionMultimedia
+        .volumenVoz
+    / 100;
 
-document.addEventListener("click", () => {
-    sonido.play().then(() => {
-        sonido.pause();
-        sonido.currentTime = 0;
-    }).catch(() => {});
+document.addEventListener(
+    "click",
+    ()=>{
 
-    reproductor.muted = false;
-    reproductor.volume = 0.35;
-    reproductor.play();
+        sonido.play()
+            .then(()=>{
 
-}, { once:true });
+                sonido.pause();
+
+                sonido.currentTime = 0;
+
+            })
+            .catch(()=>{});
+
+        aplicarVolumenVideo();
+
+        aplicarVolumenVoz();
+
+        reproductor
+            .play()
+            .catch(()=>{});
+
+    },
+    {
+        once:true
+    }
+);
 
 const colaAnuncios = [];
 let anunciando = false;
@@ -391,20 +424,59 @@ function formatearNumero(numero){
 
 function hablar(texto){
 
-    return new Promise((resolve)=>{
+    return new Promise(
+        (resolve)=>{
 
-        const voz = new SpeechSynthesisUtterance(texto);
+            /*
+            Si la voz está silenciada o el volumen
+            está en cero, continuamos la cola sin hablar.
+            */
+            if(
+                configuracionMultimedia
+                    .vozSilenciada
+                ||
+                configuracionMultimedia
+                    .volumenVoz <= 0
+            ){
 
-        voz.lang = "es-MX";
-        voz.rate = 0.92;
-        voz.pitch = 1;
+                resolve();
+                return;
 
-        voz.onend = resolve;
-        voz.onerror = resolve;
+            }
 
-        speechSynthesis.speak(voz);
+            const voz =
+                new SpeechSynthesisUtterance(
+                    texto
+                );
 
-    });
+            voz.lang =
+                "es-MX";
+
+            voz.rate =
+                0.92;
+
+            voz.pitch =
+                1;
+
+            voz.volume =
+                limitarVolumen(
+                    configuracionMultimedia
+                        .volumenVoz
+                    / 100
+                );
+
+            voz.onend =
+                resolve;
+
+            voz.onerror =
+                resolve;
+
+            speechSynthesis.speak(
+                voz
+            );
+
+        }
+    );
 
 }
 
@@ -577,17 +649,41 @@ async function procesarColaAnuncios(){
         // Mostrar recuadro y bajar volumen del video
         mostrarOverlayTurno(data);
 
-        sonido.currentTime = 0;
+        if(
+            !configuracionMultimedia
+                .vozSilenciada
+            &&
+            configuracionMultimedia
+                .volumenVoz > 0
+        ){
 
-        await sonido.play().catch(error => {
-            console.log(
-                "No se pudo reproducir el sonido:",
-                error
-            );
-        });
+            sonido.currentTime = 0;
 
-        // Esperar a que termine el ding de 2 segundos
-        await esperar(2200);
+            await sonido
+                .play()
+                .catch(error => {
+
+                    console.log(
+                        "No se pudo reproducir el sonido:",
+                        error
+                    );
+
+                });
+
+            /*
+            Esperamos la duración aproximada del ding.
+            */
+            await esperar(2200);
+
+        }else{
+
+            /*
+            Una pequeña pausa visual cuando la voz
+            y el ding están silenciados.
+            */
+            await esperar(400);
+
+        }
 
         const tramite =
             String(
@@ -652,7 +748,202 @@ let videoActual = 0;
 
 const reproductor =
     document.getElementById("videoPublicidad");
-    reproductor.volume = 0.35;
+    
+function limitarVolumen(
+    valor
+){
+
+    const numero =
+        Number(valor);
+
+    if(!Number.isFinite(numero)){
+
+        return 0;
+
+    }
+
+    return Math.max(
+        0,
+        Math.min(
+            1,
+            numero
+        )
+    );
+
+}
+
+
+function obtenerVolumenVideoNormal(){
+
+    if(
+        configuracionMultimedia
+            .videoSilenciado
+    ){
+
+        return 0;
+
+    }
+
+    return limitarVolumen(
+        configuracionMultimedia
+            .volumenVideo
+        / 100
+    );
+
+}
+
+
+function obtenerVolumenVideoReducido(){
+
+    const volumenNormal =
+        obtenerVolumenVideoNormal();
+
+    /*
+    Durante el anuncio el video conserva
+    aproximadamente 23 % de su volumen normal.
+
+    Ejemplo:
+    35 % normal -> cerca de 8 % durante el anuncio.
+    */
+    return limitarVolumen(
+        volumenNormal * 0.23
+    );
+
+}
+
+
+function aplicarVolumenVideo(){
+
+    reproductor.muted =
+        configuracionMultimedia
+            .videoSilenciado;
+
+    reproductor.volume =
+        videoReducidoPorAnuncio
+            ? obtenerVolumenVideoReducido()
+            : obtenerVolumenVideoNormal();
+
+}
+
+
+function aplicarVolumenVoz(){
+
+    sonido.muted =
+        configuracionMultimedia
+            .vozSilenciada;
+
+    sonido.volume =
+        configuracionMultimedia
+            .vozSilenciada
+            ? 0
+            : limitarVolumen(
+                configuracionMultimedia
+                    .volumenVoz
+                / 100
+            );
+
+}
+
+
+function aplicarConfiguracionMultimediaPantalla(
+    configuracion
+){
+
+    configuracionMultimedia = {
+
+        volumenVoz:
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Number(
+                        configuracion
+                            ?.volumenVoz
+                        ?? 100
+                    )
+                )
+            ),
+
+        volumenVideo:
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Number(
+                        configuracion
+                            ?.volumenVideo
+                        ?? 35
+                    )
+                )
+            ),
+
+        vozSilenciada:
+            configuracion
+                ?.vozSilenciada
+            === true,
+
+        videoSilenciado:
+            configuracion
+                ?.videoSilenciado
+            === true
+
+    };
+
+    aplicarVolumenVideo();
+
+    aplicarVolumenVoz();
+
+}
+
+
+async function cargarConfiguracionMultimediaPantalla(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/pantalla/configuracion-multimedia",
+                {
+                    cache:"no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cargar la configuración multimedia"
+            );
+
+        }
+
+        aplicarConfiguracionMultimediaPantalla(
+            data.configuracion
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar configuración multimedia:",
+            error
+        );
+
+        /*
+        Conservamos los valores predeterminados.
+        */
+        aplicarConfiguracionMultimediaPantalla(
+            configuracionMultimedia
+        );
+
+    }
+
+}
 
 reproductor.addEventListener("ended", ()=>{
 
@@ -691,7 +982,9 @@ function mostrarOverlayTurno(data){
     document.getElementById("overlayMesa").textContent =
         nombreMesa.toUpperCase();
 
-    reproductor.volume = 0.08;
+    videoReducidoPorAnuncio = true;
+
+    aplicarVolumenVideo();
 
     videoBox.classList.add("oscuro");
     overlay.classList.add("activo");
@@ -709,8 +1002,9 @@ function ocultarOverlayTurno(){
     overlay.classList.remove("activo");
     videoBox.classList.remove("oscuro");
 
-    reproductor.volume = 0.35;
+    videoReducidoPorAnuncio = false;
 
+    aplicarVolumenVideo();
 }
 
 function actualizarReloj(){
@@ -735,7 +1029,41 @@ function actualizarReloj(){
 setInterval(actualizarReloj, 1000);
 actualizarReloj();
 
-cargarUltimosTurnos();
+async function iniciarPantalla(){
+
+    await cargarConfiguracionMultimediaPantalla();
+
+    await cargarUltimosTurnos();
+
+    aplicarVolumenVideo();
+
+    aplicarVolumenVoz();
+
+    reproductor
+        .play()
+        .catch(()=>{});
+
+}
+
+iniciarPantalla();
+
+socket.on(
+    "configuracionMultimediaActualizada",
+    data => {
+
+        if(
+            !data
+            || !data.configuracion
+        ){
+            return;
+        }
+
+        aplicarConfiguracionMultimediaPantalla(
+            data.configuracion
+        );
+
+    }
+);
 
 socket.on("nuevoTurno", (data)=>{
 

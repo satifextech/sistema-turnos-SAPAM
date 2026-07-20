@@ -263,6 +263,146 @@ class GestorConfiguracion {
 
     }
 
+    convertirVolumen(
+        valor,
+        respaldo
+    ){
+
+        const numero =
+            Number(valor);
+
+        if(
+            !Number.isFinite(numero)
+        ){
+
+            return respaldo;
+
+        }
+
+        return Math.max(
+            0,
+            Math.min(
+                100,
+                Math.round(numero)
+            )
+        );
+
+    }
+
+
+    convertirBooleano(
+        valor,
+        respaldo = false
+    ){
+
+        if(
+            valor === true
+            || valor === 1
+            || valor === "1"
+            || valor === "true"
+        ){
+
+            return true;
+
+        }
+
+        if(
+            valor === false
+            || valor === 0
+            || valor === "0"
+            || valor === "false"
+        ){
+
+            return false;
+
+        }
+
+        return respaldo;
+
+    }
+
+
+    async obtenerConfiguracionMultimedia(){
+
+        const configuracion =
+            await this.obtenerTodas();
+
+        return {
+
+            volumenVoz:
+                this.convertirVolumen(
+                    configuracion
+                        .volumen_voz,
+                    100
+                ),
+
+            volumenVideo:
+                this.convertirVolumen(
+                    configuracion
+                        .volumen_video,
+                    35
+                ),
+
+            vozSilenciada:
+                this.convertirBooleano(
+                    configuracion
+                        .voz_silenciada,
+                    false
+                ),
+
+            videoSilenciado:
+                this.convertirBooleano(
+                    configuracion
+                        .video_silenciado,
+                    false
+                )
+
+        };
+
+    }
+
+
+    async guardarConfiguracionMultimedia(
+        configuracion
+    ){
+
+        await Promise.all([
+
+            this.guardar(
+                "volumen_voz",
+                configuracion.volumenVoz,
+                "Volumen de los anuncios de voz de la pantalla"
+            ),
+
+            this.guardar(
+                "volumen_video",
+                configuracion.volumenVideo,
+                "Volumen normal de los videos de la pantalla"
+            ),
+
+            this.guardar(
+                "voz_silenciada",
+                configuracion.vozSilenciada
+                    ? "1"
+                    : "0",
+                "Indica si los anuncios de voz están silenciados"
+            ),
+
+            this.guardar(
+                "video_silenciado",
+                configuracion.videoSilenciado
+                    ? "1"
+                    : "0",
+                "Indica si los videos están silenciados"
+            )
+
+        ]);
+
+        return this
+            .obtenerConfiguracionMultimedia();
+
+    }
+
 
 }
 
