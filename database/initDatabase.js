@@ -151,6 +151,32 @@ db.serialize(() => {
         )
     `);
 
+    db.run(`
+        CREATE TABLE IF NOT EXISTS videos_pantalla (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            nombreArchivo TEXT NOT NULL UNIQUE,
+
+            nombreVisible TEXT NOT NULL,
+
+            activo INTEGER NOT NULL DEFAULT 1,
+
+            orden INTEGER NOT NULL DEFAULT 0,
+
+            tamañoBytes INTEGER NOT NULL DEFAULT 0,
+
+            tipoMime TEXT,
+
+            fechaCreacion DATETIME
+                DEFAULT CURRENT_TIMESTAMP,
+
+            fechaActualizacion DATETIME
+                DEFAULT CURRENT_TIMESTAMP
+
+        )
+    `);
+
     const tramitesIniciales = [
 
         {
@@ -727,6 +753,79 @@ db.run(
     }
 
 ];
+
+const videosIniciales = [
+
+    {
+        nombreArchivo:
+            "video1.mp4",
+        nombreVisible:
+            "Video 1",
+        orden:
+            1
+    },
+
+    {
+        nombreArchivo:
+            "video2.mp4",
+        nombreVisible:
+            "Video 2",
+        orden:
+            2
+    },
+
+    {
+        nombreArchivo:
+            "video3.mp4",
+        nombreVisible:
+            "Video 3",
+        orden:
+            3
+    },
+
+    {
+        nombreArchivo:
+            "video4.mp4",
+        nombreVisible:
+            "Video 4",
+        orden:
+            4
+    },
+
+    {
+        nombreArchivo:
+            "video5.mp4",
+        nombreVisible:
+            "Video 5",
+        orden:
+            5
+    }
+
+];
+
+for(const video of videosIniciales){
+
+    db.run(
+        `
+        INSERT OR IGNORE INTO videos_pantalla
+        (
+            nombreArchivo,
+            nombreVisible,
+            activo,
+            orden,
+            tamañoBytes,
+            tipoMime
+        )
+        VALUES (?, ?, 1, ?, 0, 'video/mp4')
+        `,
+        [
+            video.nombreArchivo,
+            video.nombreVisible,
+            video.orden
+        ]
+    );
+
+}
 
 for(
     const configuracion

@@ -15,8 +15,194 @@ const gestorTramites = require("../services/gestorTramites");
 const gestorMesasConfig = require("../services/gestorMesasConfig");
 const gestorReglas = require("../services/gestorReglas");
 const gestorConfiguracion = require("../services/gestorConfiguracion");
+const gestorVideos = require("../services/gestorVideos");
+
+const multer =
+    require("multer");
+
+const fs =
+    require("fs");
 
 const app = express();
+
+const carpetaVideos =
+    path.join(
+        __dirname,
+        "../public/assets/videos"
+    );
+
+fs.mkdirSync(
+    carpetaVideos,
+    {
+        recursive:true
+    }
+);
+
+function limpiarNombreArchivo(
+    nombre
+){
+
+    const extension =
+        path.extname(
+            nombre
+        ).toLowerCase();
+
+    const base =
+        path.basename(
+            nombre,
+            extension
+        )
+            .normalize("NFD")
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(
+                /[^a-zA-Z0-9_-]/g,
+                "-"
+            )
+            .replace(
+                /-+/g,
+                "-"
+            )
+            .replace(
+                /^-|-$/g,
+                ""
+            )
+            .slice(
+                0,
+                80
+            );
+
+    return {
+        base:
+            base
+            || "video",
+        extension
+    };
+
+}
+
+
+const almacenamientoVideos =
+    multer.diskStorage({
+
+        destination:
+            (
+                req,
+                archivo,
+                callback
+            )=>{
+
+                callback(
+                    null,
+                    carpetaVideos
+                );
+
+            },
+
+        filename:
+            (
+                req,
+                archivo,
+                callback
+            )=>{
+
+                const {
+                    base,
+                    extension
+                } =
+                    limpiarNombreArchivo(
+                        archivo.originalname
+                    );
+
+                const identificador =
+                    Date.now()
+                    + "-"
+                    + crypto
+                        .randomBytes(4)
+                        .toString("hex");
+
+                callback(
+                    null,
+                    `${base}-${identificador}${extension}`
+                );
+
+            }
+
+    });
+
+
+const subirVideo =
+    multer({
+
+        storage:
+            almacenamientoVideos,
+
+        limits:{
+
+            /*
+            Máximo de 500 MB por video.
+            */
+            fileSize:
+                500
+                * 1024
+                * 1024
+
+        },
+
+        fileFilter:
+            (
+                req,
+                archivo,
+                callback
+            )=>{
+
+                const extension =
+                    path.extname(
+                        archivo.originalname
+                    ).toLowerCase();
+
+                const extensionesPermitidas = [
+                    ".mp4",
+                    ".webm",
+                    ".ogg"
+                ];
+
+                const tiposPermitidos = [
+                    "video/mp4",
+                    "video/webm",
+                    "video/ogg"
+                ];
+
+                if(
+                    !extensionesPermitidas
+                        .includes(extension)
+                    ||
+                    !tiposPermitidos
+                        .includes(
+                            archivo.mimetype
+                        )
+                ){
+
+                    callback(
+                        new Error(
+                            "Formato no permitido. Usa MP4, WebM u OGG."
+                        )
+                    );
+
+                    return;
+
+                }
+
+                callback(
+                    null,
+                    true
+                );
+
+            }
+
+    });
 
 const sesiones = new Map();
 
@@ -583,6 +769,483 @@ app.get("/api/admin/resumen", requerirRoles("admin", "supervisor"), async (req,r
     }
 
 });
+
+app.get(
+    "/api/pantalla/videos",
+    async (req, res)=>{
+
+        try{
+
+            const videos =
+                await gestorVideos
+                    .listarActivos();
+
+            res.json({
+                success:true,
+                videos
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al cargar videos de pantalla:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron cargar los videos"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/admin/videos",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    async (req, res)=>{
+
+        try{
+
+            const videos =
+                await gestorVideos
+                    .listarTodos();
+
+            res.json({
+                success:true,
+                videos
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar videos:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudieron consultar los videos"
+            });
+
+        }
+
+    }
+);
+
+app.post(
+    "/api/admin/videos",
+    requerirAdmin,
+    (
+        req,
+        res,
+        next
+    )=>{
+
+        subirVideo.single(
+            "video"
+        )(
+            req,
+            res,
+            error => {
+
+                if(error){
+
+                    if(
+                        error.code
+                        === "LIMIT_FILE_SIZE"
+                    ){
+
+                        return res.status(413).json({
+                            success:false,
+                            mensaje:
+                                "El video supera el límite de 500 MB"
+                        });
+
+                    }
+
+                    return res.status(400).json({
+                        success:false,
+                        mensaje:
+                            error.message
+                            || "No se pudo recibir el video"
+                    });
+
+                }
+
+                next();
+
+            }
+        );
+
+    },
+    async (req, res)=>{
+
+        if(!req.file){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Debes seleccionar un video"
+            });
+
+        }
+
+        const nombreVisible =
+            String(
+                req.body.nombreVisible
+                || ""
+            ).trim();
+
+        if(
+            nombreVisible.length < 2
+            || nombreVisible.length > 100
+        ){
+
+            try{
+
+                await fs.promises.unlink(
+                    req.file.path
+                );
+
+            }catch(errorEliminacion){
+
+                console.error(
+                    "No se pudo limpiar el archivo rechazado:",
+                    errorEliminacion
+                );
+
+            }
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El nombre visible debe tener entre 2 y 100 caracteres"
+            });
+
+        }
+
+        try{
+
+            const orden =
+                await gestorVideos
+                    .obtenerSiguienteOrden();
+
+            const resultado =
+                await gestorVideos
+                    .crear({
+
+                        nombreArchivo:
+                            req.file.filename,
+
+                        nombreVisible,
+
+                        orden,
+
+                        tamañoBytes:
+                            req.file.size,
+
+                        tipoMime:
+                            req.file.mimetype
+
+                    });
+
+            const video =
+                await gestorVideos
+                    .buscarPorId(
+                        resultado.id
+                    );
+
+            io.emit(
+                "videosPantallaActualizados"
+            );
+
+            res.status(201).json({
+                success:true,
+                video,
+                mensaje:
+                    "Video cargado correctamente"
+            });
+
+        }catch(error){
+
+            try{
+
+                await fs.promises.unlink(
+                    req.file.path
+                );
+
+            }catch(errorEliminacion){
+
+                console.error(
+                    "No se pudo eliminar el archivo después del error:",
+                    errorEliminacion
+                );
+
+            }
+
+            console.error(
+                "Error al registrar video:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo registrar el video"
+            });
+
+        }
+
+    }
+);
+
+app.put(
+    "/api/admin/videos/:id",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(
+                req.params.id
+            );
+
+        const nombreVisible =
+            String(
+                req.body.nombreVisible
+                || ""
+            ).trim();
+
+        const activo =
+            req.body.activo
+            === true;
+
+        const orden =
+            Number(
+                req.body.orden
+            );
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Video inválido"
+            });
+
+        }
+
+        if(
+            nombreVisible.length < 2
+            || nombreVisible.length > 100
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El nombre visible debe tener entre 2 y 100 caracteres"
+            });
+
+        }
+
+        if(
+            !Number.isInteger(orden)
+            || orden < 0
+            || orden > 9999
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "El orden debe ser un número entero entre 0 y 9999"
+            });
+
+        }
+
+        try{
+
+            const video =
+                await gestorVideos
+                    .buscarPorId(id);
+
+            if(!video){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El video no existe"
+                });
+
+            }
+
+            await gestorVideos
+                .actualizar(
+                    id,
+                    {
+                        nombreVisible,
+                        activo,
+                        orden
+                    }
+                );
+
+            const actualizado =
+                await gestorVideos
+                    .buscarPorId(id);
+
+            io.emit(
+                "videosPantallaActualizados"
+            );
+
+            res.json({
+                success:true,
+                video:
+                    actualizado,
+                mensaje:
+                    "Video actualizado correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al actualizar video:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo actualizar el video"
+            });
+
+        }
+
+    }
+);
+
+app.delete(
+    "/api/admin/videos/:id",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const id =
+            Number(
+                req.params.id
+            );
+
+        if(
+            !Number.isInteger(id)
+            || id <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Video inválido"
+            });
+
+        }
+
+        try{
+
+            const video =
+                await gestorVideos
+                    .buscarPorId(id);
+
+            if(!video){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El video no existe"
+                });
+
+            }
+
+            const rutaArchivo =
+                path.join(
+                    carpetaVideos,
+                    video.nombreArchivo
+                );
+
+            /*
+            Eliminamos primero el registro.
+            */
+            const eliminados =
+                await gestorVideos
+                    .eliminar(id);
+
+            if(eliminados === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El video ya no existe"
+                });
+
+            }
+
+            /*
+            Después eliminamos el archivo físico.
+            */
+            try{
+
+                await fs.promises.unlink(
+                    rutaArchivo
+                );
+
+            }catch(errorArchivo){
+
+                if(
+                    errorArchivo.code
+                    !== "ENOENT"
+                ){
+
+                    console.error(
+                        "No se pudo eliminar el archivo físico:",
+                        errorArchivo
+                    );
+
+                }
+
+            }
+
+            io.emit(
+                "videosPantallaActualizados"
+            );
+
+            res.json({
+                success:true,
+                mensaje:
+                    "Video eliminado correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al eliminar video:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo eliminar el video"
+            });
+
+        }
+
+    }
+);
 
 app.get(
     "/api/pantalla/configuracion-multimedia",
