@@ -58,6 +58,11 @@ body{
     box-shadow:0 0 10px rgba(41,164,83,0.7);
 }
 
+.indicador.desconectado{
+    background:#c52b35;
+    box-shadow:0 0 10px rgba(197,43,53,0.7);
+}
+
 .contenido{
     min-height:calc(100vh - 100px);
     padding:32px;
@@ -219,8 +224,14 @@ button:disabled{
     </div>
 
     <div class="estado-conexion">
-        <span class="indicador"></span>
-        Servidor conectado
+        <span
+            class="indicador"
+            id="indicadorConexion">
+        </span>
+
+        <span id="textoConexion">
+            Conectando con el servidor...
+        </span>
     </div>
 
 </header>
@@ -433,6 +444,96 @@ const btnDisponible =
         "btnDisponible"
     );
 
+const indicadorConexion =
+    document.getElementById(
+        "indicadorConexion"
+    );
+
+const textoConexion =
+    document.getElementById(
+        "textoConexion"
+    );
+
+let servidorConectado = false;
+let operacionMesaEnProceso = false;
+
+function bloquearControlesMesa(){
+
+    btnLlamar.disabled = true;
+    btnFinalizar.disabled = true;
+    btnDescanso.disabled = true;
+    btnBano.disabled = true;
+    btnComida.disabled = true;
+    btnDisponible.disabled = true;
+
+}
+
+
+function actualizarConexionMesa(conectado){
+
+    servidorConectado =
+        conectado;
+
+    if(conectado){
+
+        indicadorConexion.className =
+            "indicador";
+
+        textoConexion.textContent =
+            "Servidor conectado";
+
+        mostrarAviso(
+            "Conexión restablecida.",
+            "exito"
+        );
+
+        cargarTurnoActual();
+        cargarEstadoOperativo();
+
+        return;
+
+    }
+
+    indicadorConexion.className =
+        "indicador desconectado";
+
+    textoConexion.textContent =
+        "Servidor desconectado";
+
+    bloquearControlesMesa();
+
+    mostrarAviso(
+        "Se perdió la conexión con el servidor.",
+        "error"
+    );
+
+}
+
+socket.on("connect", ()=>{
+
+    actualizarConexionMesa(true);
+
+});
+
+
+socket.on("disconnect", ()=>{
+
+    actualizarConexionMesa(false);
+
+});
+
+
+socket.on("connect_error", error => {
+
+    console.error(
+        "Error de conexión Socket.IO:",
+        error
+    );
+
+    actualizarConexionMesa(false);
+
+});
+
 
 function mostrarAviso(mensaje, tipo = ""){
 
@@ -567,12 +668,27 @@ async function cargarTurnoActual(){
 
 async function llamar(){
 
+    if(
+        operacionMesaEnProceso
+        || !servidorConectado
+    ){
+
+        return;
+
+    }
+
+    operacionMesaEnProceso = true;
+
     if(turnoActual){
+
+        operacionMesaEnProceso = false;
 
         mostrarAviso(
             "Primero debes finalizar el turno actual.",
             "error"
         );
+
+        actualizarBotonesMesa();
 
         return;
 
@@ -659,6 +775,8 @@ async function llamar(){
 
     }finally{
 
+        operacionMesaEnProceso = false;
+
         btnLlamar.textContent =
             "Llamar siguiente turno";
 
@@ -671,7 +789,20 @@ async function llamar(){
 
 async function finalizar(){
 
+    if(
+        operacionMesaEnProceso
+        || !servidorConectado
+    ){
+
+        return;
+
+    }
+
+    operacionMesaEnProceso = true;
+
     if(!turnoActual){
+
+        operacionMesaEnProceso = false;
 
         mostrarMesaLibre();
 
@@ -763,8 +894,12 @@ async function finalizar(){
 
     }finally{
 
+        operacionMesaEnProceso = false;
+
         btnFinalizar.textContent =
             "Finalizar atención";
+
+        actualizarBotonesMesa();
 
     }
 
@@ -887,16 +1022,30 @@ async function cambiarEstadoMesa(
     estado,
     motivo = null
 ){
+    if(
+        operacionMesaEnProceso
+        || !servidorConectado
+    ){
+
+        return;
+
+    }
+
+    operacionMesaEnProceso = true;
 
     if(
         turnoActual
         && estado !== "disponible"
     ){
 
+        operacionMesaEnProceso = false;
+
         mostrarAviso(
             "Primero finaliza el turno actual.",
             "error"
         );
+
+        actualizarBotonesMesa();
 
         return;
 
@@ -962,6 +1111,16 @@ async function cambiarEstadoMesa(
             error.message,
             "error"
         );
+
+    }finally{
+
+        operacionMesaEnProceso = false;
+
+        if(servidorConectado){
+
+            await cargarEstadoOperativo();
+
+        }
 
     }
 

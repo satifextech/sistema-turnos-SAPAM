@@ -1,5 +1,8 @@
+const db =
+    require("../database/db");
 const fs = require("fs");
 const path = require("path");
+
 
 class GestorRespaldos {
 
@@ -8,11 +11,6 @@ class GestorRespaldos {
         this.carpetaRespaldos = path.join(
             __dirname,
             "../backups"
-        );
-
-        this.rutaBaseDatos = path.join(
-            __dirname,
-            "../database/turnos.db"
         );
 
     }
@@ -54,45 +52,79 @@ class GestorRespaldos {
 
     crearCopiaBaseDatos(){
 
-        return new Promise((resolve, reject)=>{
+        return new Promise(
+            (resolve, reject)=>{
 
-            this.asegurarCarpeta();
+                this.asegurarCarpeta();
 
-            const fecha =
-                this.crearNombreFecha();
+                const fecha =
+                    this.crearNombreFecha();
 
-            const nombreArchivo =
-                `turnos-${fecha}.db`;
+                const nombreArchivo =
+                    `turnos-${fecha}.db`;
 
-            const destino = path.join(
-                this.carpetaRespaldos,
-                nombreArchivo
-            );
+                const destino =
+                    path.join(
+                        this.carpetaRespaldos,
+                        nombreArchivo
+                    );
 
-            fs.copyFile(
-                this.rutaBaseDatos,
-                destino,
-                error => {
+                /*
+                Database#backup crea una copia coherente
+                mediante el mecanismo interno de SQLite,
+                incluso si el sistema está funcionando.
+                */
+                db.backup(
+                    destino,
+                    error => {
 
-                    if(error){
-                        reject(error);
-                        return;
+                        if(error){
+
+                            reject(error);
+                            return;
+
+                        }
+
+                        fs.stat(
+                            destino,
+                            (
+                                errorEstadistica,
+                                datos
+                            )=>{
+
+                                if(errorEstadistica){
+
+                                    reject(
+                                        errorEstadistica
+                                    );
+
+                                    return;
+
+                                }
+
+                                resolve({
+
+                                    nombreArchivo,
+
+                                    ruta:
+                                        destino,
+
+                                    tamaño:
+                                        datos.size,
+
+                                    fechaCreacion:
+                                        new Date()
+
+                                });
+
+                            }
+                        );
+
                     }
+                );
 
-                    const datos =
-                        fs.statSync(destino);
-
-                    resolve({
-                        nombreArchivo,
-                        ruta:destino,
-                        tamaño:datos.size,
-                        fechaCreacion:new Date()
-                    });
-
-                }
-            );
-
-        });
+            }
+        );
 
     }
 

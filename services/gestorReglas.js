@@ -4,90 +4,217 @@ class GestorReglas {
 
     listarConfiguracionCompleta(){
 
-        return new Promise((resolve, reject)=>{
+        return new Promise(
+            (resolve, reject)=>{
 
-            db.all(
-                `
-                SELECT
-                    tc.codigo,
-                    tc.nombre,
-                    tc.prefijo,
+                db.all(
+                    `
+                    SELECT
+                        tc.codigo,
+                        tc.nombre,
+                        tc.prefijo,
 
-                    COALESCE(
-                        rt.limiteApoyo,
-                        5
-                    ) AS limiteApoyo,
+                        COALESCE(
+                            rt.limiteApoyo,
+                            5
+                        ) AS limiteApoyo,
 
-                    COALESCE(
-                        rt.activo,
-                        1
-                    ) AS reglaActiva
+                        COALESCE(
+                            rt.activo,
+                            1
+                        ) AS reglaActiva,
 
-                FROM tramites_config tc
+                        rm.mesa,
+                        rm.tipo,
+                        rm.orden,
+                        rm.activo,
 
-                LEFT JOIN reglas_tramites rt
-                    ON rt.tramite=tc.codigo
+                        mc.nombre AS nombreMesa,
+                        mc.activo AS mesaActiva,
+                        mc.permiteTurnos
 
-                WHERE tc.activo=1
+                    FROM tramites_config tc
 
-                ORDER BY
-                    tc.orden ASC,
-                    tc.nombre ASC
-                `,
-                [],
-                async (errorTramites, tramites)=>{
+                    LEFT JOIN reglas_tramites rt
+                        ON rt.tramite=tc.codigo
 
-                    if(errorTramites){
-                        reject(errorTramites);
-                        return;
-                    }
+                    LEFT JOIN reglas_mesas rm
+                        ON rm.tramite=tc.codigo
+                        AND rm.activo=1
 
-                    try{
+                    LEFT JOIN mesas_config mc
+                        ON mc.numero=rm.mesa
 
-                        const resultado = [];
+                    WHERE
+                        tc.activo=1
 
-                        for(const tramite of tramites){
+                    ORDER BY
+                        tc.orden ASC,
+                        tc.nombre ASC,
 
-                            const asignaciones =
-                                await this.obtenerAsignaciones(
-                                    tramite.codigo
-                                );
+                        CASE
+                            WHEN rm.tipo='prioridad'
+                            THEN 1
 
-                            resultado.push({
-                                ...tramite,
-                                prioridad:
-                                    asignaciones
-                                        .filter(
-                                            item =>
-                                                item.tipo
-                                                === "prioridad"
-                                        ),
-                                apoyo:
-                                    asignaciones
-                                        .filter(
-                                            item =>
-                                                item.tipo
-                                                === "apoyo"
-                                        )
-                            });
+                            WHEN rm.tipo='apoyo'
+                            THEN 2
+
+                            ELSE 3
+                        END,
+
+                        rm.orden ASC,
+                        rm.mesa ASC
+                    `,
+                    [],
+                    (error, filas)=>{
+
+                        if(error){
+
+                            reject(error);
+                            return;
 
                         }
 
-                        resolve(resultado);
+                        const tramites =
+                            new Map();
 
-                    }catch(error){
+                        for(
+                            const fila
+                            of filas
+                        ){
 
-                        reject(error);
+                            if(
+                                !tramites.has(
+                                    fila.codigo
+                                )
+                            ){
+
+                                tramites.set(
+                                    fila.codigo,
+                                    {
+                                        codigo:
+                                            fila.codigo,
+
+                                        nombre:
+                                            fila.nombre,
+
+                                        prefijo:
+                                            fila.prefijo,
+
+                                        limiteApoyo:
+                                            Number(
+                                                fila.limiteApoyo
+                                                || 5
+                                            ),
+
+                                        reglaActiva:
+                                            Number(
+                                                fila.reglaActiva
+                                            ),
+
+                                        prioridad:[],
+
+                                        apoyo:[]
+                                    }
+                                );
+
+                            }
+
+                            /*
+                            Un trámite puede no tener todavía
+                            mesas configuradas. En ese caso,
+                            rm.mesa será NULL y no agregamos
+                            ninguna asignación.
+                            */
+                            if(
+                                fila.mesa === null
+                                ||
+                                fila.mesa === undefined
+                            ){
+
+                                continue;
+
+                            }
+
+                            const asignacion = {
+
+                                mesa:
+                                    Number(
+                                        fila.mesa
+                                    ),
+
+                                tipo:
+                                    fila.tipo,
+
+                                orden:
+                                    Number(
+                                        fila.orden
+                                        || 0
+                                    ),
+
+                                activo:
+                                    Number(
+                                        fila.activo
+                                    ),
+
+                                nombreMesa:
+                                    fila.nombreMesa
+                                    || `Mesa ${fila.mesa}`,
+
+                                mesaActiva:
+                                    Number(
+                                        fila.mesaActiva
+                                        || 0
+                                    ),
+
+                                permiteTurnos:
+                                    Number(
+                                        fila.permiteTurnos
+                                        || 0
+                                    )
+
+                            };
+
+                            const tramite =
+                                tramites.get(
+                                    fila.codigo
+                                );
+
+                            if(
+                                fila.tipo
+                                === "prioridad"
+                            ){
+
+                                tramite.prioridad.push(
+                                    asignacion
+                                );
+
+                            }else if(
+                                fila.tipo
+                                === "apoyo"
+                            ){
+
+                                tramite.apoyo.push(
+                                    asignacion
+                                );
+
+                            }
+
+                        }
+
+                        resolve(
+                            Array.from(
+                                tramites.values()
+                            )
+                        );
 
                     }
+                );
 
-                }
-            );
-
-        });
+            }
+        );
 
     }
-
 
     obtenerAsignaciones(tramite){
 

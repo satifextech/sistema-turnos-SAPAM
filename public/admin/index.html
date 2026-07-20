@@ -853,6 +853,17 @@ body{
     color:white;
 }
 
+.boton-eliminar-mesa{
+    background:#a5232f;
+    color:white;
+}
+
+.boton-eliminar-mesa:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+
 @media(max-width:900px){
 
     .formulario-mesa-config{
@@ -9450,6 +9461,21 @@ async function cargarMesasConfiguracion(){
 
                                 </button>
 
+                                <button
+                                    class="
+                                        boton-config
+                                        boton-eliminar-mesa
+                                    "
+                                    onclick="
+                                        eliminarMesaConfiguracion(
+                                            ${Number(mesa.numero)}
+                                        )
+                                    ">
+
+                                    Eliminar
+
+                                </button>
+
                             </div>
 
                         </td>
@@ -10389,6 +10415,147 @@ function abrirMesaConfiguracion(numero){
 
 }
 
+async function eliminarMesaConfiguracion(
+    numero
+){
+
+    const mesa =
+        mesasConfiguracion.find(
+            item =>
+                Number(item.numero)
+                === Number(numero)
+        );
+
+    if(!mesa){
+
+        alert(
+            "El punto de atención ya no existe."
+        );
+
+        return;
+
+    }
+
+    const nombre =
+        String(
+            mesa.nombre
+            || `Mesa ${numero}`
+        );
+
+    const confirmacion =
+        confirm(
+            `¿Deseas eliminar "${nombre}"?\n\n`
+            + "Si tiene historial de atención no podrá eliminarse.\n"
+            + "Si tiene prioridades o apoyos, estos se eliminarán automáticamente.\n\n"
+            + "Esta acción no puede deshacerse."
+        );
+
+    if(!confirmacion){
+        return;
+    }
+
+    const mensaje =
+        document.getElementById(
+            "mensajeMesasConfig"
+        );
+
+    mensaje.textContent =
+        `Eliminando ${nombre}...`;
+
+    mensaje.className =
+        "mensaje-config";
+
+    try{
+
+        const response =
+            await fetch(
+                `/api/admin/mesas-config/${numero}`,
+                {
+                    method:"DELETE"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo eliminar el punto de atención"
+            );
+
+        }
+
+        mensaje.textContent =
+            data.mensaje
+            || `${nombre} eliminado correctamente`;
+
+        mensaje.className =
+            "mensaje-config";
+
+        /*
+        Cerramos el formulario si se estaba
+        editando precisamente la mesa eliminada.
+        */
+        const numeroEnEdicion =
+            Number(
+                document.getElementById(
+                    "mesaNumeroEdicion"
+                ).value
+            );
+
+        if(
+            numeroEnEdicion
+            === Number(numero)
+        ){
+
+            ocultarFormularioMesa();
+
+        }
+
+        /*
+        Recargamos directamente. El evento Socket.IO
+        también actualizará las otras sesiones abiertas.
+        */
+        await Promise.all([
+
+            cargarMesasConfiguracion(),
+
+            cargarReglasConfiguracion()
+
+        ]);
+
+        programarActualizacionPanel();
+
+        registrarActividad(
+            `${nombre} fue eliminado del sistema.`,
+            "aviso"
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al eliminar mesa:",
+            error
+        );
+
+        mensaje.textContent =
+            error.message;
+
+        mensaje.className =
+            "mensaje-config";
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
 
 async function guardarMesaConfiguracion(){
 

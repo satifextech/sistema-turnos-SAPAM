@@ -73,39 +73,50 @@ class GestorTurnos {
 
     }
 
-    marcarAtendiendo(id, mesa){
+    marcarAtendiendo(
+        id,
+        mesa
+    ){
 
-        return new Promise((resolve,reject)=>{
+        return new Promise(
+            (resolve, reject)=>{
 
-            db.run(
+                db.run(
+                    `
+                    UPDATE turnos
 
-                `
-                UPDATE turnos
-                SET
-                    estado='atendiendo',
-                    mesa=?,
-                    fechaLlamado=CURRENT_TIMESTAMP
-                WHERE id=?
-                `,
+                    SET
+                        estado='atendiendo',
+                        mesa=?,
+                        fechaLlamado=
+                            CURRENT_TIMESTAMP
 
-                [mesa,id],
+                    WHERE
+                        id=?
+                        AND estado='espera'
+                    `,
+                    [
+                        mesa,
+                        id
+                    ],
+                    function(error){
 
-                function(err){
+                        if(error){
 
-                    if(err){
+                            reject(error);
+                            return;
 
-                        reject(err);
-                        return;
+                        }
+
+                        resolve(
+                            this.changes
+                        );
 
                     }
+                );
 
-                    resolve();
-
-                }
-
-            );
-
-        });
+            }
+        );
 
     }
 

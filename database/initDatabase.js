@@ -382,8 +382,28 @@ db.serialize(() => {
 
     }
 
+    const contraseñaAdminInicial =
+        String(
+            process.env.SAPAM_ADMIN_PASSWORD
+            || ""
+        );
+
+    if(
+        contraseñaAdminInicial.length < 12
+    ){
+
+        throw new Error(
+            "Debes configurar SAPAM_ADMIN_PASSWORD "
+            + "con una contraseña de al menos 12 caracteres."
+        );
+
+    }
+
     const contraseñaAdmin =
-        bcrypt.hashSync("SAPAM2026", 12);
+        bcrypt.hashSync(
+            contraseñaAdminInicial,
+            12
+        );
 
     db.run(
         `
@@ -403,11 +423,42 @@ db.serialize(() => {
         ]
     );
 
+    const contraseñaRecepcionInicial =
+        String(
+            process.env.SAPAM_RECEPCION_PASSWORD
+            || ""
+        );
+
+    const contraseñaSupervisorInicial =
+        String(
+            process.env.SAPAM_SUPERVISOR_PASSWORD
+            || ""
+        );
+
+    if(
+        contraseñaRecepcionInicial.length < 12
+        ||
+        contraseñaSupervisorInicial.length < 12
+    ){
+
+        throw new Error(
+            "Debes configurar las contraseñas iniciales "
+            + "de Recepción y Supervisor con al menos 12 caracteres."
+        );
+
+    }
+
     const contraseñaRecepcion =
-        bcrypt.hashSync("Recepcion2026", 12);
+        bcrypt.hashSync(
+            contraseñaRecepcionInicial,
+            12
+        );
 
     const contraseñaSupervisor =
-        bcrypt.hashSync("Supervisor2026", 12);
+        bcrypt.hashSync(
+            contraseñaSupervisorInicial,
+            12
+        );
 
     db.run(
         `
@@ -470,16 +521,16 @@ db.serialize(() => {
 
         {
             tramite:"CONTRATO1",
-            limiteApoyo:1,
+            limiteApoyo:999,
             prioridad:[1],
-            apoyo:[3, 4]
+            apoyo:[]
         },
 
         {
             tramite:"CONTRATO2",
-            limiteApoyo:1,
+            limiteApoyo:999,
             prioridad:[3],
-            apoyo:[1, 4]
+            apoyo:[]
         },
 
         {
@@ -589,78 +640,6 @@ db.serialize(() => {
         );
 
     }
-
-    db.run(
-        `
-        INSERT OR IGNORE INTO reglas_tramites
-        (
-            tramite,
-            limiteApoyo,
-            activo
-        )
-        VALUES ('CAMBIO_MEDIDOR', 3, 1)
-        `
-    );
-
-    db.run(
-        `
-        INSERT OR IGNORE INTO reglas_mesas
-        (
-            tramite,
-            mesa,
-            tipo,
-            orden,
-            activo
-        )
-        VALUES (
-            'CAMBIO_MEDIDOR',
-            6,
-            'prioridad',
-            1,
-            1
-        )
-        `
-    );
-
-    db.run(
-    `
-    INSERT OR IGNORE INTO reglas_mesas
-    (
-        tramite,
-        mesa,
-        tipo,
-        orden,
-        activo
-    )
-    VALUES (
-        'CAMBIO_MEDIDOR',
-        3,
-        'apoyo',
-        1,
-        1
-    )
-    `
-);
-
-db.run(
-        `
-        INSERT OR IGNORE INTO reglas_mesas
-        (
-            tramite,
-            mesa,
-            tipo,
-            orden,
-            activo
-        )
-        VALUES (
-            'CAMBIO_MEDIDOR',
-            4,
-            'apoyo',
-            2,
-            1
-        )
-        `
-    );
 
     const configuracionesIniciales = [
 
@@ -850,6 +829,130 @@ for(
     );
 
 }
+
+/*
+=========================================================
+ÍNDICES DE RENDIMIENTO
+=========================================================
+*/
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_turnos_estado_tramite_id
+
+    ON turnos(
+        estado,
+        tramite,
+        id
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_turnos_mesa_estado_fecha
+
+    ON turnos(
+        mesa,
+        estado,
+        fechaCreacion,
+        id
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_turnos_fecha_estado
+
+    ON turnos(
+        fechaCreacion,
+        estado
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_turnos_fecha_llamado
+
+    ON turnos(
+        fechaLlamado,
+        id
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_turnos_codigo
+
+    ON turnos(
+        codigo
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_reglas_mesas_mesa_tipo
+
+    ON reglas_mesas(
+        mesa,
+        tipo,
+        activo,
+        orden
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_reglas_mesas_tramite_tipo
+
+    ON reglas_mesas(
+        tramite,
+        tipo,
+        activo,
+        orden
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_tramites_config_recepcion
+
+    ON tramites_config(
+        activo,
+        mostrarRecepcion,
+        orden
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_mesas_config_operativas
+
+    ON mesas_config(
+        activo,
+        permiteTurnos,
+        orden
+    )
+`);
+
+
+db.run(`
+    CREATE INDEX IF NOT EXISTS
+    idx_videos_pantalla_activos
+
+    ON videos_pantalla(
+        activo,
+        orden,
+        id
+    )
+`);
 
     console.log("Tablas creadas");
 

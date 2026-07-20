@@ -16,6 +16,30 @@ const gestorMesasConfig = require("../services/gestorMesasConfig");
 const gestorReglas = require("../services/gestorReglas");
 const gestorConfiguracion = require("../services/gestorConfiguracion");
 const gestorVideos = require("../services/gestorVideos");
+const rateLimit = require("express-rate-limit");
+
+const {
+
+    leerCookies,
+
+    obtenerSesion,
+
+    crearSesion,
+
+    cerrarSesionToken,
+
+    cerrarSesionesUsuario,
+
+    limpiarSesionesVencidas,
+
+    requerirAdmin,
+
+    requerirRoles
+
+} =
+    require(
+        "../middlewares/auth"
+    );
 
 const multer =
     require("multer");
@@ -24,6 +48,29 @@ const fs =
     require("fs");
 
 const app = express();
+
+const limitadorLogin =
+    rateLimit({
+
+        windowMs:
+            15 * 60 * 1000,
+
+        limit:
+            10,
+
+        standardHeaders:
+            true,
+
+        legacyHeaders:
+            false,
+
+        message:{
+            success:false,
+            mensaje:
+                "Demasiados intentos de acceso. Espera 15 minutos."
+        }
+
+    });
 
 const carpetaVideos =
     path.join(
@@ -204,155 +251,22 @@ const subirVideo =
 
     });
 
-const sesiones = new Map();
+app.disable(
+    "x-powered-by"
+);
 
-const DURACION_SESION =
-    8 * 60 * 60 * 1000;
+app.use(
+    express.json({
+        limit:"1mb"
+    })
+);
 
-app.use(express.json());
-
-function leerCookies(req){
-
-    const encabezado =
-        req.headers.cookie || "";
-
-    const cookies = {};
-
-    encabezado
-        .split(";")
-        .map(valor => valor.trim())
-        .filter(Boolean)
-        .forEach(par => {
-
-            const posicion =
-                par.indexOf("=");
-
-            if(posicion === -1){
-                return;
-            }
-
-            const nombre =
-                par.slice(0, posicion);
-
-            const valor =
-                par.slice(posicion + 1);
-
-            cookies[nombre] =
-                decodeURIComponent(valor);
-
-        });
-
-    return cookies;
-
-}
-
-
-function obtenerSesion(req){
-
-    const cookies =
-        leerCookies(req);
-
-    const token =
-        cookies.sapam_session;
-
-    if(!token){
-        return null;
-    }
-
-    const sesion =
-        sesiones.get(token);
-
-    if(!sesion){
-        return null;
-    }
-
-    const vencida =
-        Date.now() - sesion.ultimaActividad
-        > DURACION_SESION;
-
-    if(vencida){
-
-        sesiones.delete(token);
-
-        return null;
-
-    }
-
-    sesion.ultimaActividad =
-        Date.now();
-
-    return sesion;
-
-}
-
-function cerrarSesionesUsuario(idUsuario){
-
-    for(const [token, sesion] of sesiones){
-
-        if(
-            Number(sesion.id)
-            === Number(idUsuario)
-        ){
-
-            sesiones.delete(token);
-
-        }
-
-    }
-
-}
-
-function requerirAdmin(req, res, next){
-
-    const sesion =
-        obtenerSesion(req);
-
-    if(
-        !sesion
-        || sesion.rol !== "admin"
-    ){
-
-        return res.status(401).json({
-            success:false,
-            mensaje:"Sesión no válida"
-        });
-
-    }
-
-    req.sesion = sesion;
-
-    next();
-
-}
-
-function requerirRoles(...rolesPermitidos){
-
-    return (req, res, next)=>{
-
-        const sesion =
-            obtenerSesion(req);
-
-        if(
-            !sesion
-            || !rolesPermitidos.includes(
-                sesion.rol
-            )
-        ){
-
-            return res.status(401).json({
-                success:false,
-                mensaje:"No tienes permiso para realizar esta acción"
-            });
-
-        }
-
-        req.sesion = sesion;
-
-        next();
-
-    };
-
-}
+app.use(
+    express.urlencoded({
+        extended:false,
+        limit:"1mb"
+    })
+);
 
 app.use(
     "/api/turno",
@@ -365,6 +279,29 @@ app.use(
 app.use(turnoRoutes);
 
 const server = http.createServer(app);
+
+const intervaloLimpiezaSesiones =
+    setInterval(
+        ()=>{
+
+            const eliminadas =
+                limpiarSesionesVencidas();
+
+            if(eliminadas > 0){
+
+                console.log(
+                    `Sesiones vencidas eliminadas: ${eliminadas}`
+                );
+
+            }
+
+        },
+        30 * 60 * 1000
+    );
+
+
+intervaloLimpiezaSesiones
+    .unref();
 
 const io = new Server(server);
 
@@ -465,6 +402,103 @@ app.get("/admin", (req,res)=>{
 
 });
 
+app.get(
+    [
+        "/admin/",
+        "/admin/index.html"
+    ],
+    (
+        req,
+        res
+    )=>{
+
+        const sesion =
+            obtenerSesion(req);
+
+        if(
+            !sesion
+            ||
+            ![
+                "admin",
+                "supervisor"
+            ].includes(
+                sesion.rol
+            )
+        ){
+
+            return res.redirect(
+                "/login"
+            );
+
+        }
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "../public/admin/index.html"
+            )
+        );
+
+    }
+);
+
+
+app.get(
+    [
+        "/recepcion",
+        "/recepcion/",
+        "/recepcion/index.html"
+    ],
+    (
+        req,
+        res
+    )=>{
+
+        const sesion =
+            obtenerSesion(req);
+
+        if(
+            !sesion
+            ||
+            ![
+                "admin",
+                "recepcion"
+            ].includes(
+                sesion.rol
+            )
+        ){
+
+            return res.redirect(
+                "/login?destino=recepcion"
+            );
+
+        }
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "../public/recepcion/index.html"
+            )
+        );
+
+    }
+);
+
+
+app.get(
+    "/mesa/index.html",
+    (
+        req,
+        res
+    )=>{
+
+        res.redirect(
+            "/"
+        );
+
+    }
+);
+
 app.use(
     express.static(
         path.join(__dirname, "../public"),
@@ -521,9 +555,73 @@ app.get(
     }
 );
 
+async function asignarTurnoSeguro(
+    numeroMesa,
+    intentosMaximos = 5
+){
+
+    for(
+        let intento = 1;
+        intento <= intentosMaximos;
+        intento++
+    ){
+
+        const turno =
+            await asignador
+                .buscarTurno(
+                    numeroMesa
+                );
+
+        if(!turno){
+
+            return null;
+
+        }
+
+        const asignado =
+            await gestorTurnos
+                .marcarAtendiendo(
+                    turno.id,
+                    numeroMesa
+                );
+
+        if(asignado === 1){
+
+            return turno;
+
+        }
+
+        /*
+        Otra mesa alcanzó el mismo turno
+        antes que nosotros. Reintentamos
+        buscando el siguiente disponible.
+        */
+
+    }
+
+    return null;
+
+}
+
 app.post("/api/llamar", async (req, res) => {
 
-    const { mesa } = req.body;
+    const mesa =
+        Number(
+            req.body.mesa
+        );
+
+    if(
+        !Number.isInteger(mesa)
+        || mesa <= 0
+    ){
+
+        return res.status(400).json({
+            success:false,
+            mensaje:
+                "Punto de atención inválido"
+        });
+
+    }
 
     try {
 
@@ -574,9 +672,29 @@ app.post("/api/llamar", async (req, res) => {
 
         }
 
-        const turno = await asignador.buscarTurno(mesa);
+        const turnoActual =
+            await gestorTurnos
+                .obtenerTurnoActualMesa(
+                    Number(mesa)
+                );
 
-        if (!turno) {
+        if(turnoActual){
+
+            return res.status(409).json({
+                success:false,
+                mensaje:
+                    `Este punto de atención ya tiene el turno `
+                    + `${turnoActual.codigo} activo`
+            });
+
+        }
+
+        const turno =
+            await asignarTurnoSeguro(
+                Number(mesa)
+            );
+
+        if(!turno){
 
             return res.json({
                 success: false,
@@ -584,11 +702,6 @@ app.post("/api/llamar", async (req, res) => {
             });
 
         }
-
-        await gestorTurnos.marcarAtendiendo(
-            turno.id,
-            mesa
-        );
 
         /*
         Obtenemos desde SQLite el nombre visible
@@ -2448,6 +2561,19 @@ app.get(
         const numero =
             Number(req.params.numero);
 
+        if(
+            !Number.isInteger(numero)
+            || numero <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Punto de atención inválido"
+            });
+
+        }
+
         try{
 
             const mesa =
@@ -2630,7 +2756,10 @@ app.post(
     }
 );
 
-app.post("/api/login", async (req, res)=>{
+app.post(
+    "/api/login",
+    limitadorLogin,
+    async (req, res)=>{
 
     const usuario =
         String(req.body.usuario || "")
@@ -2676,20 +2805,24 @@ app.post("/api/login", async (req, res)=>{
         }
 
         const token =
-            crypto.randomBytes(32)
-                .toString("hex");
+            crearSesion(
+                encontrado
+            );
 
-        sesiones.set(token, {
-            id:encontrado.id,
-            usuario:encontrado.usuario,
-            rol:encontrado.rol,
-            creadoEn:Date.now(),
-            ultimaActividad:Date.now()
-        });
+        const cookieSegura =
+            process.env.NODE_ENV
+            === "production"
+                ? "; Secure"
+                : "";
 
         res.setHeader(
             "Set-Cookie",
-            `sapam_session=${token}; HttpOnly; Path=/; SameSite=Lax`
+            `sapam_session=${token}; `
+            + "HttpOnly; "
+            + "Path=/; "
+            + "SameSite=Lax; "
+            + "Max-Age=28800"
+            + cookieSegura
         );
 
         res.json({
@@ -2745,13 +2878,24 @@ app.post("/api/logout", (req, res)=>{
     const token =
         cookies.sapam_session;
 
-    if(token){
-        sesiones.delete(token);
-    }
+    cerrarSesionToken(
+        token
+    );
+
+    const cookieSegura =
+        process.env.NODE_ENV
+        === "production"
+            ? "; Secure"
+            : "";
 
     res.setHeader(
         "Set-Cookie",
-        "sapam_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax"
+        "sapam_session=; "
+        + "HttpOnly; "
+        + "Path=/; "
+        + "Max-Age=0; "
+        + "SameSite=Lax"
+        + cookieSegura
     );
 
     res.json({
@@ -2835,41 +2979,6 @@ app.post(
             });
 
         }
-
-    }
-);
-
-app.get(
-    [
-        "/recepcion",
-        "/recepcion/",
-        "/recepcion/index.html"
-    ],
-    (req,res)=>{
-
-        const sesion =
-            obtenerSesion(req);
-
-        if(
-            !sesion
-            || ![
-                "admin",
-                "recepcion"
-            ].includes(sesion.rol)
-        ){
-
-            return res.redirect(
-                "/login?destino=recepcion"
-            );
-
-        }
-
-        res.sendFile(
-            path.join(
-                __dirname,
-                "../public/recepcion/index.html"
-            )
-        );
 
     }
 );
@@ -3958,6 +4067,351 @@ app.put(
     }
 );
 
+app.delete(
+    "/api/admin/mesas-config/:numero",
+    requerirAdmin,
+    async (req, res)=>{
+
+        const numero =
+            Number(
+                req.params.numero
+            );
+
+        if(
+            !Number.isInteger(numero)
+            || numero <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Punto de atención inválido"
+            });
+
+        }
+
+        try{
+
+            const mesa =
+                await gestorMesasConfig
+                    .buscarPorNumero(
+                        numero
+                    );
+
+            if(!mesa){
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El punto de atención no existe"
+                });
+
+            }
+
+            /*
+            Primero comprobamos si existe una atención
+            activa para mostrar un mensaje específico.
+            */
+            const turnoActual =
+                await gestorTurnos
+                    .obtenerTurnoActualMesa(
+                        numero
+                    );
+
+            if(turnoActual){
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        `${mesa.nombre || `Mesa ${numero}`} `
+                        + `está atendiendo el turno `
+                        + `${turnoActual.codigo}. `
+                        + "Primero finaliza o libera la atención."
+                });
+
+            }
+
+            /*
+            No eliminamos puntos con historial porque
+            sus datos se necesitan en reportes anteriores.
+            */
+            const totalHistorial =
+                await new Promise(
+                    (resolve, reject)=>{
+
+                        db.get(
+                            `
+                            SELECT
+                                COUNT(*) AS total
+
+                            FROM turnos
+
+                            WHERE mesa=?
+                            `,
+                            [numero],
+                            (error, fila)=>{
+
+                                if(error){
+
+                                    reject(error);
+                                    return;
+
+                                }
+
+                                resolve(
+                                    Number(
+                                        fila?.total
+                                        || 0
+                                    )
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+            if(totalHistorial > 0){
+
+                return res.status(409).json({
+                    success:false,
+                    tieneHistorial:true,
+                    totalTurnos:
+                        totalHistorial,
+                    mensaje:
+                        `${mesa.nombre || `Mesa ${numero}`} `
+                        + `tiene ${totalHistorial} `
+                        + `${
+                            totalHistorial === 1
+                                ? "turno registrado"
+                                : "turnos registrados"
+                        } y no puede eliminarse. `
+                        + "Puedes dejarla deshabilitada para conservar el historial."
+                });
+
+            }
+
+            /*
+            Si nunca atendió turnos, eliminamos todas
+            sus relaciones dentro de una transacción.
+            */
+            const resultado =
+                await new Promise(
+                    (resolve, reject)=>{
+
+                        db.serialize(()=>{
+
+                            db.run(
+                                "BEGIN IMMEDIATE TRANSACTION",
+                                errorInicio => {
+
+                                    if(errorInicio){
+
+                                        reject(
+                                            errorInicio
+                                        );
+
+                                        return;
+
+                                    }
+
+                                    db.run(
+                                        `
+                                        DELETE FROM reglas_mesas
+                                        WHERE mesa=?
+                                        `,
+                                        [numero],
+                                        function(errorReglas){
+
+                                            if(errorReglas){
+
+                                                db.run(
+                                                    "ROLLBACK"
+                                                );
+
+                                                reject(
+                                                    errorReglas
+                                                );
+
+                                                return;
+
+                                            }
+
+                                            const reglasEliminadas =
+                                                this.changes;
+
+                                            db.run(
+                                                `
+                                                DELETE FROM mesas_estado
+                                                WHERE numero=?
+                                                `,
+                                                [numero],
+                                                function(errorEstado){
+
+                                                    if(errorEstado){
+
+                                                        db.run(
+                                                            "ROLLBACK"
+                                                        );
+
+                                                        reject(
+                                                            errorEstado
+                                                        );
+
+                                                        return;
+
+                                                    }
+
+                                                    const estadosEliminados =
+                                                        this.changes;
+
+                                                    db.run(
+                                                        `
+                                                        DELETE FROM mesas_config
+                                                        WHERE numero=?
+                                                        `,
+                                                        [numero],
+                                                        function(errorMesa){
+
+                                                            if(errorMesa){
+
+                                                                db.run(
+                                                                    "ROLLBACK"
+                                                                );
+
+                                                                reject(
+                                                                    errorMesa
+                                                                );
+
+                                                                return;
+
+                                                            }
+
+                                                            const mesasEliminadas =
+                                                                this.changes;
+
+                                                            if(
+                                                                mesasEliminadas
+                                                                !== 1
+                                                            ){
+
+                                                                db.run(
+                                                                    "ROLLBACK"
+                                                                );
+
+                                                                reject(
+                                                                    new Error(
+                                                                        "La mesa dejó de existir durante la operación"
+                                                                    )
+                                                                );
+
+                                                                return;
+
+                                                            }
+
+                                                            db.run(
+                                                                "COMMIT",
+                                                                errorCommit => {
+
+                                                                    if(
+                                                                        errorCommit
+                                                                    ){
+
+                                                                        db.run(
+                                                                            "ROLLBACK"
+                                                                        );
+
+                                                                        reject(
+                                                                            errorCommit
+                                                                        );
+
+                                                                        return;
+
+                                                                    }
+
+                                                                    resolve({
+                                                                        reglasEliminadas,
+                                                                        estadosEliminados,
+                                                                        mesasEliminadas
+                                                                    });
+
+                                                                }
+                                                            );
+
+                                                        }
+                                                    );
+
+                                                }
+                                            );
+
+                                        }
+                                    );
+
+                                }
+                            );
+
+                        });
+
+                    }
+                );
+
+            io.emit(
+                "configuracionMesasActualizada",
+                {
+                    accion:
+                        "eliminada",
+
+                    numero,
+
+                    nombre:
+                        mesa.nombre
+                        || `Mesa ${numero}`
+                }
+            );
+
+            /*
+            Las prioridades y apoyos también pudieron
+            cambiar al eliminar la mesa.
+            */
+            io.emit(
+                "reglasActualizadas",
+                {
+                    mesaEliminada:
+                        numero
+                }
+            );
+
+            res.json({
+                success:true,
+                numero,
+                nombre:
+                    mesa.nombre
+                    || `Mesa ${numero}`,
+                reglasEliminadas:
+                    resultado.reglasEliminadas,
+                mensaje:
+                    `${mesa.nombre || `Mesa ${numero}`} `
+                    + "eliminada correctamente"
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al eliminar punto de atención:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo eliminar el punto de atención"
+            });
+
+        }
+
+    }
+);
+
 app.get(
     "/api/mesa/:numero/config",
     async (req, res)=>{
@@ -4237,6 +4691,177 @@ app.put(
     }
 );
 
-server.listen(3000, () => {
-    console.log("Servidor en puerto 3000");
-});
+let cerrandoServidor =
+    false;
+
+
+function cerrarServidor(
+    señal
+){
+
+    if(cerrandoServidor){
+        return;
+    }
+
+    cerrandoServidor =
+        true;
+
+    console.log(
+        `\nCerrando servidor por ${señal}...`
+    );
+
+    clearInterval(
+        intervaloLimpiezaSesiones
+    );
+
+    io.close(()=>{
+
+        server.close(
+            errorServidor => {
+
+                if(errorServidor){
+
+                    console.error(
+                        "Error al cerrar servidor HTTP:",
+                        errorServidor
+                    );
+
+                }
+
+                db.close(
+                    errorBase => {
+
+                        if(errorBase){
+
+                            console.error(
+                                "Error al cerrar SQLite:",
+                                errorBase
+                            );
+
+                            process.exit(1);
+
+                            return;
+
+                        }
+
+                        console.log(
+                            "Servidor y base de datos cerrados correctamente"
+                        );
+
+                        process.exit(
+                            errorServidor
+                                ? 1
+                                : 0
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    });
+
+
+    setTimeout(
+        ()=>{
+
+            console.error(
+                "Cierre forzado por tiempo excedido"
+            );
+
+            process.exit(1);
+
+        },
+        10000
+    ).unref();
+
+}
+
+
+process.on(
+    "SIGINT",
+    ()=>cerrarServidor("SIGINT")
+);
+
+process.on(
+    "SIGTERM",
+    ()=>cerrarServidor("SIGTERM")
+);
+
+app.use(
+    (
+        req,
+        res
+    )=>{
+
+        if(
+            req.path.startsWith(
+                "/api/"
+            )
+        ){
+
+            return res.status(404).json({
+                success:false,
+                mensaje:
+                    "Ruta no encontrada"
+            });
+
+        }
+
+        res.status(404).send(
+            "Página no encontrada"
+        );
+
+    }
+);
+
+
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    )=>{
+
+        console.error(
+            "Error no controlado en Express:",
+            error
+        );
+
+        if(res.headersSent){
+
+            return next(
+                error
+            );
+
+        }
+
+        res.status(500).json({
+            success:false,
+            mensaje:
+                "Ocurrió un error interno"
+        });
+
+    }
+);
+
+const PUERTO =
+    Number(
+        process.env.PORT
+    )
+    || 3000;
+
+
+server.listen(
+    PUERTO,
+    "0.0.0.0",
+    ()=>{
+
+        console.log(
+            `Servidor en puerto ${PUERTO}`
+        );
+
+    }
+);

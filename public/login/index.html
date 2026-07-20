@@ -203,27 +203,43 @@ async function revisarSesion(){
     try{
 
         const response =
-            await fetch("/api/sesion", {
-                cache:"no-store"
-            });
-
-        if(response.ok){
-
-            function destinoPorRol(rol){
-
-                if(rol === "recepcion"){
-                    return "/recepcion";
+            await fetch(
+                "/api/sesion",
+                {
+                    cache:"no-store"
                 }
+            );
 
-                return "/admin";
+        if(!response.ok){
+            return;
+        }
 
-            }
+        const data =
+            await response.json();
+
+        if(
+            data.success
+            && data.rol
+        ){
+
+            window.location.replace(
+                destinoPorRol(
+                    data.rol
+                )
+            );
 
         }
 
     }catch(error){
 
-        console.error(error);
+        /*
+        Si el servidor todavía está iniciando o no existe
+        una sesión, simplemente dejamos visible el login.
+        */
+        console.error(
+            "No se pudo revisar la sesión:",
+            error
+        );
 
     }
 

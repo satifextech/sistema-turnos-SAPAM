@@ -9,15 +9,17 @@ class Asignador {
 
 
     /*
-    Busca primero un turno prioritario.
-
-    Si no existe ninguno, intenta localizar
-    un turno que pueda ser atendido como apoyo.
+    Obtiene una sola vez la configuración de la mesa
+    y la reutiliza para prioridad y apoyo.
     */
-    async buscarTurno(numeroMesa){
+    async buscarTurno(
+        numeroMesa
+    ){
 
         const mesa =
-            Number(numeroMesa);
+            Number(
+                numeroMesa
+            );
 
         if(
             !Number.isInteger(mesa)
@@ -28,9 +30,15 @@ class Asignador {
 
         }
 
+        const configuracion =
+            await this.obtenerConfiguracionMesa(
+                mesa
+            );
+
         let turno =
             await this.buscarTurnoPrioridad(
-                mesa
+                mesa,
+                configuracion
             );
 
         if(turno){
@@ -41,7 +49,8 @@ class Asignador {
 
         turno =
             await this.buscarTurnoApoyo(
-                mesa
+                mesa,
+                configuracion
             );
 
         return turno;
@@ -85,16 +94,17 @@ class Asignador {
 
 
     /*
-    Busca turnos pertenecientes a los trámites
-    prioritarios de la mesa.
-
-    Las reglas ya llegan ordenadas desde SQLite.
+    Busca turnos de prioridad usando la configuración
+    que ya fue consultada por buscarTurno().
     */
     async buscarTurnoPrioridad(
-        numeroMesa
+        numeroMesa,
+        configuracionRecibida = null
     ){
 
         const configuracion =
+            configuracionRecibida
+            ||
             await this.obtenerConfiguracionMesa(
                 numeroMesa
             );
@@ -147,14 +157,17 @@ class Asignador {
 
 
     /*
-    Busca turnos de los trámites configurados
-    como apoyo para la mesa.
+    Busca turnos de apoyo usando la misma configuración
+    ya obtenida para la mesa.
     */
     async buscarTurnoApoyo(
-        numeroMesa
+        numeroMesa,
+        configuracionRecibida = null
     ){
 
         const configuracion =
+            configuracionRecibida
+            ||
             await this.obtenerConfiguracionMesa(
                 numeroMesa
             );
@@ -226,9 +239,11 @@ class Asignador {
     1. No existe ninguna mesa prioritaria disponible.
 
     2. La cantidad de turnos pendientes alcanzó
-       el límite configurado en Administración.
+       el límite configurado.
     */
-    async necesitaApoyo(tramite){
+    async necesitaApoyo(
+        tramite
+    ){
 
         const pendientes =
             await gestorTurnos
@@ -260,14 +275,6 @@ class Asignador {
 
         }
 
-        /*
-        Este método devuelve únicamente las mesas
-        prioritarias que actualmente están:
-
-        - activas;
-        - habilitadas para turnos;
-        - en estado disponible.
-        */
         const mesasPrioritariasDisponibles =
             await gestorReglas
                 .obtenerMesasPrioritarias(
@@ -290,8 +297,7 @@ class Asignador {
 
         if(
             !Number.isInteger(limite)
-            ||
-            limite < 1
+            || limite < 1
         ){
 
             return false;
