@@ -8,10 +8,21 @@ class GestorRespaldos {
 
     constructor(){
 
-        this.carpetaRespaldos = path.join(
-            __dirname,
-            "../backups"
-        );
+        const carpetaDatos =
+            process.env.LINK_DATA_DIR
+                ? path.resolve(
+                    process.env.LINK_DATA_DIR
+                )
+                : path.resolve(
+                    __dirname,
+                    ".."
+                );
+
+        this.carpetaRespaldos =
+            path.join(
+                carpetaDatos,
+                "backups"
+            );
 
     }
 

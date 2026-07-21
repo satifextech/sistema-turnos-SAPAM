@@ -1,15 +1,25 @@
 {
-  "name": "sistematurnos",
+  "name": "link-kiosco-turnos",
   "version": "1.0.0",
-  "main": "server/server.js",
+  "description": "Kiosco de Turnos Universal",
+  "main": "electron/main.js",
+  "author": "LINK",
+  "license": "ISC",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "dev": "nodemon server/server.js",
+    "electron": "electron .",
+    "electron:dev": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "LINK",
+    "kiosco",
+    "turnos",
+    "atencion",
+    "Electron"
+  ],
   "dependencies": {
     "bcrypt": "^6.0.0",
     "express": "^5.2.1",
@@ -19,6 +29,54 @@
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.0",
+    "nodemon": "^3.1.14",
+    "png-to-ico": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.link.kiosco.turnos",
+    "productName": "LINK Kiosco de Turnos",
+    "copyright": "Copyright © 2026 LINK",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "services/**/*",
+      "database/**/*",
+      "routes/**/*",
+      "middlewares/**/*",
+      "config/**/*",
+      "public/**/*",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "LINK-Kiosco-de-Turnos-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LINK Kiosco de Turnos",
+      "uninstallDisplayName": "LINK Kiosco de Turnos",
+      "deleteAppDataOnUninstall": false
+    }
   }
 }

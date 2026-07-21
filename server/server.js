@@ -72,11 +72,27 @@ const limitadorLogin =
 
     });
 
+const carpetaDatos =
+    process.env.LINK_DATA_DIR
+        ? path.resolve(
+            process.env.LINK_DATA_DIR
+        )
+        : path.resolve(
+            __dirname,
+            ".."
+        );
+
+
 const carpetaVideos =
-    path.join(
-        __dirname,
-        "../public/assets/videos"
-    );
+    process.env.LINK_DATA_DIR
+        ? path.join(
+            carpetaDatos,
+            "videos"
+        )
+        : path.join(
+            __dirname,
+            "../public/assets/videos"
+        );
 
 fs.mkdirSync(
     carpetaVideos,
@@ -497,6 +513,16 @@ app.get(
         );
 
     }
+);
+
+app.use(
+    "/assets/videos",
+    express.static(
+        carpetaVideos,
+        {
+            fallthrough:true
+        }
+    )
 );
 
 app.use(

@@ -1,16 +1,59 @@
 const sqlite3 =
     require("sqlite3").verbose();
 
+const fs =
+    require("fs");
+
 const path =
     require("path");
 
 
+/*
+=========================================================
+CARPETA DE DATOS
+=========================================================
+*/
+
+const carpetaDatos =
+    process.env.LINK_DATA_DIR
+        ? path.resolve(
+            process.env.LINK_DATA_DIR
+        )
+        : path.resolve(
+            __dirname,
+            ".."
+        );
+
+
+const carpetaBaseDatos =
+    process.env.LINK_DATA_DIR
+        ? path.join(
+            carpetaDatos,
+            "database"
+        )
+        : __dirname;
+
+
+fs.mkdirSync(
+    carpetaBaseDatos,
+    {
+        recursive:true
+    }
+);
+
+
 const dbPath =
     path.join(
-        __dirname,
+        carpetaBaseDatos,
         "turnos.db"
     );
 
+
+/*
+=========================================================
+CONEXIÓN
+=========================================================
+*/
 
 const db =
     new sqlite3.Database(
@@ -29,7 +72,8 @@ const db =
             }
 
             console.log(
-                "Base de datos conectada"
+                "Base de datos conectada:",
+                dbPath
             );
 
         }
@@ -38,27 +82,14 @@ const db =
 
 db.serialize(()=>{
 
-    /*
-    Espera hasta cinco segundos cuando otra operación
-    mantiene temporalmente bloqueada la base.
-    */
     db.run(
         "PRAGMA busy_timeout = 5000"
     );
 
-    /*
-    Activa validación de relaciones para las tablas
-    que utilicen claves foráneas en el futuro.
-    */
     db.run(
         "PRAGMA foreign_keys = ON"
     );
 
-    /*
-    Nivel equilibrado de protección y rendimiento.
-    No activamos WAL todavía porque primero estamos
-    corrigiendo el sistema de respaldos.
-    */
     db.run(
         "PRAGMA synchronous = NORMAL"
     );
