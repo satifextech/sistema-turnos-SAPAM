@@ -1,0 +1,23 @@
+﻿{
+  "schemaVersion": 1,
+  "product": {
+    "name": "LINK Kiosco de Turnos",
+    "description": "Kiosco de Turnos Universal",
+    "company": "LINK",
+    "appId": "com.link.kiosco.turnos"
+  },
+  "release": {
+    "version": "1.0.2",
+    "channel": "stable",
+    "codename": "Echo",
+    "build": "2026.08.04"
+  },
+  "legal": {
+    "copyright": "Copyright © 2026 LINK.",
+    "rights": "Todos los derechos reservados."
+  },
+  "support": {
+    "website": "",
+    "email": ""
+  }
+}

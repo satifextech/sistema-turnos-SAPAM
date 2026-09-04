@@ -1,0 +1,666 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="
+            default-src 'self';
+            style-src 'self' 'unsafe-inline';
+            script-src 'self' 'unsafe-inline';
+            img-src 'self' data:;
+        "
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Activación — LINK Kiosco de Turnos</title>
+
+    <style>
+
+        :root {
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            color:
+                #242124;
+
+            background:
+                #f4f1f2;
+        }
+
+        * {
+            box-sizing:
+                border-box;
+        }
+
+        body {
+            min-height:
+                100vh;
+
+            margin:
+                0;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            padding:
+                32px;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #ffffff 0%,
+                    #f4f1f2 55%,
+                    #ebe6e8 100%
+                );
+        }
+
+        .card {
+            width:
+                min(720px, 100%);
+
+            padding:
+                42px;
+
+            border:
+                1px solid rgba(0, 0, 0, 0.08);
+
+            border-radius:
+                24px;
+
+            background:
+                rgba(255, 255, 255, 0.96);
+
+            box-shadow:
+                0 24px 70px rgba(31, 20, 24, 0.14);
+        }
+
+        .brand {
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                16px;
+
+            margin-bottom:
+                28px;
+        }
+
+        .logo {
+            width:
+                62px;
+
+            height:
+                62px;
+
+            display:
+                grid;
+
+            place-items:
+                center;
+
+            border-radius:
+                18px;
+
+            background:
+                #971c2f;
+
+            color:
+                #ffffff;
+
+            font-size:
+                30px;
+
+            font-weight:
+                800;
+        }
+
+        .brand h1 {
+            margin:
+                0;
+
+            font-size:
+                24px;
+        }
+
+        .brand p {
+            margin:
+                5px 0 0;
+
+            color:
+                #6d6468;
+        }
+
+        .status {
+            margin-bottom:
+                26px;
+
+            padding:
+                18px 20px;
+
+            border:
+                1px solid #ecc7ce;
+
+            border-radius:
+                14px;
+
+            background:
+                #fff5f7;
+
+            color:
+                #781426;
+        }
+
+        .status strong {
+            display:
+                block;
+
+            margin-bottom:
+                5px;
+        }
+
+        .field {
+            margin-top:
+                18px;
+        }
+
+        .field label {
+            display:
+                block;
+
+            margin-bottom:
+                8px;
+
+            color:
+                #5c5357;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                0.05em;
+        }
+
+        .value-row {
+            display:
+                flex;
+
+            gap:
+                10px;
+        }
+
+        .value {
+            flex:
+                1;
+
+            min-width:
+                0;
+
+            padding:
+                14px 16px;
+
+            border:
+                1px solid #d9d1d4;
+
+            border-radius:
+                12px;
+
+            background:
+                #faf8f9;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size:
+                14px;
+
+            overflow-wrap:
+                anywhere;
+        }
+
+        button {
+            border:
+                0;
+
+            border-radius:
+                12px;
+
+            padding:
+                13px 18px;
+
+            font-size:
+                15px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+        }
+
+        button:disabled {
+            cursor:
+                wait;
+
+            opacity:
+                0.65;
+        }
+
+        .copy-button {
+            background:
+                #e9e3e5;
+
+            color:
+                #3d3639;
+        }
+
+        .actions {
+            display:
+                flex;
+
+            justify-content:
+                flex-end;
+
+            margin-top:
+                30px;
+        }
+
+        .import-button {
+            min-width:
+                210px;
+
+            background:
+                #971c2f;
+
+            color:
+                white;
+        }
+
+        .message {
+            min-height:
+                24px;
+
+            margin-top:
+                18px;
+
+            text-align:
+                center;
+
+            font-weight:
+                600;
+        }
+
+        .message.error {
+            color:
+                #a0162d;
+        }
+
+        .message.success {
+            color:
+                #14733c;
+        }
+
+        .help {
+            margin:
+                26px 0 0;
+
+            color:
+                #746a6e;
+
+            font-size:
+                14px;
+
+            line-height:
+                1.55;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <main class="card">
+
+        <header class="brand">
+
+            <div class="logo">
+                L
+            </div>
+
+            <div>
+
+                <h1>
+                    LINK Kiosco de Turnos
+                </h1>
+
+                <p>
+                    Activación del producto
+                </p>
+
+            </div>
+
+        </header>
+
+        <section class="status">
+
+            <strong>
+                Activación requerida
+            </strong>
+
+            <span id="statusMessage">
+                Comprobando el estado de la licencia...
+            </span>
+
+        </section>
+
+        <section class="field">
+
+            <label>
+                Hardware Code
+            </label>
+
+            <div class="value-row">
+
+                <div
+                    id="hardwareCode"
+                    class="value"
+                >
+                    Cargando...
+                </div>
+
+                <button
+                    id="copyHardware"
+                    class="copy-button"
+                    type="button"
+                >
+                    Copiar
+                </button>
+
+            </div>
+
+        </section>
+
+        <section class="field">
+
+            <label>
+                Device ID
+            </label>
+
+            <div class="value-row">
+
+                <div
+                    id="deviceId"
+                    class="value"
+                >
+                    Cargando...
+                </div>
+
+                <button
+                    id="copyDevice"
+                    class="copy-button"
+                    type="button"
+                >
+                    Copiar
+                </button>
+
+            </div>
+
+        </section>
+
+        <p class="help">
+
+            Envíe estos datos al personal autorizado de LINK.
+            Cuando reciba su archivo de licencia
+            <strong>.lic</strong>, presione
+            <strong>Importar licencia</strong>.
+
+        </p>
+
+        <div class="actions">
+
+            <button
+                id="importLicense"
+                class="import-button"
+                type="button"
+            >
+                Importar licencia
+            </button>
+
+        </div>
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+    </main>
+
+    <script>
+
+        "use strict";
+
+        const elements = {
+
+            statusMessage:
+                document.getElementById(
+                    "statusMessage"
+                ),
+
+            hardwareCode:
+                document.getElementById(
+                    "hardwareCode"
+                ),
+
+            deviceId:
+                document.getElementById(
+                    "deviceId"
+                ),
+
+            copyHardware:
+                document.getElementById(
+                    "copyHardware"
+                ),
+
+            copyDevice:
+                document.getElementById(
+                    "copyDevice"
+                ),
+
+            importLicense:
+                document.getElementById(
+                    "importLicense"
+                ),
+
+            message:
+                document.getElementById(
+                    "message"
+                )
+
+        };
+
+        function mostrarMensaje(
+            texto,
+            tipo = ""
+        ) {
+
+            elements.message.textContent =
+                texto;
+
+            elements.message.className =
+                `message ${tipo}`;
+
+        }
+
+        async function copiarValor(
+            valor,
+            nombre
+        ) {
+
+            const resultado =
+                await window.linkLicense.copiar(
+                    valor
+                );
+
+            if(resultado.success) {
+
+                mostrarMensaje(
+                    `${nombre} copiado.`,
+                    "success"
+                );
+
+                return;
+
+            }
+
+            mostrarMensaje(
+                "No fue posible copiar el dato.",
+                "error"
+            );
+
+        }
+
+        async function cargarDatos() {
+
+            try {
+
+                const datos =
+                    await window.linkLicense
+                        .obtenerDatos();
+
+                elements.hardwareCode.textContent =
+                    datos.device.hardwareCode;
+
+                elements.deviceId.textContent =
+                    datos.device.deviceId;
+
+                elements.statusMessage.textContent =
+                    datos.message;
+
+                elements.copyHardware.onclick =
+                    () => copiarValor(
+                        datos.device.hardwareCode,
+                        "Hardware Code"
+                    );
+
+                elements.copyDevice.onclick =
+                    () => copiarValor(
+                        datos.device.deviceId,
+                        "Device ID"
+                    );
+
+            } catch(error) {
+
+                elements.statusMessage.textContent =
+                    "No fue posible obtener la identidad del equipo.";
+
+                mostrarMensaje(
+                    error.message,
+                    "error"
+                );
+
+            }
+
+        }
+
+        elements.importLicense.addEventListener(
+            "click",
+            async () => {
+
+                elements.importLicense.disabled =
+                    true;
+
+                elements.importLicense.textContent =
+                    "Validando...";
+
+                mostrarMensaje(
+                    ""
+                );
+
+                try {
+
+                    const resultado =
+                        await window.linkLicense
+                            .importar();
+
+                    if(resultado.cancelled) {
+
+                        mostrarMensaje(
+                            "Importación cancelada."
+                        );
+
+                        return;
+
+                    }
+
+                    if(!resultado.success) {
+
+                        mostrarMensaje(
+                            resultado.message
+                            ||
+                            `La licencia fue rechazada: ${resultado.reason}`,
+                            "error"
+                        );
+
+                        return;
+
+                    }
+
+                    mostrarMensaje(
+                        "Licencia instalada. Reiniciando LINK...",
+                        "success"
+                    );
+
+                } catch(error) {
+
+                    mostrarMensaje(
+                        error.message
+                        ||
+                        "No fue posible instalar la licencia.",
+                        "error"
+                    );
+
+                } finally {
+
+                    elements.importLicense.disabled =
+                        false;
+
+                    elements.importLicense.textContent =
+                        "Importar licencia";
+
+                }
+
+            }
+        );
+
+        cargarDatos();
+
+    </script>
+
+</body>
+</html>

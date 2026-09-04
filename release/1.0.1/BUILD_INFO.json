@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "product": "LINK Kiosco de Turnos",
+  "version": "1.0.1",
+  "codename": "Echo",
+  "channel": "stable",
+  "build": "2026.07.21",
+  "node": "24.18.0",
+  "platform": "win32",
+  "architecture": "x64",
+  "installer": "LINK-Kiosco-de-Turnos-Setup-1.0.1.exe",
+  "sha256": "05951f38444e0b2afe69ea0dab90841131d19de22984d5f0c943705420ead010",
+  "sizeBytes": 213551330,
+  "generatedAt": "2026-07-21T20:36:14.179Z"
+}

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="
+            default-src 'self';
+            style-src 'self' 'unsafe-inline';
+            script-src 'self' 'unsafe-inline';
+            img-src 'self' data:;
+        "
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LINK Kiosco bloqueado</title>
+
+    <style>
+
+        :root {
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            color:
+                #292326;
+
+            background:
+                #f3eff0;
+        }
+
+        * {
+            box-sizing:
+                border-box;
+        }
+
+        body {
+            min-height:
+                100vh;
+
+            margin:
+                0;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            padding:
+                30px;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #ffffff 0%,
+                    #f3eff0 55%,
+                    #e7dfe2 100%
+                );
+        }
+
+        .card {
+            width:
+                min(720px, 100%);
+
+            padding:
+                42px;
+
+            border:
+                1px solid rgba(0, 0, 0, 0.08);
+
+            border-radius:
+                24px;
+
+            background:
+                rgba(255, 255, 255, 0.97);
+
+            box-shadow:
+                0 26px 80px rgba(42, 17, 25, 0.17);
+        }
+
+        .brand {
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                16px;
+
+            margin-bottom:
+                30px;
+        }
+
+        .logo {
+            width:
+                64px;
+
+            height:
+                64px;
+
+            display:
+                grid;
+
+            place-items:
+                center;
+
+            border-radius:
+                19px;
+
+            background:
+                #971c2f;
+
+            color:
+                #ffffff;
+
+            font-size:
+                31px;
+
+            font-weight:
+                800;
+        }
+
+        h1 {
+            margin:
+                0;
+
+            font-size:
+                25px;
+        }
+
+        .brand p {
+            margin:
+                5px 0 0;
+
+            color:
+                #71676b;
+        }
+
+        .status {
+            padding:
+                22px;
+
+            border:
+                1px solid #e7b7c0;
+
+            border-radius:
+                16px;
+
+            background:
+                #fff3f5;
+        }
+
+        .status strong {
+            display:
+                block;
+
+            margin-bottom:
+                8px;
+
+            color:
+                #81172a;
+
+            font-size:
+                18px;
+        }
+
+        .status p {
+            margin:
+                0;
+
+            color:
+                #5f4d52;
+
+            line-height:
+                1.55;
+        }
+
+        .details {
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap:
+                12px;
+
+            margin-top:
+                20px;
+        }
+
+        .detail {
+            padding:
+                14px 16px;
+
+            border:
+                1px solid #e0d9dc;
+
+            border-radius:
+                12px;
+
+            background:
+                #faf8f9;
+        }
+
+        .detail span {
+            display:
+                block;
+
+            margin-bottom:
+                5px;
+
+            color:
+                #7a7074;
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+
+            text-transform:
+                uppercase;
+        }
+
+        .detail strong {
+            overflow-wrap:
+                anywhere;
+        }
+
+        .actions {
+            display:
+                flex;
+
+            justify-content:
+                flex-end;
+
+            gap:
+                12px;
+
+            margin-top:
+                28px;
+        }
+
+        button {
+            min-width:
+                150px;
+
+            padding:
+                13px 18px;
+
+            border:
+                0;
+
+            border-radius:
+                12px;
+
+            font-size:
+                15px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+        }
+
+        button:disabled {
+            cursor:
+                wait;
+
+            opacity:
+                0.6;
+        }
+
+        .secondary {
+            background:
+                #e9e3e5;
+
+            color:
+                #3d3538;
+        }
+
+        .primary {
+            background:
+                #971c2f;
+
+            color:
+                #ffffff;
+        }
+
+        .message {
+            min-height:
+                23px;
+
+            margin-top:
+                18px;
+
+            text-align:
+                center;
+
+            color:
+                #746a6e;
+
+            font-weight:
+                600;
+        }
+
+        @media (max-width: 600px) {
+
+            .details {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .actions {
+                flex-direction:
+                    column-reverse;
+            }
+
+            button {
+                width:
+                    100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <main class="card">
+
+        <header class="brand">
+
+            <div class="logo">
+                L
+            </div>
+
+            <div>
+
+                <h1>
+                    LINK Kiosco de Turnos
+                </h1>
+
+                <p>
+                    Servicio administrado por LINK Cloud
+                </p>
+
+            </div>
+
+        </header>
+
+        <section class="status">
+
+            <strong id="statusTitle">
+                Operación bloqueada
+            </strong>
+
+            <p id="statusMessage">
+                Comprobando la conexión con LINK Cloud...
+            </p>
+
+        </section>
+
+        <section class="details">
+
+            <div class="detail">
+
+                <span>
+                    Estado
+                </span>
+
+                <strong id="statusCode">
+                    Comprobando
+                </strong>
+
+            </div>
+
+            <div class="detail">
+
+                <span>
+                    Última comprobación
+                </span>
+
+                <strong id="checkedAt">
+                    —
+                </strong>
+
+            </div>
+
+        </section>
+
+        <div class="actions">
+
+            <button
+                id="closeButton"
+                type="button"
+                class="secondary"
+            >
+                Cerrar
+            </button>
+
+            <button
+                id="retryButton"
+                type="button"
+                class="primary"
+            >
+                Reintentar conexión
+            </button>
+
+        </div>
+
+        <div
+            id="actionMessage"
+            class="message"
+        ></div>
+
+    </main>
+
+    <script>
+
+        "use strict";
+
+        const elements = {
+            statusTitle:
+                document.getElementById(
+                    "statusTitle"
+                ),
+
+            statusMessage:
+                document.getElementById(
+                    "statusMessage"
+                ),
+
+            statusCode:
+                document.getElementById(
+                    "statusCode"
+                ),
+
+            checkedAt:
+                document.getElementById(
+                    "checkedAt"
+                ),
+
+            retryButton:
+                document.getElementById(
+                    "retryButton"
+                ),
+
+            closeButton:
+                document.getElementById(
+                    "closeButton"
+                ),
+
+            actionMessage:
+                document.getElementById(
+                    "actionMessage"
+                )
+        };
+
+        function formatDate(value) {
+
+            if(!value) {
+                return "—";
+            }
+
+            const date =
+                new Date(value);
+
+            if(
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+                return String(value);
+            }
+
+            return date.toLocaleString();
+
+        }
+
+        function renderStatus(status = {}) {
+
+            elements.statusTitle.textContent =
+                status.title
+                || "Operación bloqueada";
+
+            elements.statusMessage.textContent =
+                status.message
+                || "LINK Cloud no autorizó la operación.";
+
+            elements.statusCode.textContent =
+                status.code
+                || "BLOCKED";
+
+            elements.checkedAt.textContent =
+                formatDate(
+                    status.checkedAt
+                );
+
+        }
+
+        async function loadStatus() {
+
+            try {
+
+                const status =
+                    await window.linkBlocking
+                        .obtenerEstado();
+
+                renderStatus(status);
+
+            } catch(error) {
+
+                renderStatus({
+                    code:
+                        "STATUS_ERROR",
+
+                    title:
+                        "No fue posible consultar el estado",
+
+                    message:
+                        error.message,
+
+                    checkedAt:
+                        new Date()
+                            .toISOString()
+                });
+
+            }
+
+        }
+
+        elements.retryButton.addEventListener(
+            "click",
+            async () => {
+
+                elements.retryButton.disabled =
+                    true;
+
+                elements.retryButton.textContent =
+                    "Comprobando...";
+
+                elements.actionMessage.textContent =
+                    "Contactando LINK Cloud...";
+
+                try {
+
+                    const result =
+                        await window.linkBlocking
+                            .reintentar();
+
+                    renderStatus(
+                        result.status
+                        || result
+                    );
+
+                    if(result.authorized) {
+
+                        elements.actionMessage.textContent =
+                            "Autorización confirmada. Iniciando LINK...";
+
+                        return;
+
+                    }
+
+                    elements.actionMessage.textContent =
+                        result.message
+                        || "La operación continúa bloqueada.";
+
+                } catch(error) {
+
+                    elements.actionMessage.textContent =
+                        error.message
+                        || "No fue posible contactar LINK Cloud.";
+
+                } finally {
+
+                    elements.retryButton.disabled =
+                        false;
+
+                    elements.retryButton.textContent =
+                        "Reintentar conexión";
+
+                }
+
+            }
+        );
+
+        elements.closeButton.addEventListener(
+            "click",
+            async () => {
+
+                await window.linkBlocking
+                    .cerrar();
+
+            }
+        );
+
+        window.linkBlocking.onStatusChanged(
+            status => {
+
+                renderStatus(status);
+
+            }
+        );
+
+        loadStatus();
+
+    </script>
+
+</body>
+
+</html>

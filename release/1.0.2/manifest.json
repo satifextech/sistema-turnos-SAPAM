@@ -1,0 +1,20 @@
+﻿{
+  "schemaVersion": 1,
+  "productCode": "LINK-KIOSCO",
+  "appId": "com.link.kiosco.turnos",
+  "version": "1.0.2",
+  "channel": "stable",
+  "executable": "LINK Kiosco de Turnos.exe",
+  "installer": {
+    "type": "nsis",
+    "file": "LINK-Kiosco-de-Turnos-Setup-1.0.2.exe",
+    "silentArgs": [
+      "/S"
+    ]
+  },
+  "healthCheck": {
+    "url": "http://127.0.0.1:3000/health",
+    "versionUrl": "http://127.0.0.1:3000/version",
+    "timeoutSeconds": 60
+  }
+}

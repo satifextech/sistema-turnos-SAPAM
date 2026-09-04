@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Administración SAPAM</title>
+<title>Administración | LINK Kiosco de Turnos</title>
 
 <style>
 
@@ -2957,7 +2957,236 @@ body{
 
 }
 
+/* =========================================================
+   LINK IDENTITY - ACERCA DE
+   ========================================================= */
 
+.boton-acerca{
+    background:#252525;
+    color:white;
+}
+
+.modal-acerca{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    padding:24px;
+    background:rgba(18,18,18,0.72);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter:blur(6px);
+}
+
+.modal-acerca.oculto{
+    display:none;
+}
+
+.ventana-acerca{
+    width:min(680px, 100%);
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
+    border-radius:22px;
+    background:white;
+    box-shadow:0 24px 80px rgba(0,0,0,0.38);
+}
+
+.cabecera-acerca{
+    position:relative;
+    padding:30px;
+    background:linear-gradient(
+        135deg,
+        #6A0F20,
+        #941d35
+    );
+    color:white;
+    text-align:center;
+}
+
+.logo-link-acerca{
+    width:112px;
+    height:112px;
+    margin:0 auto 18px;
+    border:4px solid rgba(255,255,255,0.75);
+    border-radius:28px;
+    background:white;
+    color:#6A0F20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:72px;
+    font-weight:900;
+    box-shadow:0 12px 30px rgba(0,0,0,0.22);
+}
+
+.cabecera-acerca h2{
+    margin:0;
+    font-size:28px;
+}
+
+.descripcion-acerca{
+    margin:8px 0 0;
+    opacity:0.88;
+}
+
+.boton-cerrar-acerca{
+    position:absolute;
+    top:16px;
+    right:16px;
+    width:38px;
+    height:38px;
+    padding:0;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    color:white;
+    font-size:25px;
+    cursor:pointer;
+}
+
+.boton-cerrar-acerca:hover{
+    background:rgba(255,255,255,0.3);
+}
+
+.contenido-acerca{
+    padding:28px;
+}
+
+.version-principal-acerca{
+    margin-bottom:22px;
+    padding:18px;
+    border-left:6px solid #6A0F20;
+    border-radius:12px;
+    background:#f7f4f5;
+}
+
+.version-principal-acerca span{
+    display:block;
+    color:#777;
+    font-size:13px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.version-principal-acerca strong{
+    display:block;
+    margin-top:6px;
+    color:#6A0F20;
+    font-size:27px;
+}
+
+.datos-acerca{
+    display:grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap:13px;
+}
+
+.dato-acerca{
+    min-width:0;
+    padding:15px;
+    border-radius:12px;
+    background:#f7f4f5;
+}
+
+.dato-acerca span{
+    display:block;
+    color:#777;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.dato-acerca strong{
+    display:block;
+    margin-top:7px;
+    color:#333;
+    font-size:15px;
+    overflow-wrap:anywhere;
+}
+
+.estado-acerca{
+    min-height:22px;
+    margin-top:18px;
+    color:#777;
+    font-size:14px;
+    text-align:center;
+}
+
+.acciones-acerca{
+    margin-top:22px;
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.boton-actualizaciones{
+    background:#6A0F20;
+    color:white;
+}
+
+.boton-actualizaciones:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+    transform:none;
+    box-shadow:none;
+}
+
+.legal-acerca{
+    margin-top:24px;
+    padding-top:20px;
+    border-top:1px solid #e4dcde;
+    color:#666;
+    text-align:center;
+    line-height:1.6;
+}
+
+.pie-identidad{
+    margin-top:26px;
+    padding:18px;
+    border-radius:14px;
+    background:#252525;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.pie-identidad strong{
+    display:block;
+}
+
+.pie-identidad span{
+    display:block;
+    margin-top:4px;
+    color:#d5d5d5;
+    font-size:13px;
+}
+
+@media(max-width:600px){
+
+    .modal-acerca{
+        padding:12px;
+    }
+
+    .cabecera-acerca,
+    .contenido-acerca{
+        padding:22px;
+    }
+
+    .datos-acerca{
+        grid-template-columns:1fr;
+    }
+
+    .pie-identidad{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+}
 
 </style>
 </head>
@@ -2968,7 +3197,7 @@ body{
 
     <div>
         <h1>Panel de Administración</h1>
-        <p>Sistema de Gestión de Turnos SAPAM</p>
+        <p>LINK Kiosco de Turnos</p>
     </div>
 
     <div class="reloj">
@@ -3029,6 +3258,14 @@ body{
             onclick="cerrarSesion()">
 
             Cerrar sesión
+
+        </button>
+
+        <button
+            class="boton-admin boton-acerca"
+            onclick="abrirAcercaDe()">
+
+            Acerca de
 
         </button>
 
@@ -4958,7 +5195,193 @@ body{
         Sin actualizar
     </div>
 
+<footer class="pie-identidad">
+
+    <div>
+        <strong id="productoPie">
+            LINK Kiosco de Turnos
+        </strong>
+
+        <span id="copyrightPie">
+            Copyright © 2026 LINK.
+        </span>
+    </div>
+
+    <div>
+        <strong id="versionPie">
+            Versión 1.0.1
+        </strong>
+
+        <span id="buildPie">
+            Compilación 2026.07.21
+        </span>
+    </div>
+
+</footer>
+
 </main>
+
+<div
+    class="modal-acerca oculto"
+    id="modalAcerca"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloAcerca"
+    onclick="cerrarAcercaDesdeFondo(event)">
+
+    <section class="ventana-acerca">
+
+        <header class="cabecera-acerca">
+
+            <button
+                class="boton-cerrar-acerca"
+                type="button"
+                aria-label="Cerrar"
+                onclick="cerrarAcercaDe()">
+
+                ×
+
+            </button>
+
+            <div class="logo-link-acerca">
+                L
+            </div>
+
+            <h2 id="tituloAcerca">
+                LINK Kiosco de Turnos
+            </h2>
+
+            <p
+                class="descripcion-acerca"
+                id="descripcionAcerca">
+
+                Kiosco de Turnos Universal
+
+            </p>
+
+        </header>
+
+        <div class="contenido-acerca">
+
+            <div class="version-principal-acerca">
+
+                <span>
+                    Versión instalada
+                </span>
+
+                <strong id="versionAcerca">
+                    Cargando...
+                </strong>
+
+            </div>
+
+            <div class="datos-acerca">
+
+                <div class="dato-acerca">
+                    <span>Compilación</span>
+                    <strong id="buildAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Canal</span>
+                    <strong id="canalAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Node.js</span>
+                    <strong id="nodeAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Electron</span>
+                    <strong id="electronAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Express</span>
+                    <strong id="expressAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Socket.IO</span>
+                    <strong id="socketAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>SQLite</span>
+                    <strong id="sqliteAcerca">---</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Licencia</span>
+                    <strong id="licenciaAcerca">Comercial</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>Empresa</span>
+                    <strong id="empresaAcerca">LINK</strong>
+                </div>
+
+                <div class="dato-acerca">
+                    <span>App ID</span>
+                    <strong id="appIdAcerca">
+                        com.link.kiosco.turnos
+                    </strong>
+                </div>
+
+            </div>
+
+            <div
+                class="estado-acerca"
+                id="estadoAcerca">
+
+                Información centralizada por LINK Identity.
+
+            </div>
+
+            <div class="acciones-acerca">
+
+                <button
+                    class="
+                        boton-admin
+                        boton-actualizaciones
+                    "
+                    type="button"
+                    disabled
+                    title="Disponible en LINK Update">
+
+                    Buscar actualizaciones
+
+                </button>
+
+                <button
+                    class="boton-admin boton-salir"
+                    type="button"
+                    onclick="cerrarAcercaDe()">
+
+                    Cerrar
+
+                </button>
+
+            </div>
+
+            <div class="legal-acerca">
+
+                <div id="copyrightAcerca">
+                    Copyright © 2026 LINK.
+                </div>
+
+                <div id="derechosAcerca">
+                    Todos los derechos reservados.
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -12637,9 +13060,277 @@ async function eliminarVideo(
 
 }
 
+/*
+=========================================================
+LINK IDENTITY - ACERCA DE
+=========================================================
+*/
+
+let informacionProducto =
+    null;
+
+
+function limpiarVersionDependencia(
+    version
+){
+
+    return String(
+        version
+        || "---"
+    )
+        .replace(
+            /^[~^<>=\s]+/,
+            ""
+        );
+
+}
+
+
+async function cargarInformacionProducto(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/about",
+                {
+                    cache:
+                        "no-store"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            !response.ok
+            || !data.success
+        ){
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo cargar la información del producto"
+            );
+
+        }
+
+        informacionProducto =
+            data;
+
+        const versionCompleta =
+            `${data.release.version} ${data.release.codename}`;
+
+        document.getElementById(
+            "versionAcerca"
+        ).textContent =
+            versionCompleta;
+
+        document.getElementById(
+            "buildAcerca"
+        ).textContent =
+            data.release.build
+            || "---";
+
+        document.getElementById(
+            "canalAcerca"
+        ).textContent =
+            data.release.channel
+            || "---";
+
+        document.getElementById(
+            "nodeAcerca"
+        ).textContent =
+            limpiarVersionDependencia(
+                data.runtime.node
+            );
+
+        document.getElementById(
+            "electronAcerca"
+        ).textContent =
+            limpiarVersionDependencia(
+                data.runtime.electron
+                || data.technologies.electron
+            );
+
+        document.getElementById(
+            "expressAcerca"
+        ).textContent =
+            limpiarVersionDependencia(
+                data.technologies.express
+            );
+
+        document.getElementById(
+            "socketAcerca"
+        ).textContent =
+            limpiarVersionDependencia(
+                data.technologies.socketIo
+            );
+
+        document.getElementById(
+            "sqliteAcerca"
+        ).textContent =
+            limpiarVersionDependencia(
+                data.technologies.sqlite
+            );
+
+        document.getElementById(
+            "licenciaAcerca"
+        ).textContent =
+            data.license.type
+            || "Comercial";
+
+        document.getElementById(
+            "empresaAcerca"
+        ).textContent =
+            data.product.company
+            || "LINK";
+
+        document.getElementById(
+            "appIdAcerca"
+        ).textContent =
+            data.product.appId
+            || "---";
+
+        document.getElementById(
+            "tituloAcerca"
+        ).textContent =
+            data.product.name;
+
+        document.getElementById(
+            "descripcionAcerca"
+        ).textContent =
+            data.product.description;
+
+        document.getElementById(
+            "copyrightAcerca"
+        ).textContent =
+            data.legal.copyright;
+
+        document.getElementById(
+            "derechosAcerca"
+        ).textContent =
+            data.legal.rights;
+
+        document.getElementById(
+            "productoPie"
+        ).textContent =
+            data.product.name;
+
+        document.getElementById(
+            "versionPie"
+        ).textContent =
+            `Versión ${data.release.version} ${data.release.codename}`;
+
+        document.getElementById(
+            "buildPie"
+        ).textContent =
+            `Compilación ${data.release.build}`;
+
+        document.getElementById(
+            "copyrightPie"
+        ).textContent =
+            `${data.legal.copyright} ${data.legal.rights}`;
+
+        document.getElementById(
+            "estadoAcerca"
+        ).textContent =
+            "Información centralizada por LINK Identity.";
+
+    }catch(error){
+
+        console.error(
+            "Error al cargar LINK Identity:",
+            error
+        );
+
+        document.getElementById(
+            "estadoAcerca"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+async function abrirAcercaDe(){
+
+    const modal =
+        document.getElementById(
+            "modalAcerca"
+        );
+
+    modal
+        .classList
+        .remove(
+            "oculto"
+        );
+
+    document.body.style.overflow =
+        "hidden";
+
+    if(!informacionProducto){
+
+        await cargarInformacionProducto();
+
+    }
+
+}
+
+
+function cerrarAcercaDe(){
+
+    document.getElementById(
+        "modalAcerca"
+    )
+        .classList
+        .add(
+            "oculto"
+        );
+
+    document.body.style.overflow =
+        "";
+
+}
+
+
+function cerrarAcercaDesdeFondo(
+    event
+){
+
+    if(
+        event.target.id
+        === "modalAcerca"
+    ){
+
+        cerrarAcercaDe();
+
+    }
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key
+            === "Escape"
+        ){
+
+            cerrarAcercaDe();
+
+        }
+
+    }
+);
+
 actualizarReloj();
+cargarPanel();
 cargarRespaldos();
 aplicarPermisosUsuario();
+cargarInformacionProducto();
 
 setInterval(cargarRespaldos, 30000);
 setInterval(actualizarReloj, 1000);

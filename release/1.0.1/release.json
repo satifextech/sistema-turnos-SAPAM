@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "LINK Kiosco de Turnos",
+    "company": "LINK",
+    "appId": "com.link.kiosco.turnos"
+  },
+  "release": {
+    "version": "1.0.1",
+    "channel": "stable",
+    "codename": "Echo",
+    "build": "2026.07.21",
+    "releaseDate": "2026-07-21"
+  },
+  "installer": {
+    "fileName": "LINK-Kiosco-de-Turnos-Setup-1.0.1.exe",
+    "sha256": "05951f38444e0b2afe69ea0dab90841131d19de22984d5f0c943705420ead010",
+    "sizeBytes": 213551330
+  },
+  "compatibility": {
+    "minimumVersion": "1.0.0",
+    "preservesLocalData": true
+  },
+  "distribution": {
+    "published": false,
+    "downloadUrl": ""
+  },
+  "generatedAt": "2026-07-21T20:36:14.171Z"
+}

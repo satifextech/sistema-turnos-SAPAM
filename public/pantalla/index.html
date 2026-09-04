@@ -561,15 +561,19 @@ function actualizarPantallaTurno(data){
     document.getElementById("mesa").textContent =
         nombreMesa;
 
-    lista.unshift(
-        `${data.codigo} → ${nombreMesa}`
-    );
+    if(!data.esRellamado){
 
-    if(lista.length > 5){
-        lista.pop();
+        lista.unshift(
+            `${data.codigo} → ${nombreMesa}`
+        );
+
+        if(lista.length > 5){
+            lista.pop();
+        }
+
+        renderizarListaTurnos();
+
     }
-
-    renderizarListaTurnos();
 
     const tarjetaTurno =
         document.getElementById("tarjetaTurno");

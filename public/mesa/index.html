@@ -154,6 +154,11 @@ button:disabled{
     color:white;
 }
 
+.boton-rellamar{
+    background:#2874a6;
+    color:white;
+}
+
 .boton-finalizar{
     background:#d79a16;
     color:white;
@@ -264,6 +269,16 @@ button:disabled{
                 onclick="llamar()">
 
                 Llamar siguiente turno
+
+            </button>
+
+            <button
+                id="btnRellamar"
+                class="boton-rellamar"
+                onclick="rellamar()"
+                disabled>
+
+                Volver a llamar
 
             </button>
 
@@ -421,6 +436,11 @@ const aviso =
 const btnLlamar =
     document.getElementById("btnLlamar");
 
+const btnRellamar =
+    document.getElementById(
+        "btnRellamar"
+);
+
 const btnFinalizar =
     document.getElementById("btnFinalizar");
 
@@ -457,9 +477,16 @@ const textoConexion =
 let servidorConectado = false;
 let operacionMesaEnProceso = false;
 
+let ultimoRellamadoSolicitado =
+    0;
+
+const DURACION_BLOQUEO_RELLAMADO =
+    8000;
+
 function bloquearControlesMesa(){
 
     btnLlamar.disabled = true;
+    btnRellamar.disabled = true;
     btnFinalizar.disabled = true;
     btnDescanso.disabled = true;
     btnBano.disabled = true;
@@ -574,9 +601,12 @@ function actualizarBotonesMesa(){
         atendiendo;
 
     /*
-    Finalizar solamente cuando existe
-    un turno en atención.
+    Volver a llamar y finalizar solamente
+    cuando existe un turno activo.
     */
+    btnRellamar.disabled =
+        !atendiendo;
+
     btnFinalizar.disabled =
         !atendiendo;
 
@@ -786,6 +816,195 @@ async function llamar(){
 
 }
 
+/*
+=========================================================
+VOLVER A LLAMAR EL TURNO ACTUAL
+=========================================================
+*/
+
+/*
+=========================================================
+VOLVER A LLAMAR EL TURNO ACTUAL
+=========================================================
+*/
+
+async function rellamar(){
+
+    if(
+        operacionMesaEnProceso
+        || !servidorConectado
+    ){
+
+        return;
+
+    }
+
+    if(!turnoActual){
+
+        mostrarMesaLibre();
+
+        mostrarAviso(
+            "No existe un turno activo para volver a llamar.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const ahora =
+        Date.now();
+
+    const tiempoTranscurrido =
+        ahora
+        - ultimoRellamadoSolicitado;
+
+    if(
+        tiempoTranscurrido
+        < DURACION_BLOQUEO_RELLAMADO
+    ){
+
+        const segundosRestantes =
+            Math.ceil(
+                (
+                    DURACION_BLOQUEO_RELLAMADO
+                    - tiempoTranscurrido
+                )
+                / 1000
+            );
+
+        mostrarAviso(
+            `El turno ya se está anunciando. Espera ${segundosRestantes} segundos.`,
+            "error"
+        );
+
+        return;
+
+    }
+
+    /*
+    El bloqueo se activa antes del fetch.
+
+    De esta forma, un segundo clic inmediato
+    no puede iniciar otra solicitud.
+    */
+    operacionMesaEnProceso =
+        true;
+
+    ultimoRellamadoSolicitado =
+        ahora;
+
+    btnRellamar.disabled =
+        true;
+
+    btnRellamar.textContent =
+        "Anunciando turno...";
+
+    mostrarAviso("");
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/repetir-llamado",
+                {
+
+                    method:
+                        "POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            mesa:
+                                numeroMesa
+                        })
+
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok || !data.success){
+
+            if(response.status === 404){
+
+                mostrarMesaLibre(
+                    "El turno ya no se encuentra activo"
+                );
+
+            }
+
+            throw new Error(
+                data.mensaje
+                || "No se pudo volver a llamar el turno"
+            );
+
+        }
+
+        mostrarAviso(
+            `Turno ${data.codigo} vuelto a llamar correctamente.`,
+            "exito"
+        );
+
+        /*
+        Mantenemos visualmente bloqueado el botón
+        durante el tiempo que dura el anuncio.
+        */
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    DURACION_BLOQUEO_RELLAMADO
+                )
+        );
+
+    }catch(error){
+
+        console.error(
+            "Error al volver a llamar turno:",
+            error
+        );
+
+        mostrarAviso(
+            error.message,
+            "error"
+        );
+
+        /*
+        Si la petición ni siquiera fue aceptada,
+        permitimos volver a intentarlo después
+        de revisar el error.
+        */
+        if(
+            error.message
+                .includes(
+                    "No se pudo volver a llamar"
+                )
+        ){
+
+            ultimoRellamadoSolicitado =
+                0;
+
+        }
+
+    }finally{
+
+        operacionMesaEnProceso =
+            false;
+
+        btnRellamar.textContent =
+            "Volver a llamar";
+
+        actualizarBotonesMesa();
+
+    }
+
+}
 
 async function finalizar(){
 
@@ -1003,6 +1222,7 @@ function aplicarEstadoOperativo(
         llamar ni finalizar turnos.
         */
         btnLlamar.disabled = true;
+        btnRellamar.disabled = true;
         btnFinalizar.disabled = true;
 
         btnDescanso.disabled = true;

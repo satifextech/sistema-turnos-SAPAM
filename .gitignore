@@ -6,3 +6,15 @@ uploads/
 backups/
 # Archivos generados por Electron Builder
 dist/
+# LINK License private material
+LINK-Secrets/
+**/license-private.pem
+**/*private*.pem
+
+# Licencias locales / activaciones
+SAPAM.lic
+license-signed.json
+
+# Binarios de release
+release/**/*.exe
+release/**/*.zip

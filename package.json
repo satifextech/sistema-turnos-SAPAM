@@ -1,6 +1,6 @@
 {
   "name": "link-kiosco-turnos",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Kiosco de Turnos Universal",
   "main": "electron/main.js",
   "author": "LINK",
@@ -11,7 +11,12 @@
     "electron": "electron .",
     "electron:dev": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis",
+    "link": "node tools/link-cli.js",
+    "link:version": "node tools/link-cli.js version",
+    "link:doctor": "node tools/link-cli.js doctor",
+    "link:sync": "node tools/link-cli.js sync",
+    "link:release": "node tools/link-cli.js release"
   },
   "keywords": [
     "LINK",
@@ -21,6 +26,7 @@
     "Electron"
   ],
   "dependencies": {
+    "axios": "^1.18.1",
     "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.0",
@@ -37,7 +43,7 @@
   "build": {
     "appId": "com.link.kiosco.turnos",
     "productName": "LINK Kiosco de Turnos",
-    "copyright": "Copyright © 2026 LINK",
+    "copyright": "Copyright © 2026 LINK. Todos los derechos reservados.",
     "asar": false,
     "directories": {
       "output": "dist",
@@ -78,5 +84,6 @@
       "uninstallDisplayName": "LINK Kiosco de Turnos",
       "deleteAppDataOnUninstall": false
     }
-  }
+  },
+  "productName": "LINK Kiosco de Turnos"
 }

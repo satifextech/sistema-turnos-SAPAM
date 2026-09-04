@@ -1,0 +1,16 @@
+[
+  {
+    "version": "1.0.0",
+    "codename": "Genesis",
+    "channel": "stable",
+    "build": "2026.07.20",
+    "released": true
+  },
+  {
+    "version": "1.0.1",
+    "codename": "Echo",
+    "channel": "stable",
+    "build": "2026.07.21",
+    "released": true
+  }
+]

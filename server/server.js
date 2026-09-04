@@ -17,6 +17,25 @@ const gestorReglas = require("../services/gestorReglas");
 const gestorConfiguracion = require("../services/gestorConfiguracion");
 const gestorVideos = require("../services/gestorVideos");
 const rateLimit = require("express-rate-limit");
+const productRuntimeService =
+    require(
+        "../services/runtime/product-runtime.service"
+    );
+const {
+    getPublicIdentity
+} =
+    require(
+        "../services/about.service"
+    );
+
+const packageInfo = require(
+        "../package.json"
+    );
+
+const licenseManager =
+    require(
+        "../services/license/license-manager.service"
+    );
 
 const {
 
@@ -48,6 +67,18 @@ const fs =
     require("fs");
 
 const app = express();
+
+/*
+=========================================================
+CONTROL DE RELLAMADOS POR MESA
+=========================================================
+*/
+
+const rellamadosBloqueados =
+    new Map();
+
+const DURACION_BLOQUEO_RELLAMADO =
+    8000;
 
 const limitadorLogin =
     rateLimit({
@@ -546,6 +577,217 @@ app.get("/", (req, res) => {
     res.send("Servidor funcionando");
 });
 
+/*
+=========================================================
+SALUD Y VERSIÓN DEL PRODUCTO
+=========================================================
+*/
+
+app.get(
+    "/health",
+    (_req, res) => {
+
+        try {
+
+            res.setHeader(
+                "Cache-Control",
+                "no-store"
+            );
+
+            res.json(
+                productRuntimeService
+                    .getHealthStatus()
+            );
+
+        } catch(error) {
+
+            console.error(
+                "Error al consultar salud del producto:",
+                error
+            );
+
+            res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    status:
+                        "unhealthy",
+
+                    message:
+                        "No fue posible determinar el estado del producto.",
+
+                    serverTime:
+                        new Date()
+                            .toISOString()
+
+                });
+
+        }
+
+    }
+);
+
+
+app.get(
+    "/version",
+    (_req, res) => {
+
+        try {
+
+            res.setHeader(
+                "Cache-Control",
+                "no-store"
+            );
+
+            res.json(
+                productRuntimeService
+                    .getVersionStatus()
+            );
+
+        } catch(error) {
+
+            console.error(
+                "Error al consultar versión del producto:",
+                error
+            );
+
+            res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        "No fue posible determinar la versión instalada.",
+
+                    serverTime:
+                        new Date()
+                            .toISOString()
+
+                });
+
+        }
+
+    }
+);
+
+/*
+=========================================================
+INFORMACIÓN DEL PRODUCTO
+=========================================================
+*/
+
+app.get(
+    "/api/admin/about",
+    requerirRoles(
+        "admin",
+        "supervisor"
+    ),
+    (
+        req,
+        res
+    )=>{
+
+        try{
+
+            const identity =
+                getPublicIdentity();
+
+            const dependencies =
+                packageInfo.dependencies
+                || {};
+
+            const devDependencies =
+                packageInfo.devDependencies
+                || {};
+
+            res.json({
+
+                success:
+                    true,
+
+                ...identity,
+
+                runtime:{
+
+                    node:
+                        process.versions.node
+                        || "",
+
+                    electron:
+                        process.versions.electron
+                        || "No aplica en navegador",
+
+                    chrome:
+                        process.versions.chrome
+                        || "",
+
+                    v8:
+                        process.versions.v8
+                        || ""
+
+                },
+
+                technologies:{
+
+                    express:
+                        dependencies.express
+                        || "",
+
+                    socketIo:
+                        dependencies["socket.io"]
+                        || "",
+
+                    sqlite:
+                        dependencies.sqlite3
+                        || dependencies["better-sqlite3"]
+                        || "",
+
+                    electron:
+                        devDependencies.electron
+                        || dependencies.electron
+                        || ""
+
+                },
+
+                license:{
+
+                    type:
+                        "Comercial",
+
+                    status:
+                        "Sistema de licencias pendiente de LINK Platform 12.2"
+
+                }
+
+            });
+
+        }catch(error){
+
+            console.error(
+                "Error al consultar información del producto:",
+                error
+            );
+
+            res.status(500).json({
+
+                success:
+                    false,
+
+                mensaje:
+                    "No se pudo cargar la información del producto"
+
+            });
+
+        }
+
+    }
+);
+
 app.get(
     "/api/pantalla/ultimos",
     async (req, res)=>{
@@ -781,6 +1023,284 @@ app.post("/api/llamar", async (req, res) => {
     }
 
 });
+
+/*
+=========================================================
+VOLVER A LLAMAR EL TURNO ACTUAL
+=========================================================
+*/
+
+/*
+=========================================================
+VOLVER A LLAMAR EL TURNO ACTUAL
+=========================================================
+*/
+
+app.post(
+    "/api/repetir-llamado",
+    async (req, res)=>{
+
+        const mesa =
+            Number(
+                req.body.mesa
+            );
+
+        if(
+            !Number.isInteger(mesa)
+            || mesa <= 0
+        ){
+
+            return res.status(400).json({
+                success:false,
+                mensaje:
+                    "Punto de atención inválido"
+            });
+
+        }
+
+        /*
+        El servidor bloquea inmediatamente la mesa.
+
+        Esto evita que dos clics rápidos, dos pestañas
+        o una petición manual provoquen dos anuncios.
+        */
+        if(
+            rellamadosBloqueados.has(
+                mesa
+            )
+        ){
+
+            const inicioBloqueo =
+                rellamadosBloqueados.get(
+                    mesa
+                );
+
+            const tiempoTranscurrido =
+                Date.now()
+                - inicioBloqueo;
+
+            const tiempoRestante =
+                Math.max(
+                    0,
+                    DURACION_BLOQUEO_RELLAMADO
+                    - tiempoTranscurrido
+                );
+
+            return res.status(429).json({
+                success:false,
+                mensaje:
+                    "El turno ya se está anunciando. "
+                    + `Espera ${Math.ceil(tiempoRestante / 1000)} segundos.`
+            });
+
+        }
+
+        rellamadosBloqueados.set(
+            mesa,
+            Date.now()
+        );
+
+        try{
+
+            const mesaConfig =
+                await gestorMesasConfig
+                    .buscarPorNumero(
+                        mesa
+                    );
+
+            if(!mesaConfig){
+
+                rellamadosBloqueados.delete(
+                    mesa
+                );
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "El punto de atención no existe"
+                });
+
+            }
+
+            if(
+                Number(
+                    mesaConfig.activo
+                ) !== 1
+            ){
+
+                rellamadosBloqueados.delete(
+                    mesa
+                );
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "El punto de atención está inactivo"
+                });
+
+            }
+
+            if(
+                Number(
+                    mesaConfig.permiteTurnos
+                ) !== 1
+            ){
+
+                rellamadosBloqueados.delete(
+                    mesa
+                );
+
+                return res.status(409).json({
+                    success:false,
+                    mensaje:
+                        "El punto de atención no puede recibir turnos"
+                });
+
+            }
+
+            /*
+            Consultamos el turno real en SQLite.
+            No confiamos únicamente en lo que muestra
+            el navegador de la mesa.
+            */
+            const turnoActual =
+                await gestorTurnos
+                    .obtenerTurnoActualMesa(
+                        mesa
+                    );
+
+            if(!turnoActual){
+
+                rellamadosBloqueados.delete(
+                    mesa
+                );
+
+                return res.status(404).json({
+                    success:false,
+                    mensaje:
+                        "La mesa no tiene un turno activo para volver a llamar"
+                });
+
+            }
+
+            const tramiteConfig =
+                turnoActual.tramite
+                    ? await gestorTramites
+                        .buscarPorCodigo(
+                            turnoActual.tramite
+                        )
+                    : null;
+
+            const nombreTramite =
+                tramiteConfig?.nombre
+                || turnoActual.nombreTramite
+                || turnoActual.tramite
+                || "";
+
+            const nombreMesa =
+                String(
+                    mesaConfig.nombre
+                    || `Mesa ${mesa}`
+                ).trim();
+
+            const anuncio = {
+
+                id:
+                    turnoActual.id,
+
+                codigo:
+                    turnoActual.codigo,
+
+                mesa,
+
+                nombreMesa,
+
+                tramite:
+                    turnoActual.tramite
+                    || "",
+
+                nombreTramite,
+
+                esRellamado:
+                    true
+
+            };
+
+            /*
+            Solamente se emite una vez.
+
+            Durante los siguientes 8 segundos, cualquier
+            otra petición de esta misma mesa será rechazada.
+            */
+            io.emit(
+                "nuevoTurno",
+                anuncio
+            );
+
+            const identificadorBloqueo =
+                rellamadosBloqueados.get(
+                    mesa
+                );
+
+            const temporizador =
+                setTimeout(
+                    ()=>{
+
+                        /*
+                        Solo eliminamos este bloqueo si todavía
+                        corresponde a la misma ejecución.
+                        */
+                        if(
+                            rellamadosBloqueados.get(
+                                mesa
+                            )
+                            === identificadorBloqueo
+                        ){
+
+                            rellamadosBloqueados.delete(
+                                mesa
+                            );
+
+                        }
+
+                    },
+                    DURACION_BLOQUEO_RELLAMADO
+                );
+
+            temporizador.unref();
+
+            res.json({
+
+                success:true,
+
+                ...anuncio,
+
+                mensaje:
+                    `Turno ${turnoActual.codigo} vuelto a llamar correctamente`
+
+            });
+
+        }catch(error){
+
+            rellamadosBloqueados.delete(
+                mesa
+            );
+
+            console.error(
+                "Error al volver a llamar turno:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                mensaje:
+                    "No se pudo volver a llamar el turno"
+            });
+
+        }
+
+    }
+);
 
 app.post("/api/finalizar", async (req, res) => {
 
@@ -4872,6 +5392,103 @@ app.use(
 
     }
 );
+
+const estadoLicencia =
+    licenseManager.getStatus();
+
+console.log("");
+console.log("LINK License");
+console.log("============");
+console.log(
+    `Estado: ${estadoLicencia.status}`
+);
+
+if(
+    estadoLicencia.customer
+) {
+
+    console.log(
+        `Cliente: ${estadoLicencia.customer}`
+    );
+
+}
+
+if(
+    estadoLicencia.type
+) {
+
+    console.log(
+        `Tipo: ${estadoLicencia.type}`
+    );
+
+}
+
+if(
+    estadoLicencia.licenseId
+) {
+
+    console.log(
+        `License ID: ${estadoLicencia.licenseId}`
+    );
+
+}
+
+if(
+    estadoLicencia.expiration
+) {
+
+    console.log(
+        `Expiración: ${estadoLicencia.expiration}`
+    );
+
+}
+
+if(
+    estadoLicencia.daysRemaining
+    !==
+    null
+) {
+
+    console.log(
+        `Días restantes: ${estadoLicencia.daysRemaining}`
+    );
+
+}
+
+console.log("");
+
+if(
+    !licenseManager.canStart()
+) {
+
+    console.error(
+        `✖ Licencia no válida: ${estadoLicencia.reason}`
+    );
+
+    console.error(
+        "El servidor no será iniciado."
+    );
+
+    console.error("");
+
+    process.exitCode =
+        1;
+
+    return;
+
+}
+
+if(
+    estadoLicencia.warning
+) {
+
+    console.warn(
+        "⚠ La licencia está próxima a vencer."
+    );
+
+    console.warn("");
+
+}
 
 const PUERTO =
     Number(
